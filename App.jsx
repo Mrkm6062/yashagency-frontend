@@ -14,7 +14,7 @@ const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageCom
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 // Main App Component
 function App() {
