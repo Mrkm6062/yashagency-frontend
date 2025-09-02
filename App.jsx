@@ -2871,7 +2871,7 @@ function TrackOrderPageComponent({ user }) {
   const fetchOrderDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/orders/${orderId}`, {
+      const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
