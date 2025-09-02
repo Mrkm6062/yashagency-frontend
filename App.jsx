@@ -918,7 +918,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
     }
     
     try {
-      const response = await fetch(`${API_BASE}/orders`, {
+      const response = await fetch(`${API_BASE}/api/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -2088,7 +2088,7 @@ function OrderHistory({ user }) {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/orders`, {
+      const response = await fetch(`${API_BASE}/api/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -2227,7 +2227,7 @@ function OrderStatusPageComponent({ user }) {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/orders`, {
+      const response = await fetch(`${API_BASE}/api/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
