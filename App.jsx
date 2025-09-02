@@ -1049,7 +1049,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   }
                   
                   try {
-                    const response = await fetch(`${API_BASE}/wishlist/${product._id}`, {
+                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: 'POST',
                       headers: { 'Authorization': `Bearer ${token}` }
                     });
