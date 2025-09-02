@@ -15,7 +15,6 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
-const NETLIFY_FUNCTIONS = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/.netlify/functions/api', '/.netlify/functions') : null;
 
 // Main App Component
 function App() {
@@ -137,8 +136,7 @@ function App() {
     
     setLoading(true);
     try {
-      const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/products` : `${API_BASE}/products`;
-      const response = await fetch(url);
+      const response = await fetch(`${API_BASE}/products`);
       const data = await response.json();
       setProducts(data);
       localStorage.setItem('products_cache', JSON.stringify(data));
@@ -180,8 +178,7 @@ function App() {
   // Login function
   const login = async (email, password) => {
     try {
-      const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/login` : `${API_BASE}/login`;
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -1885,8 +1882,7 @@ function LoginPage({ login, user }) {
     } else {
       // Register logic
       try {
-        const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/register` : `${API_BASE}/register`;
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE}/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name: email.includes('@') ? email.split('@')[0] : 'User' })
