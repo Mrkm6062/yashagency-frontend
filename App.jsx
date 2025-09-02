@@ -1885,7 +1885,8 @@ function LoginPage({ login, user }) {
     } else {
       // Register logic
       try {
-        const response = await fetch(`${API_BASE}/register`, {
+        const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/register` : `${API_BASE}/register`;
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name: email.includes('@') ? email.split('@')[0] : 'User' })
