@@ -47,9 +47,8 @@ function App() {
     const savedCart = localStorage.getItem('cart');
     
     if (token && userData) {
-      setUser(userData);
-      fetchWishlist();
-      fetchCart();
+      // Validate token by making a test API call
+      validateToken(token, userData);
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
       setIsInitialLoad(false);
@@ -58,6 +57,33 @@ function App() {
     }
     fetchProducts();
   }, []);
+
+  // Validate token and set user
+  const validateToken = async (token, userData) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        setUser(userData);
+        fetchWishlist();
+        fetchCart();
+      } else {
+        // Token is invalid, clear auth
+        clearAuth();
+        setUser(null);
+        setCart([]);
+        setIsInitialLoad(false);
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      clearAuth();
+      setUser(null);
+      setCart([]);
+      setIsInitialLoad(false);
+    }
+  };
 
   // Sync cart with server when cart changes for logged-in users
   useEffect(() => {
@@ -71,7 +97,7 @@ function App() {
       const token = getToken();
       if (!token) return;
       
-      const response = await fetch(`${API_BASE}/wishlist`, {
+      const response = await fetch(`${API_BASE}/api/wishlist`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -93,7 +119,7 @@ function App() {
         return;
       }
       
-      const response = await fetch(`${API_BASE}/cart`, {
+      const response = await fetch(`${API_BASE}/api/cart`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -112,7 +138,7 @@ function App() {
 
   const syncCart = async (cartData) => {
     try {
-      await makeSecureRequest(`${API_BASE}/cart`, {
+      await makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -3286,14 +3312,14 @@ function AdminPanelComponent({ user }) {
     try {
       const token = localStorage.getItem('token');
       const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, shippingRes, analyticsRes, bannerRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/shipping-cost`),
-        fetch(`${API_BASE}/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/banner`)
+        fetch(`${API_BASE}/api/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/shipping-cost`),
+        fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/banner`)
       ]);
       
       setProducts(await productsRes.json());
@@ -3321,7 +3347,7 @@ function AdminPanelComponent({ user }) {
     try {
       const token = localStorage.getItem('token');
       const params = new URLSearchParams(dateFilter);
-      const response = await fetch(`${API_BASE}/admin/orders/date-range?${params}`, {
+      const response = await fetch(`${API_BASE}/api/admin/orders/date-range?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -3335,7 +3361,7 @@ function AdminPanelComponent({ user }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const url = editingProduct ? `${API_BASE}/admin/products/${editingProduct._id}` : `${API_BASE}/admin/products`;
+      const url = editingProduct ? `${API_BASE}/api/admin/products/${editingProduct._id}` : `${API_BASE}/api/admin/products`;
       const method = editingProduct ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -3372,7 +3398,7 @@ function AdminPanelComponent({ user }) {
   const toggleProduct = async (productId, enabled) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/admin/products/${productId}/toggle`, {
+      await fetch(`${API_BASE}/api/admin/products/${productId}/toggle`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -3398,7 +3424,7 @@ function AdminPanelComponent({ user }) {
         payload.notes = courierForm.notes;
       }
       
-      await fetch(`${API_BASE}/orders/${orderId}/status`, {
+      await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -3428,7 +3454,7 @@ function AdminPanelComponent({ user }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/admin/coupons`, {
+      const response = await fetch(`${API_BASE}/api/admin/coupons`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -3451,7 +3477,7 @@ function AdminPanelComponent({ user }) {
   const toggleCoupon = async (couponId, isActive) => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/admin/coupons/${couponId}/toggle`, {
+      await fetch(`${API_BASE}/api/admin/coupons/${couponId}/toggle`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -3468,7 +3494,7 @@ function AdminPanelComponent({ user }) {
   const fetchCouponReport = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/admin/coupons/report`, {
+      const response = await fetch(`${API_BASE}/api/admin/coupons/report`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -3482,7 +3508,7 @@ function AdminPanelComponent({ user }) {
   const updateShipping = async () => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/admin/shipping`, {
+      await fetch(`${API_BASE}/api/admin/shipping`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -3499,7 +3525,7 @@ function AdminPanelComponent({ user }) {
   const updateBanner = async () => {
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/admin/banner`, {
+      await fetch(`${API_BASE}/api/admin/banner`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
