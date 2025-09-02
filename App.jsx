@@ -15,6 +15,7 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
+const NETLIFY_FUNCTIONS = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/.netlify/functions/api', '/.netlify/functions') : null;
 
 // Main App Component
 function App() {
@@ -136,7 +137,8 @@ function App() {
     
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/products`);
+      const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/products` : `${API_BASE}/products`;
+      const response = await fetch(url);
       const data = await response.json();
       setProducts(data);
       localStorage.setItem('products_cache', JSON.stringify(data));
@@ -178,7 +180,8 @@ function App() {
   // Login function
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/login`, {
+      const url = NETLIFY_FUNCTIONS ? `${NETLIFY_FUNCTIONS}/login` : `${API_BASE}/login`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
