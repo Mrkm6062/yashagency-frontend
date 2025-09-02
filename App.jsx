@@ -5286,16 +5286,6 @@ const Footer = React.memo(function Footer() {
   );
 });
 
-// Wishlist Page Component
-function WishlistPageComponent() {
-  return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">My Wishlist</h1>
-      <div className="bg-white p-6 rounded-lg shadow">
-        <p className="text-gray-600">Your wishlist is empty.</p>
-      </div>
-    </div>
-  );
-}
+
 
 export default App;
