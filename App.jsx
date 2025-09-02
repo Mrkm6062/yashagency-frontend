@@ -1398,7 +1398,7 @@ function CheckoutPageComponent({ user }) {
 
   const fetchShippingCost = async () => {
     try {
-      const response = await fetch(`${API_BASE}/shipping-cost`);
+      const response = await fetch(`${API_BASE}/api/shipping-cost`);
       const data = await response.json();
       setShippingCost(data.cost || 0);
     } catch (error) {
@@ -1409,7 +1409,7 @@ function CheckoutPageComponent({ user }) {
   const fetchAddresses = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/profile`, {
+      const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -2388,7 +2388,7 @@ function ProfilePageComponent({ user, setUser }) {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/profile`, {
+      const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -2437,7 +2437,7 @@ function ProfilePageComponent({ user, setUser }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/change-password`, {
+      const response = await fetch(`${API_BASE}/api/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2470,7 +2470,7 @@ function ProfilePageComponent({ user, setUser }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/addresses`, {
+      const response = await fetch(`${API_BASE}/api/addresses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2498,7 +2498,7 @@ function ProfilePageComponent({ user, setUser }) {
   const deleteAddress = async (addressId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/addresses/${addressId}`, {
+      const response = await fetch(`${API_BASE}/api/addresses/${addressId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
