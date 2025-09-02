@@ -136,13 +136,19 @@ function App() {
     
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/products`);
-      const data = await response.json();
-      setProducts(data);
-      localStorage.setItem('products_cache', JSON.stringify(data));
-      localStorage.setItem('products_cache_time', Date.now().toString());
+      const response = await fetch(`${API_BASE}/api/products`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data || []);
+        localStorage.setItem('products_cache', JSON.stringify(data || []));
+        localStorage.setItem('products_cache_time', Date.now().toString());
+      } else {
+        console.error('Failed to fetch products:', response.status);
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
     }
     setLoading(false);
   };
@@ -442,9 +448,11 @@ function HomePage({ products, loading }) {
 
   const fetchBanner = async () => {
     try {
-      const response = await fetch(`${API_BASE}/banner`);
-      const data = await response.json();
-      setBanner(data);
+      const response = await fetch(`${API_BASE}/api/banner`);
+      if (response.ok) {
+        const data = await response.json();
+        setBanner(data);
+      }
     } catch (error) {
       console.error('Error fetching banner:', error);
     }
@@ -5277,5 +5285,17 @@ const Footer = React.memo(function Footer() {
     </footer>
   );
 });
+
+// Wishlist Page Component
+function WishlistPageComponent() {
+  return (
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8">My Wishlist</h1>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <p className="text-gray-600">Your wishlist is empty.</p>
+      </div>
+    </div>
+  );
+}
 
 export default App;
