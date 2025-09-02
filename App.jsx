@@ -178,7 +178,7 @@ function App() {
   // Login function
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/login`, {
+      const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -1882,7 +1882,7 @@ function LoginPage({ login, user }) {
     } else {
       // Register logic
       try {
-        const response = await fetch(`${API_BASE}/register`, {
+        const response = await fetch(`${API_BASE}/api/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password, name: email.includes('@') ? email.split('@')[0] : 'User' })
