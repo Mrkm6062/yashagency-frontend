@@ -61,28 +61,46 @@ function App() {
   // Validate token and set user
   const validateToken = async (token, userData) => {
     try {
+      // Skip validation if we have valid user data and token exists
+      if (token && userData && userData.email) {
+        setUser(userData);
+        setIsInitialLoad(false);
+        // Fetch user data in background without blocking UI
+        fetchWishlist().catch(console.error);
+        fetchCart().catch(console.error);
+        return;
+      }
+      
+      // Only validate if we don't have complete user data
       const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (response.ok) {
-        setUser(userData);
+        const profileData = await response.json();
+        const userObj = { 
+          id: profileData._id, 
+          name: profileData.name, 
+          email: profileData.email, 
+          phone: profileData.phone 
+        };
+        setUser(userObj);
+        setUser(userObj);
         fetchWishlist();
         fetchCart();
       } else {
-        // Token is invalid, clear auth
         clearAuth();
         setUser(null);
         setCart([]);
-        setIsInitialLoad(false);
       }
     } catch (error) {
       console.error('Token validation error:', error);
-      clearAuth();
-      setUser(null);
-      setCart([]);
-      setIsInitialLoad(false);
+      // Don't clear auth on network errors, just set user from stored data
+      if (userData && userData.email) {
+        setUser(userData);
+      }
     }
+    setIsInitialLoad(false);
   };
 
   // Sync cart with server when cart changes for logged-in users
@@ -217,7 +235,7 @@ function App() {
       });
       
       if (response.status === 429) {
-        alert('Too many login attempts. Please try again later.');
+        alert('Too many login attempts. Please wait 15 minutes and try again.');
         return false;
       }
       
@@ -1923,7 +1941,7 @@ function LoginPage({ login, user }) {
         });
         
         if (response.status === 429) {
-          alert('Too many registration attempts. Please try again later.');
+          alert('Too many registration attempts. Please wait 15 minutes and try again.');
           setLoading(false);
           return;
         }
