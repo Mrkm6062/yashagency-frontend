@@ -122,7 +122,7 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        setWishlistItems(data.wishlist || []);
+        setWishlistItems(data.products?.map(p => p._id) || []);
       }
     } catch (error) {
       console.error('Error fetching wishlist:', error);
@@ -3277,205 +3277,7 @@ function TrackOrderPageComponent({ user }) {
   );
 }
 
-// Wishlist Page Component
-function WishlistPageComponent({ user, wishlistItems, setWishlistItems, addToCart, setNotification }) {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchWishlistProducts();
-    }
-  }, [user, wishlistItems]);
-
-  const fetchWishlistProducts = async () => {
-    try {
-      const token = getToken();
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE}/api/wishlist`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
-        setWishlistItems(data.products?.map(p => p._id) || []);
-      }
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-    }
-    setLoading(false);
-  };
-
-  const removeFromWishlist = async (productId) => {
-    try {
-      const token = getToken();
-      const response = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        setProducts(products.filter(p => p._id !== productId));
-        setWishlistItems(wishlistItems.filter(id => id !== productId));
-        setNotification({ message: 'Removed from wishlist', product: '', type: 'wishlist' });
-        setTimeout(() => setNotification(null), 3000);
-      }
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-    }
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-50">
-        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4">
-          <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">💝</span>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Login Required</h2>
-          <p className="text-gray-600 mb-6">Please login to view your wishlist</p>
-          <Link to="/login" className="bg-gradient-to-r from-pink-600 to-rose-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-            Login to Continue
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) return <LoadingSpinner />;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-rose-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-pink-600 to-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-3xl text-white">💝</span>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">My Wishlist</h1>
-          <p className="text-gray-600">Your favorite products saved for later</p>
-        </div>
-
-        {products.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-            <div className="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">💔</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your wishlist is empty</h2>
-            <p className="text-gray-600 mb-8">Start adding products you love to your wishlist</p>
-            <Link to="/products" className="bg-gradient-to-r from-pink-600 to-rose-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-pink-700 hover:to-rose-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-              Browse Products
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="bg-white rounded-xl shadow-sm border p-6 mb-8">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-800">💖 {products.length} item{products.length !== 1 ? 's' : ''} in your wishlist</h2>
-                <button
-                  onClick={() => {
-                    products.forEach(product => addToCart(product));
-                    setNotification({ message: 'All items added to cart', product: '', type: 'cart' });
-                    setTimeout(() => setNotification(null), 3000);
-                  }}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium"
-                >
-                  Add All to Cart
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map(product => {
-                const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
-                return (
-                  <div key={product._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group overflow-hidden">
-                    <div className="relative">
-                      <Link to={`/product/${product._id}`}>
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.name}
-                          className="w-full h-64 object-cover transition-all duration-300 group-hover:scale-105"
-                        />
-                      </Link>
-                      {hasDiscount && (
-                        <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">
-                          {product.discountPercentage}% OFF
-                        </div>
-                      )}
-                      <button
-                        onClick={() => removeFromWishlist(product._id)}
-                        className="absolute top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm text-red-500 rounded-full shadow-lg hover:bg-red-50 hover:text-red-600 transition-all duration-200 flex items-center justify-center group/btn"
-                        title="Remove from wishlist"
-                      >
-                        <svg className="w-5 h-5 group-hover/btn:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    <div className="p-6">
-                      <Link to={`/product/${product._id}`}>
-                        <h3 className="font-bold text-lg mb-2 group-hover:text-pink-600 transition-colors line-clamp-2">{product.name}</h3>
-                      </Link>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                      
-                      {/* Rating */}
-                      <div className="flex items-center mb-3">
-                        <div className="flex text-yellow-400 text-sm">
-                          {'★'.repeat(Math.floor(product.averageRating || 0))}{'☆'.repeat(5 - Math.floor(product.averageRating || 0))}
-                        </div>
-                        <span className="text-gray-500 text-xs ml-2">({product.totalRatings || 0})</span>
-                      </div>
-                      
-                      {/* Price */}
-                      <div className="flex items-center space-x-2 mb-4">
-                        <span className="text-2xl font-bold text-green-600">₹{product.price.toLocaleString()}</span>
-                        {hasDiscount && (
-                          <>
-                            <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{product.discountPercentage}% OFF</span>
-                          </>
-                        )}
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="space-y-2">
-                        <button 
-                          onClick={() => {
-                            addToCart(product);
-                            setNotification({ message: 'Added to cart', product: product.name, type: 'cart' });
-                            setTimeout(() => setNotification(null), 3000);
-                          }}
-                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
-                        >
-                          🛒 Add to Cart
-                        </button>
-                        <Link 
-                          to={`/product/${product._id}`}
-                          className="block w-full text-center border-2 border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 font-medium"
-                        >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // Admin Panel Component
 function AdminPanelComponent({ user }) {
@@ -5322,24 +5124,6 @@ function CustomerServicePage() {
               </div>
             )}
 
-            {/* FAQ Tab */}
-            {activeTab === 'faq' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
-                  <span>❓</span>
-                  <span>Frequently Asked Questions</span>
-                </h2>
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div key={index} className="bg-gray-50 p-6 rounded-xl hover:bg-gray-100 transition-colors">
-                      <h3 className="font-semibold text-gray-800 mb-2">{faq.q}</h3>
-                      <p className="text-gray-600">{faq.a}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Returns Tab */}
             {activeTab === 'returns' && (
               <div className="space-y-8">
@@ -5370,56 +5154,6 @@ function CustomerServicePage() {
                 <div className="bg-yellow-50 p-6 rounded-xl">
                   <h3 className="text-xl font-bold text-yellow-800 mb-4">⚠️ Return Conditions</h3>
                   <p className="text-yellow-700">Items must be unused, in original packaging, and returned within 5 days of delivery. Some items like personalized products may not be eligible for return.</p>
-                </div>
-              </div>
-            )}
-
-            {/* Shipping Tab */}
-            {activeTab === 'shipping' && (
-              <div className="space-y-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
-                  <span>🚚</span>
-                  <span>Shipping Information</span>
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-6 rounded-xl text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-2xl">🚛</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-blue-800 mb-2">Standard Delivery</h3>
-                    <p className="text-blue-600 mb-2">3-5 Business Days</p>
-                    <p className="text-sm text-blue-500">Free on orders over ₹500</p>
-                  </div>
-                  <div className="bg-green-50 p-6 rounded-xl text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-2xl">⚡</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-green-800 mb-2">Express Delivery</h3>
-                    <p className="text-green-600 mb-2">1-2 Business Days</p>
-                    <p className="text-sm text-green-500">₹99 shipping fee</p>
-                  </div>
-                  <div className="bg-purple-50 p-6 rounded-xl text-center">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-2xl">🏪</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-purple-800 mb-2">Store Pickup</h3>
-                    <p className="text-purple-600 mb-2">Same Day</p>
-                    <p className="text-sm text-purple-500">Free pickup available</p>
-                  </div>
-                </div>
-                <div className="bg-gray-50 p-6 rounded-xl">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">📍 Delivery Areas</h3>
-                  <p className="text-gray-600 mb-4">We currently deliver to all major cities across India. Remote areas may have extended delivery times.</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="text-gray-700">• Mumbai</div>
-                    <div className="text-gray-700">• Delhi</div>
-                    <div className="text-gray-700">• Bangalore</div>
-                    <div className="text-gray-700">• Chennai</div>
-                    <div className="text-gray-700">• Kolkata</div>
-                    <div className="text-gray-700">• Hyderabad</div>
-                    <div className="text-gray-700">• Pune</div>
-                    <div className="text-gray-700">• And 500+ more cities</div>
-                  </div>
                 </div>
               </div>
             )}
@@ -5527,9 +5261,6 @@ const Footer = React.memo(function Footer() {
         </div>
       </div>
     </footer>
-  );
-});
-
-
+  );});
 
 export default App;
