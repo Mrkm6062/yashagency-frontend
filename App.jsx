@@ -1434,7 +1434,7 @@ function CheckoutPageComponent({ user }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/checkout`, {
+      const response = await fetch(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1782,7 +1782,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 
   const fetchSuggestedProducts = async () => {
     try {
-      const response = await fetch(`${API_BASE}/products`);
+      const response = await fetch(`${API_BASE}/api/products`);
       const data = await response.json();
       setProducts(data.slice(0, 4));
     } catch (error) {
