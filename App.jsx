@@ -64,45 +64,36 @@ function App() {
 
   // Validate token and set user
   const validateToken = async (token, userData) => {
-    try {
-      // Skip validation if we have valid user data and token exists
-      if (token && userData && userData.email) {
-        setUser(userData);
-        setIsInitialLoad(false);
-        // Fetch user data in background without blocking UI
-        fetchWishlist().catch(console.error);
-        fetchCart().catch(console.error);
-        return;
-      }
-      
-      // Only validate if we don't have complete user data
+    try {      
       const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (response.ok) {
         const profileData = await response.json();
-        const userObj = { 
-          id: profileData._id, 
-          name: profileData.name, 
-          email: profileData.email, 
-          phone: profileData.phone 
+        const userObj = {
+          id: profileData._id,
+          name: profileData.name,
+          email: profileData.email,
+          phone: profileData.phone,
+          createdAt: profileData.createdAt
         };
-        setUser(userObj);
-        setUser(userObj);
+        setUser(userObj); // Set the user from the fresh profile data
+        // Now fetch wishlist and cart
         fetchWishlist();
         fetchCart();
       } else {
+        // If the token is invalid (e.g., expired), clear everything
         clearAuth();
         setUser(null);
         setCart([]);
       }
     } catch (error) {
       console.error('Token validation error:', error);
-      // Don't clear auth on network errors, just set user from stored data
-      if (userData && userData.email) {
-        setUser(userData);
-      }
+      // On network error, clear auth to be safe
+      clearAuth();
+      setUser(null);
+      setCart([]);
     }
     setIsInitialLoad(false);
   };
