@@ -3048,7 +3048,7 @@ function TrackOrderPageComponent({ user }) {
             <h3 className="font-semibold text-gray-700 mb-2">Order Details</h3>
             <p><strong>Order ID:</strong> #{order.orderNumber || order._id.slice(-8)}</p>
             <p><strong>Order Date:</strong> {new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-            <p><strong>Total Amount:</strong> ₹{order.total.toFixed(2)}</p>
+            <p><strong>Total Amount:</strong> ₹{order.total?.toFixed(2) || '0.00'}</p>
           </div>
           
           <div>
@@ -3252,7 +3252,7 @@ function TrackOrderPageComponent({ user }) {
           <div className="pt-4 border-t space-y-2">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>₹{order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}</span>
+              <span>₹{(order.total - (order.shippingCost || 0) - (order.tax || 0) + (order.discount || 0)).toFixed(2)}</span>
             </div>
             
             {order.shippingCost > 0 && (
