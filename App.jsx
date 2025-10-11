@@ -268,12 +268,12 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistProducts.length} />
+        <Header user={user} logout={logout} cartCount={cart.length} />
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
-            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setWishlistProducts={setWishlistProducts} setNotification={setNotification} /></Suspense>} />
+            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setNotification={setNotification} /></Suspense>} />
             <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
@@ -281,7 +281,7 @@ function App() {
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
-            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} setCart={setCart} updateCartQuantity={updateCartQuantity} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
@@ -314,7 +314,7 @@ function App() {
 }
 
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
+const Header = React.memo(function Header({ user, logout, cartCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -342,17 +342,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               </span>
             </Link>
             {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && (
-              <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
-                <span className="flex items-center space-x-1">
-                  <span>❤️</span>
-                  <span>Wishlist</span>
-                  {wishlistCount > 0 && (
-                    <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
-                  )}
-                </span>
-              </Link>
-            )}
+            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
             {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -433,16 +423,11 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               )}
               {user && (
                 <Link 
-                  to="/wishlist"
-                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2 flex items-center justify-between"
+                  to="/wishlist" 
+                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span>❤️ Wishlist</span>
-                  {wishlistCount > 0 && (
-                    <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1">
-                      {wishlistCount}
-                    </span>
-                  )}
+                  Wishlist
                 </Link>
               )}
               {user && (
@@ -909,7 +894,7 @@ function ProductListPage({ products, loading }) {
 }
 
 // Product Detail Page Component
-function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setWishlistProducts, setNotification }) {
+function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setNotification }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1074,15 +1059,13 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                     const data = await response.json();
                     if (response.ok) {
                       if (isInWishlist) {
-                        setWishlistItems(prev => prev.filter(id => id !== product._id));
-                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
+                        setWishlistItems && setWishlistItems(prev => prev.filter(id => id !== product._id));
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems(prev => [...prev, product._id]);
-                        setWishlistProducts(prev => [...prev, product]);
+                        setWishlistItems && setWishlistItems(prev => [...prev, product._id]);
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
-                      setTimeout(() => setNotification(null), 3000);
+                      setTimeout(() => setNotification && setNotification(null), 3000);
                     } else {
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
@@ -1357,7 +1340,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
 }
 
 // Checkout Page Component
-function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
+function CheckoutPageComponent({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
@@ -1365,7 +1348,6 @@ function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState(null); // Add state for full user profile
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponId, setCouponId] = useState(null);
@@ -1435,7 +1417,6 @@ function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
       });
       const data = await response.json();
       setAddresses(data.addresses || []);
-      setUserProfile(data); // Store the full profile
     } catch (error) {
       console.error('Error fetching addresses:', error);
     }
@@ -1450,13 +1431,6 @@ function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
-      return;
-    }
-
-    // Verify user has a phone number
-    if (!userProfile?.phone) {
-      alert('Please update your profile with a phone number before placing an order.');
-      navigate('/profile');
       return;
     }
 
@@ -1475,11 +1449,6 @@ function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
       if (response.ok) {
         const data = await response.json();
         alert('Order placed successfully!');
-        // Clear the cart only if it's a regular checkout, not a "Buy Now"
-        if (!buyNow) {
-          setCart([]);
-          localStorage.removeItem('cart');
-        }
         navigate(`/track/${data.orderId}`);
       } else {
         const error = await response.json();
@@ -1634,21 +1603,7 @@ function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
                       {item.selectedVariant && (
                         <p className="text-gray-500 text-xs">{item.selectedVariant.size} - {item.selectedVariant.color}</p>
                       )}
-                      <div className="flex items-center border border-gray-200 rounded w-fit mt-1">
-                        <button 
-                          onClick={() => updateCartQuantity(item._id, item.quantity - 1)}
-                          className="px-2 py-0.5 text-sm hover:bg-gray-100"
-                        >
-                          -
-                        </button>
-                        <span className="px-3 py-0.5 border-x text-sm">{item.quantity}</span>
-                        <button 
-                          onClick={() => updateCartQuantity(item._id, item.quantity + 1)}
-                          className="px-2 py-0.5 text-sm hover:bg-gray-100"
-                        >
-                          +
-                        </button>
-                      </div>
+                      <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
                     </div>
                     <p className="font-semibold text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</p>
                   </div>
@@ -3071,7 +3026,7 @@ function TrackOrderPageComponent({ user }) {
             <h3 className="font-semibold text-gray-700 mb-2">Order Details</h3>
             <p><strong>Order ID:</strong> #{order.orderNumber || order._id.slice(-8)}</p>
             <p><strong>Order Date:</strong> {new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-            <p><strong>Total Amount:</strong> ₹{order.total?.toFixed(2) || '0.00'}</p>
+            <p><strong>Total Amount:</strong> ₹{order.total.toFixed(2)}</p>
           </div>
           
           <div>
@@ -3275,7 +3230,7 @@ function TrackOrderPageComponent({ user }) {
           <div className="pt-4 border-t space-y-2">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span>₹{(order.total - (order.shippingCost || 0) - (order.tax || 0) + (order.discount || 0)).toFixed(2)}</span>
+              <span>₹{order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}</span>
             </div>
             
             {order.shippingCost > 0 && (
@@ -3522,11 +3477,12 @@ function AdminPanelComponent({ user }) {
   const saveCoupon = async () => {
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/admin/coupons`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/api/admin/coupons`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Authorization is handled by makeSecureRequest
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(couponForm)
       });
