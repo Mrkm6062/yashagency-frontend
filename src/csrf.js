@@ -1,11 +1,13 @@
 // CSRF Token Management
 let csrfToken = null;
 
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+
 export const getCSRFToken = async () => {
   if (csrfToken) return csrfToken;
   
   try {
-    const response = await fetch('http://localhost:3001/api/csrf-token', {
+    const response = await fetch(`${API_BASE}/api/csrf-token`, {
       headers: {
         'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : 'anonymous'
       }

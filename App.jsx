@@ -3499,12 +3499,11 @@ function AdminPanelComponent({ user }) {
   const saveCoupon = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/admin/coupons`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/admin/coupons`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          // Authorization is handled by makeSecureRequest
         },
         body: JSON.stringify(couponForm)
       });
