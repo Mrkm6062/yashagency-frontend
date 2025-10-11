@@ -2158,14 +2158,14 @@ const ProductCard = React.memo(function ProductCard({ product }) {
         <img 
           src={images[currentImageIndex]} 
           alt={product.name}
-          className="w-full h-96 object-cover transition-all duration-300 group-hover:scale-105"
+          className="w-full h-full object-contain transition-all duration-300 group-hover:scale-105"
           loading="lazy"
           width="300"
           height="384"
           onLoad={() => setImageLoaded(true)}
           style={{ opacity: imageLoaded ? 1 : 0 }}
         />
-        {!imageLoaded && <div className="absolute inset-0 bg-gray-300 animate-pulse w-full h-96" />}
+        {!imageLoaded && <div className="absolute inset-0 bg-gray-300 animate-pulse w-full h-full" />}
         {hasDiscount && (
           <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
             {product.discountPercentage}% OFF
