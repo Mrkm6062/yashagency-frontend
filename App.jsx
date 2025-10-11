@@ -1933,6 +1933,7 @@ function LoginPage({ login, user }) {
         navigate(from);
       } else {
         alert('Login failed. Please check your credentials.');
+        setLoading(false); // Add this line to stop loading on failure
       }
     } else {
       // Register logic
