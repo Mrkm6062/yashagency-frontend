@@ -1,8 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { t } from './src/i18n.js';
+import { makeSecureRequest } from './src/csrf.js';
+import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
+
+// Lazy load heavy components
+const ProductDetailPage = lazy(() => Promise.resolve({ default: ProductDetailPageComponent }));
+const CheckoutPage = lazy(() => Promise.resolve({ default: CheckoutPageComponent }));
+const AdminPanel = lazy(() => Promise.resolve({ default: AdminPanelComponent }));
+const TrackOrderPage = lazy(() => Promise.resolve({ default: TrackOrderPageComponent }));
+const ProfilePage = lazy(() => Promise.resolve({ default: ProfilePageComponent }));
+const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageComponent }));
+const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 // Main App Component
 function App() {
@@ -30,14 +42,13 @@ function App() {
 
   // Load user from localStorage on app start
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const token = getToken();
+    const userData = getUser();
     const savedCart = localStorage.getItem('cart');
     
     if (token && userData) {
-      setUser(JSON.parse(userData));
-      fetchWishlist();
-      fetchCart();
+      // Validate token by making a test API call
+      validateToken(token, userData);
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
       setIsInitialLoad(false);
@@ -46,6 +57,51 @@ function App() {
     }
     fetchProducts();
   }, []);
+
+  // Validate token and set user
+  const validateToken = async (token, userData) => {
+    try {
+      // Skip validation if we have valid user data and token exists
+      if (token && userData && userData.email) {
+        setUser(userData);
+        setIsInitialLoad(false);
+        // Fetch user data in background without blocking UI
+        fetchWishlist().catch(console.error);
+        fetchCart().catch(console.error);
+        return;
+      }
+      
+      // Only validate if we don't have complete user data
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const profileData = await response.json();
+        const userObj = { 
+          id: profileData._id, 
+          name: profileData.name, 
+          email: profileData.email, 
+          phone: profileData.phone 
+        };
+        setUser(userObj);
+        setUser(userObj);
+        fetchWishlist();
+        fetchCart();
+      } else {
+        clearAuth();
+        setUser(null);
+        setCart([]);
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      // Don't clear auth on network errors, just set user from stored data
+      if (userData && userData.email) {
+        setUser(userData);
+      }
+    }
+    setIsInitialLoad(false);
+  };
 
   // Sync cart with server when cart changes for logged-in users
   useEffect(() => {
@@ -56,14 +112,27 @@ function App() {
 
   const fetchWishlist = async () => {
     try {
-      const response = await fetch(`${API_BASE}/wishlist`, {
+      const token = getToken();
+      if (!token) return;
+      
+      const response = await fetch(`${API_BASE}/api/wishlist`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       if (response.ok) {
         const data = await response.json();
-        setWishlistItems(data.wishlist || []);
+        console.log('Wishlist data:', data); // Debug log
+        // Handle different possible response structures
+        if (Array.isArray(data)) {
+          setWishlistItems(data.map(item => typeof item === 'string' ? item : item._id));
+        } else if (data.products && Array.isArray(data.products)) {
+          setWishlistItems(data.products.map(p => typeof p === 'string' ? p : p._id));
+        } else if (data.wishlist && Array.isArray(data.wishlist)) {
+          setWishlistItems(data.wishlist.map(item => typeof item === 'string' ? item : item._id));
+        } else {
+          setWishlistItems([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching wishlist:', error);
@@ -72,9 +141,15 @@ function App() {
 
   const fetchCart = async () => {
     try {
-      const response = await fetch(`${API_BASE}/cart`, {
+      const token = getToken();
+      if (!token) {
+        setIsInitialLoad(false);
+        return;
+      }
+      
+      const response = await fetch(`${API_BASE}/api/cart`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       if (response.ok) {
@@ -91,11 +166,10 @@ function App() {
 
   const syncCart = async (cartData) => {
     try {
-      await fetch(`${API_BASE}/cart`, {
+      await makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ cart: cartData })
       });
@@ -104,17 +178,31 @@ function App() {
     }
   };
 
-  // Fetch all products
+  // Fetch all products with caching
   const fetchProducts = async () => {
+    const cached = localStorage.getItem('products_cache');
+    const cacheTime = localStorage.getItem('products_cache_time');
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+      setProducts(JSON.parse(cached));
+      return;
+    }
+    
     setLoading(true);
     try {
-      console.log('Fetching products from:', `${API_BASE}/products`);
-      const response = await fetch(`${API_BASE}/products`);
-      const data = await response.json();
-      console.log('Products fetched:', data);
-      setProducts(data);
+      const response = await fetch(`${API_BASE}/api/products`);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data || []);
+        localStorage.setItem('products_cache', JSON.stringify(data || []));
+        localStorage.setItem('products_cache_time', Date.now().toString());
+      } else {
+        console.error('Failed to fetch products:', response.status);
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]);
     }
     setLoading(false);
   };
@@ -150,23 +238,25 @@ function App() {
   // Login function
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE}/login`, {
+      const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
+      
+      if (response.status === 429) {
+        alert('Too many login attempts. Please wait 15 minutes and try again.');
+        return false;
+      }
+      
       const data = await response.json();
       
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        setToken(data.token);
         setUser(data.user);
         
         // Fetch user's cart from server
-        setTimeout(() => {
-          fetchWishlist();
-          fetchCart();
-        }, 100);
+        Promise.all([fetchWishlist(), fetchCart()]).catch(console.error);
         
         return true;
       }
@@ -179,8 +269,7 @@ function App() {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    clearAuth();
     setUser(null);
     setCart([]);
   };
@@ -193,15 +282,16 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
-            <Route path="/product/:id" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} />} />
+            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setNotification={setNotification} /></Suspense>} />
             <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
-            <Route path="/orders" element={<OrderStatusPage user={user} />} />
-            <Route path="/wishlist" element={<WishlistPage user={user} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} addToCart={addToCart} />} />
-            <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
-            <Route path="/track/:orderId" element={<TrackOrderPage user={user} />} />
-            <Route path="/checkout" element={<CheckoutPage user={user} />} />
-            <Route path="/admin" element={<AdminPanel user={user} />} />
+            <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
+            <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
+            <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
+            <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
+            <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
+            <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
         </main>
         <Footer />
@@ -209,7 +299,7 @@ function App() {
         {/* Notification */}
         {notification && (
           <div className={`fixed top-4 right-4 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 ${
-            notification.type === 'wishlist' ? 'bg-red-500' : 'bg-green-500'
+            notification.type === 'wishlist' ? 'bg-pink-500' : 'bg-green-500'
           }`}>
             <div>
               <p className="font-semibold">{notification.message}</p>
@@ -218,7 +308,7 @@ function App() {
             <Link 
               to={notification.type === 'wishlist' ? '/wishlist' : '/cart'}
               className={`bg-white px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 ${
-                notification.type === 'wishlist' ? 'text-red-500' : 'text-green-500'
+                notification.type === 'wishlist' ? 'text-pink-500' : 'text-green-500'
               }`}
               onClick={() => setNotification(null)}
             >
@@ -231,225 +321,65 @@ function App() {
   );
 }
 
-// Header Component
+// Placeholder components - you'll need to implement these
 function Header({ user, logout, cartCount }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  return (
-    <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
-            SamriddhiShop
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Home</Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Products</Link>
-            <Link to="/cart" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
-              <span className="flex items-center space-x-1">
-                <span>🛒</span>
-                <span>Cart</span>
-                {cartCount > 0 && (
-                  <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1 ml-1">
-                    {cartCount}
-                  </span>
-                )}
-              </span>
-            </Link>
-            {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
-            {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
-            {user?.email === 'admin@samriddhishop.com' && (
-              <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
-                Admin
-              </Link>
-            )}
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-gray-600 text-sm">Hi, {user.name}</span>
-                <button 
-                  onClick={logout} 
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors border"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                Login
-              </Link>
-            )}
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="lg:hidden pb-4 border-t border-gray-200 mt-4 bg-gray-50">
-            <nav className="flex flex-col space-y-1 pt-4">
-              <Link 
-                to="/" 
-                className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/products" 
-                className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Products
-              </Link>
-              <Link 
-                to="/cart" 
-                className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2 flex items-center justify-between"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span>🛒 Cart</span>
-                {cartCount > 0 && (
-                  <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-              {user && (
-                <Link 
-                  to="/orders" 
-                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  My Orders
-                </Link>
-              )}
-              {user && (
-                <Link 
-                  to="/wishlist" 
-                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Wishlist
-                </Link>
-              )}
-              {user && (
-                <Link 
-                  to="/profile" 
-                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Profile
-                </Link>
-              )}
-              {user?.email === 'admin@samriddhishop.com' && (
-                <Link 
-                  to="/admin" 
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-3 rounded-lg font-medium transition-colors mx-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Admin Panel
-                </Link>
-              )}
-              {user ? (
-                <div className="pt-3 mt-3 border-t border-gray-300 mx-2">
-                  <p className="text-gray-600 text-sm mb-3 px-2">Hi, {user.name}</p>
-                  <button 
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                    }} 
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg font-medium transition-colors w-full border"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <Link 
-                  to="/login" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-medium transition-colors mx-2 text-center"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Login
-                </Link>
-              )}
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
-  );
+  return <div>Header Component</div>;
 }
 
-// Placeholder components - you'll need to implement these
 function HomePage({ products, loading }) {
-  return <div>Home Page - Products: {products.length}</div>;
+  return <div>Home Page Component</div>;
 }
 
 function ProductListPage({ products, loading }) {
-  return <div>Product List - Products: {products.length}</div>;
+  return <div>Product List Component</div>;
 }
 
-function ProductDetailPage({ products, addToCart, wishlistItems, setWishlistItems }) {
-  return <div>Product Detail Page</div>;
+function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setNotification }) {
+  return <div>Product Detail Component</div>;
 }
 
 function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, setNotification }) {
-  return <div>Cart Page - Items: {cart.length}</div>;
+  return <div>Cart Component</div>;
 }
 
 function LoginPage({ login, user }) {
-  return <div>Login Page</div>;
+  return <div>Login Component</div>;
 }
 
-function OrderStatusPage({ user }) {
-  return <div>Order Status Page</div>;
+function OrderStatusPageComponent({ user }) {
+  return <div>Order Status Component</div>;
 }
 
-function WishlistPage({ user, wishlistItems, setWishlistItems, addToCart }) {
-  return <div>Wishlist Page</div>;
+function WishlistPageComponent({ user, wishlistItems, setWishlistItems, addToCart, setNotification }) {
+  return <div>Wishlist Component</div>;
 }
 
-function ProfilePage({ user, setUser }) {
-  return <div>Profile Page</div>;
+function ProfilePageComponent({ user, setUser }) {
+  return <div>Profile Component</div>;
 }
 
-function TrackOrderPage({ user }) {
-  return <div>Track Order Page</div>;
+function TrackOrderPageComponent({ user }) {
+  return <div>Track Order Component</div>;
 }
 
-function CheckoutPage({ user }) {
-  return <div>Checkout Page</div>;
+function CheckoutPageComponent({ user }) {
+  return <div>Checkout Component</div>;
 }
 
-function AdminPanel({ user }) {
-  return <div>Admin Panel</div>;
+function AdminPanelComponent({ user }) {
+  return <div>Admin Panel Component</div>;
+}
+
+function CustomerServicePage() {
+  return <div>Customer Service Component</div>;
 }
 
 function Footer() {
-  return (
-    <footer className="bg-gray-800 text-white py-8 mt-12">
-      <div className="container mx-auto px-4">
-        <div className="text-center">
-          <p>&copy; 2024 SamriddhiShop. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  );
+  return <div>Footer Component</div>;
+}
+
+function LoadingSpinner() {
+  return <div>Loading...</div>;
 }
 
 export default App;

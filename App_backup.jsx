@@ -35,7 +35,7 @@ function App() {
     localStorage.setItem('cart', JSON.stringify(newCart));
   };
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true); // Set initial loading to true
+  const [loading, setLoading] = useState(false);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -55,10 +55,7 @@ function App() {
     } else {
       setIsInitialLoad(false);
     }
-    // Initial product fetch is now handled inside the App component
-    // to prevent re-fetching on every component mount that uses the hook.
-    // The hook can be used in other components for accessing the products.
-    fetchProducts().then(() => setLoading(false));
+    fetchProducts();
   }, []);
 
   // Validate token and set user
