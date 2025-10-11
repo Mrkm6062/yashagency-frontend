@@ -554,7 +554,7 @@ function HomePage({ products, loading }) {
               View All →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {categoryProducts.slice(0, 4).map(product => (
               <ProductCard key={product._id} product={product} />
             ))}
@@ -873,7 +873,7 @@ function ProductListPage({ products, loading }) {
       </p>
       
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.slice(0, 12).map(product => (
           <ProductCard key={product._id} product={product} />
         ))}
@@ -1821,7 +1821,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       
       {/* Cart Items */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {cart.map(item => {
           const hasDiscount = item.originalPrice && item.discountPercentage && item.discountPercentage > 0;
           return (
@@ -1854,7 +1854,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       {/* Suggested Products */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6">You might also like</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map(product => {
             const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
             return (
@@ -4911,7 +4911,7 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
       ) : (
         <>
           <p className="text-gray-600 mb-6">{wishlistProducts.length} item(s) in your wishlist</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistProducts.map(product => (
               <WishlistProductCard 
                 key={product._id} 
