@@ -2186,7 +2186,7 @@ const ProductCard = React.memo(function ProductCard({ product }) {
       </div>
       <div className="px-3 pb-3">
         <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">{product.name}</h3>
-        <p className="text-gray-600 text-sm mb-2">{product.description.substring(0, 100)}...</p>
+        <p className="text-gray-600 text-sm mb-2 hidden md:block">{product.description.substring(0, 100)}...</p>
         
         {/* Rating */}
         <div className="flex items-center mb-2">
