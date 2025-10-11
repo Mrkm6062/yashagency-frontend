@@ -4861,42 +4861,24 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
 }
 
 // Wishlist Page Component
-function WishlistPageComponent({ user, wishlistItems, setWishlistItems, addToCart, setNotification }) {
-  const [wishlistProducts, setWishlistProducts] = useState([]);
+function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, setWishlistItems, addToCart, setNotification }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && wishlistItems.length > 0) {
-      fetchWishlistProducts();
-    } else {
-      setLoading(false);
-    }
-  }, [user, wishlistItems]);
-
-  const fetchWishlistProducts = async () => {
-    try {
-      const token = getToken();
-      if (!token || !wishlistItems.length) {
-        setLoading(false);
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE}/products`);
-      const allProducts = await response.json();
-      const wishlistProds = allProducts.filter(product => wishlistItems.includes(product._id));
-      setWishlistProducts(wishlistProds);
-    } catch (error) {
-      console.error('Error fetching wishlist products:', error);
-    }
+    // Data is now passed via props, so we just need to handle the loading state.
     setLoading(false);
-  };
+  }, [wishlistProducts]);
 
   const removeFromWishlist = async (productId) => {
     try {
       const token = getToken();
-      const response = await fetch(`${API_BASE}/wishlist/${productId}`, {
+      const response = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          // Assuming you might add CSRF protection to this route later
+          // 'X-CSRF-Token': await getCsrfToken() 
+        }
       });
       
       if (response.ok) {
@@ -4904,6 +4886,7 @@ function WishlistPageComponent({ user, wishlistItems, setWishlistItems, addToCar
         setWishlistProducts(prev => prev.filter(product => product._id !== productId));
       }
     } catch (error) {
+      alert('Failed to remove item from wishlist.');
       console.error('Error removing from wishlist:', error);
     }
   };
