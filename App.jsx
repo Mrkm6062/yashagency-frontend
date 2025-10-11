@@ -268,7 +268,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} logout={logout} cartCount={cart.length} />
+        <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistProducts.length} />
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -281,7 +281,7 @@ function App() {
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
-            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} setCart={setCart} /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
@@ -314,7 +314,7 @@ function App() {
 }
 
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount }) {
+const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -342,7 +342,17 @@ const Header = React.memo(function Header({ user, logout, cartCount }) {
               </span>
             </Link>
             {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
+            {user && (
+              <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
+                <span className="flex items-center space-x-1">
+                  <span>❤️</span>
+                  <span>Wishlist</span>
+                  {wishlistCount > 0 && (
+                    <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
+                  )}
+                </span>
+              </Link>
+            )}
             {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -423,11 +433,16 @@ const Header = React.memo(function Header({ user, logout, cartCount }) {
               )}
               {user && (
                 <Link 
-                  to="/wishlist" 
-                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
+                  to="/wishlist"
+                  className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2 flex items-center justify-between"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Wishlist
+                  <span>❤️ Wishlist</span>
+                  {wishlistCount > 0 && (
+                    <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1">
+                      {wishlistCount}
+                    </span>
+                  )}
                 </Link>
               )}
               {user && (
@@ -1342,7 +1357,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
 }
 
 // Checkout Page Component
-function CheckoutPageComponent({ user }) {
+function CheckoutPageComponent({ user, setCart }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
@@ -1451,6 +1466,11 @@ function CheckoutPageComponent({ user }) {
       if (response.ok) {
         const data = await response.json();
         alert('Order placed successfully!');
+        // Clear the cart only if it's a regular checkout, not a "Buy Now"
+        if (!buyNow) {
+          setCart([]);
+          localStorage.removeItem('cart');
+        }
         navigate(`/track/${data.orderId}`);
       } else {
         const error = await response.json();
