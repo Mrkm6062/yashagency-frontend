@@ -281,7 +281,7 @@ function App() {
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
-            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} setCart={setCart} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} setCart={setCart} updateCartQuantity={updateCartQuantity} /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
@@ -1357,7 +1357,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
 }
 
 // Checkout Page Component
-function CheckoutPageComponent({ user, setCart }) {
+function CheckoutPageComponent({ user, setCart, updateCartQuantity }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
@@ -1365,6 +1365,7 @@ function CheckoutPageComponent({ user, setCart }) {
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState(null); // Add state for full user profile
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponId, setCouponId] = useState(null);
@@ -1434,6 +1435,7 @@ function CheckoutPageComponent({ user, setCart }) {
       });
       const data = await response.json();
       setAddresses(data.addresses || []);
+      setUserProfile(data); // Store the full profile
     } catch (error) {
       console.error('Error fetching addresses:', error);
     }
@@ -1448,6 +1450,13 @@ function CheckoutPageComponent({ user, setCart }) {
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
+      return;
+    }
+
+    // Verify user has a phone number
+    if (!userProfile?.phone) {
+      alert('Please update your profile with a phone number before placing an order.');
+      navigate('/profile');
       return;
     }
 
@@ -1625,7 +1634,21 @@ function CheckoutPageComponent({ user, setCart }) {
                       {item.selectedVariant && (
                         <p className="text-gray-500 text-xs">{item.selectedVariant.size} - {item.selectedVariant.color}</p>
                       )}
-                      <p className="text-gray-600 text-sm">Qty: {item.quantity}</p>
+                      <div className="flex items-center border border-gray-200 rounded w-fit mt-1">
+                        <button 
+                          onClick={() => updateCartQuantity(item._id, item.quantity - 1)}
+                          className="px-2 py-0.5 text-sm hover:bg-gray-100"
+                        >
+                          -
+                        </button>
+                        <span className="px-3 py-0.5 border-x text-sm">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateCartQuantity(item._id, item.quantity + 1)}
+                          className="px-2 py-0.5 text-sm hover:bg-gray-100"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
                     <p className="font-semibold text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</p>
                   </div>
