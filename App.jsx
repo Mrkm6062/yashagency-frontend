@@ -37,6 +37,7 @@ function App() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true); // Set initial loading to true
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistProducts, setWishlistProducts] = useState([]); // New state for full product objects
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -125,14 +126,10 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('Wishlist data:', data); // Debug log
-        // Handle different possible response structures
-        if (Array.isArray(data)) {
-          setWishlistItems(data.map(item => typeof item === 'string' ? item : item._id));
-        } else if (data.products && Array.isArray(data.products)) {
-          setWishlistItems(data.products.map(p => typeof p === 'string' ? p : p._id));
-        } else if (data.wishlist && Array.isArray(data.wishlist)) {
-          setWishlistItems(data.wishlist.map(item => typeof item === 'string' ? item : item._id));
+        if (Array.isArray(data)) { // The API now returns an array of product objects
+          setWishlistProducts(data);
+          // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
+          setWishlistItems(data.map(item => item._id));
         } else {
           setWishlistItems([]);
         }
@@ -290,7 +287,7 @@ function App() {
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
             <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
-            <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
+            <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
             <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
