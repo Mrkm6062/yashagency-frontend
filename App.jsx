@@ -273,7 +273,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
-            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setNotification={setNotification} /></Suspense>} />
+            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setWishlistProducts={setWishlistProducts} setNotification={setNotification} /></Suspense>} />
             <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
@@ -894,7 +894,7 @@ function ProductListPage({ products, loading }) {
 }
 
 // Product Detail Page Component
-function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setNotification }) {
+function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setWishlistProducts, setNotification }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1059,13 +1059,15 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                     const data = await response.json();
                     if (response.ok) {
                       if (isInWishlist) {
-                        setWishlistItems && setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems && setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistProducts(prev => [...prev, product]);
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
-                      setTimeout(() => setNotification && setNotification(null), 3000);
+                      setTimeout(() => setNotification(null), 3000);
                     } else {
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
