@@ -59,7 +59,7 @@ function App() {
     // Initial product fetch is now handled inside the App component
     // to prevent re-fetching on every component mount that uses the hook.
     // The hook can be used in other components for accessing the products.
-    fetchProducts();
+    fetchProducts().then(() => setLoading(false));
   }, []);
 
   // Validate token and set user
@@ -281,7 +281,7 @@ function App() {
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
-            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} setCart={setCart} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
             <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
@@ -1340,7 +1340,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
 }
 
 // Checkout Page Component
-function CheckoutPageComponent({ user, setCart }) {
+function CheckoutPageComponent({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
@@ -1364,7 +1364,7 @@ function CheckoutPageComponent({ user, setCart }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/apply-coupon`, {
+      const response = await fetch(`${API_BASE}/apply-coupon`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -1449,11 +1449,6 @@ function CheckoutPageComponent({ user, setCart }) {
       if (response.ok) {
         const data = await response.json();
         alert('Order placed successfully!');
-        // Clear the cart only if it's a regular checkout, not a "Buy Now"
-        if (!buyNow) {
-          setCart([]);
-          localStorage.removeItem('cart');
-        }
         navigate(`/track/${data.orderId}`);
       } else {
         const error = await response.json();
@@ -1938,7 +1933,7 @@ function LoginPage({ login, user }) {
         navigate(from);
       } else {
         alert('Login failed. Please check your credentials.');
-        setLoading(false); // Add this line to stop loading on failure
+        setLoading(false);
       }
     } else {
       // Register logic
@@ -1968,7 +1963,9 @@ function LoginPage({ login, user }) {
         alert('Registration failed. Please try again.');
       }
     }
-    setLoading(false);
+    if (isLogin) {
+      setLoading(false);
+    }
   };
 
   return (
