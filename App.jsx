@@ -3352,7 +3352,7 @@ function AdminPanelComponent({ user }) {
       ]);
       
       setProducts(await productsRes.json());
-      setOrders(await ordersRes.json());
+      setOrders(await ordersRes.json()); // This line is correct, the issue was in the logic. Let's fix it.
       setCoupons(await couponsRes.json());
       const userData = await usersRes.json();
       setUsers(userData);
