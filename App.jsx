@@ -885,7 +885,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
     }
     
     try {
-      const response = await makeSecureRequest(`${API_BASE}/products/${id}/rating`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/products/${id}/rating`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
