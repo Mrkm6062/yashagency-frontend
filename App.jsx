@@ -64,16 +64,24 @@ function App() {
 
   // Validate token and set user
   const validateToken = async (token, userData) => {
-    try {
+    try {      
       const response = await fetch(`${API_BASE}/api/profile`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (response.ok) {
         const profileData = await response.json();
-        const fullUser = { ...userData, ...profileData };
-        setUser(fullUser);
-        setToken(token); // Re-set token to ensure it's fresh
+        const userObj = {
+          id: profileData._id,
+          name: profileData.name,
+          email: profileData.email,
+          phone: profileData.phone,
+          createdAt: profileData.createdAt
+        };
+        setUser(userObj); // Set the user from the fresh profile data
+        // Now fetch wishlist and cart
+        fetchWishlist();
+        fetchCart();
       } else {
         // If the token is invalid (e.g., expired), clear everything
         clearAuth();
@@ -81,26 +89,16 @@ function App() {
         setCart([]);
       }
     } catch (error) {
-      console.error('Token validation failed, likely a network error:', error);
-      // If validation fails due to network, trust stored data for this session
-      setUser(userData);
+      console.error('Token validation error:', error);
+      // On network error, clear auth to be safe
+      clearAuth();
+      setUser(null);
+      setCart([]);
     }
     setIsInitialLoad(false);
   };
 
   // Sync cart with server when cart changes for logged-in users
-  useEffect(() => {
-    if (user && !isInitialLoad) {
-      // Fetch CSRF token whenever user state is set (after login/initial load)
-      makeSecureRequest(`${API_BASE}/api/csrf-token`)
-        .catch(err => console.error("Failed to fetch CSRF token", err));
-      
-      // Fetch user-specific data
-      fetchWishlist();
-      fetchCart();
-    }
-  }, [user, isInitialLoad]);
-
   useEffect(() => {
     if (user && !isInitialLoad && cart.length >= 0) {
       syncCart(cart);
@@ -247,7 +245,11 @@ function App() {
       if (response.ok) {
         setToken(data.token);
         setUser(data.user);
-        
+        // Fetch user's cart from server
+        Promise.all([fetchWishlist(), fetchCart()]).catch(console.error);
+        // Fetch CSRF token after login
+        makeSecureRequest(`${API_BASE}/api/csrf-token`)
+          .catch(err => console.error("Failed to fetch CSRF token", err));
         return true;
       }
       return false;
