@@ -46,12 +46,14 @@ function App() {
     const token = getToken();
     const userData = getUser();
     const savedCart = localStorage.getItem('cart');
+    const savedWishlist = localStorage.getItem('wishlistItems');
     
     if (token && userData) {
       // Validate token by making a test API call
       validateToken(token, userData);
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
+      if (savedWishlist) setWishlistItems(JSON.parse(savedWishlist));
       setIsInitialLoad(false);
     } else {
       setIsInitialLoad(false);
@@ -120,9 +122,12 @@ function App() {
         if (data && Array.isArray(data.products)) {
           setWishlistProducts(data.products);
           // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
-          setWishlistItems(data.products.map(item => item._id));
+          const ids = data.products.map(item => item._id);
+          setWishlistItems(ids);
+          localStorage.setItem('wishlistItems', JSON.stringify(ids));
         } else {
           setWishlistProducts([]);
+          setWishlistItems([]);
         }
       }
     } catch (error) {
@@ -263,13 +268,13 @@ function App() {
   const logout = () => {
     clearAuth();
     setUser(null);
-    setCart([]);
+    setCart([]); // This is correct
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} logout={logout} cartCount={cart.length} />
+        <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} />
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -315,7 +320,7 @@ function App() {
 }
 
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount }) {
+const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -343,7 +348,15 @@ const Header = React.memo(function Header({ user, logout, cartCount }) {
               </span>
             </Link>
             {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
+            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
+              <span className="flex items-center space-x-1">
+                <span>❤️</span>
+                <span>Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
+                )}
+              </span>
+            </Link>}
             {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -428,7 +441,12 @@ const Header = React.memo(function Header({ user, logout, cartCount }) {
                   className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Wishlist
+                  <span className="flex items-center justify-between">
+                    <span>❤️ Wishlist</span>
+                    {wishlistCount > 0 && (
+                      <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1">{wishlistCount}</span>
+                    )}
+                  </span>
                 </Link>
               )}
               {user && (
