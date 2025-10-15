@@ -530,7 +530,7 @@ function HomePage({ products, loading }) {
     <div>
       {/* Hero Banner */}
       <div 
-        className="text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative"
+        className="text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex flex-col justify-center items-center text-center h-80"
         style={{
           backgroundImage: banner.backgroundImage ? `url(${banner.backgroundImage})` : undefined
         }}
@@ -538,7 +538,7 @@ function HomePage({ products, loading }) {
         {banner.backgroundImage && (
           <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>
         )}
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-3xl">
           <h1 className="text-4xl font-bold mb-4">{banner.title}</h1>
           <p className="text-xl mb-6">{banner.subtitle}</p>
           <Link to="/products" className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
@@ -1684,17 +1684,6 @@ function CheckoutPageComponent({ user }) {
                     <div>
                       <p className="font-medium text-gray-900">Credit/Debit Card, UPI</p>
                       <p className="text-gray-600 text-sm">Pay securely with Razorpay</p>
-                    </div>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer opacity-50">
-                  <input type="radio" disabled className="text-blue-500" />
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">📱</span>
-                    <div>
-                      <p className="font-medium text-gray-900">UPI Payment</p>
-                      <p className="text-gray-600 text-sm">Coming soon</p>
                     </div>
                   </div>
                 </label>
