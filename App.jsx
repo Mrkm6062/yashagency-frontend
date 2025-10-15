@@ -14,7 +14,7 @@ const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageCom
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://samriddhi-shop-backend.onrender.com').replace(/\/$/, '');
 
 // Main App Component
 function App() {
@@ -248,6 +248,11 @@ function App() {
         
         // Fetch user's cart from server
         Promise.all([fetchWishlist(), fetchCart()]).catch(console.error);
+
+        // Fetch CSRF token after login
+        makeSecureRequest(`${API_BASE}/api/csrf-token`)
+          .then(res => res.json())
+          .catch(err => console.error("Failed to fetch CSRF token", err));
         
         return true;
       }
