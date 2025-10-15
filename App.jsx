@@ -3571,10 +3571,15 @@ function AdminPanelComponent({ user }) {
   const handlePrintKOT = (order) => {
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     printWindow.document.write('<html><head><title>Customer Receipt</title>');
+    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
+    printWindow.document.write('<style>');
     printWindow.document.write('<style media="print"> @page { size: 80mm auto; margin: 0; } </style>');
-    printWindow.document.write(`
+    printWindow.document.write(`      
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
       .kot-container { border: 2px solid #000; padding: 15px; width: 380px; }
+      .logo-container { text-align: center; margin-bottom: 15px; }
+      .logo { max-height: 60px; }
+      .barcode-container { text-align: center; margin-top: 15px; }
       h1 { text-align: center; margin: 0 0 15px; font-size: 1.5rem; }
       .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-bottom: 15px; }
       .details-grid p { margin: 0; font-size: 0.9rem; }
@@ -3584,13 +3589,17 @@ function AdminPanelComponent({ user }) {
       .products-table th { background-color: #f2f2f2; }
       .total-row td { font-weight: bold; }
       strong { font-weight: 600; }
-    `);    
-    printWindow.document.write('</head><body>');
+    `);
+    printWindow.document.write('</style></head><body>');
     
     const address = order.shippingAddress;
+    const orderId = order.orderNumber || order._id.slice(-8);
     const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}, ${address.country || ''}`;
 
     printWindow.document.write('<div class="kot-container">');
+    printWindow.document.write('<div class="logo-container">');
+    printWindow.document.write('<img src="https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png" alt="SamriddhiShop Logo" class="logo" />');    
+    printWindow.document.write('</div>');
     printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write('<div class="details-grid">');
     printWindow.document.write(`<p><strong>Order ID:</strong> ${order.orderNumber || order._id.slice(-8)}</p>`);
@@ -3599,6 +3608,7 @@ function AdminPanelComponent({ user }) {
     printWindow.document.write(`<p><strong>Phone:</strong> ${order.userId?.phone || 'N/A'}</p>`);
     printWindow.document.write(`<p class="full-width"><strong>Email:</strong> ${order.userId?.email || 'N/A'}</p>`);
     printWindow.document.write(`<p class="full-width"><strong>Address:</strong> ${fullAddress}</p>`);
+    printWindow.document.write(`<p class="full-width"><strong>Payment:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod || 'N/A'}</p>`);
     printWindow.document.write('</div>');
 
     printWindow.document.write('<table class="products-table">');
@@ -3617,8 +3627,23 @@ function AdminPanelComponent({ user }) {
 
     printWindow.document.write(`<div style="text-align: right; margin-top: 15px; font-size: 1.1rem;"><strong>Grand Total: ₹${order.total.toFixed(2)}</strong></div>`);
 
+    printWindow.document.write('<div class="barcode-container">');
+    printWindow.document.write(`<svg id="barcode"></svg>`);
     printWindow.document.write('</div>');
+    
+    printWindow.document.write('<div style="text-align: center; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">');
+    printWindow.document.write('<p style="margin: 0; font-weight: bold;">Thank You for Your Purchase!</p>');
+    printWindow.document.write('<p style="margin: 5px 0 0; font-size: 0.9rem;">Please Visit Again</p>');
+    printWindow.document.write('</div>');
+
+    printWindow.document.write('</div>');
+
+    printWindow.document.write('<script>');
+    printWindow.document.write(`JsBarcode("#barcode", "${orderId}", { format: "CODE128", height: 50, displayValue: true, fontSize: 16 });`);
+    printWindow.document.write('</script>');
+
     printWindow.document.write('</body></html>');
+
     printWindow.document.close();
     printWindow.print();
   };
