@@ -1506,6 +1506,25 @@ function CheckoutPageComponent({ user }) {
     }
 
     setLoading(true);
+
+    // If it's a Razorpay payment, verify it first
+    if (paymentMethod === 'razorpay' && paymentDetails.razorpay_payment_id) {
+      try {
+        const verifyRes = await makeSecureRequest(`${API_BASE}/api/payment/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentDetails)
+        });
+        if (!verifyRes.ok) {
+          throw new Error('Payment verification failed');
+        }
+      } catch (error) {
+        alert('Payment verification failed. Please contact support.');
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const payload = {
         items,
