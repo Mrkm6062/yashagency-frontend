@@ -2093,7 +2093,7 @@ function LoginPage({ login, user }) {
         </div>
 
         {/* Features */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
           <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
             <div className="text-2xl mb-2">🛡️</div>
             <p className="text-sm text-gray-600 font-medium">Secure & Safe</p>
