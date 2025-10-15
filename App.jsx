@@ -46,14 +46,12 @@ function App() {
     const token = getToken();
     const userData = getUser();
     const savedCart = localStorage.getItem('cart');
-    const savedWishlist = localStorage.getItem('wishlistItems');
     
     if (token && userData) {
       // Validate token by making a test API call
       validateToken(token, userData);
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
-      if (savedWishlist) setWishlistItems(JSON.parse(savedWishlist));
       setIsInitialLoad(false);
     } else {
       setIsInitialLoad(false);
@@ -119,14 +117,11 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (data && Array.isArray(data.products)) {
-          setWishlistProducts(data.products);
+        if (Array.isArray(data)) { // The API now returns an array of product objects
+          setWishlistProducts(data);
           // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
-          const ids = data.products.map(item => item._id);
-          setWishlistItems(ids);
-          localStorage.setItem('wishlistItems', JSON.stringify(ids));
+          setWishlistItems(data.map(item => item._id));
         } else {
-          setWishlistProducts([]);
           setWishlistItems([]);
         }
       }
@@ -250,11 +245,15 @@ function App() {
       if (response.ok) {
         setToken(data.token);
         setUser(data.user);
+        
         // Fetch user's cart from server
         Promise.all([fetchWishlist(), fetchCart()]).catch(console.error);
+
         // Fetch CSRF token after login
         makeSecureRequest(`${API_BASE}/api/csrf-token`)
+          .then(res => res.json())
           .catch(err => console.error("Failed to fetch CSRF token", err));
+        
         return true;
       }
       return false;
@@ -268,13 +267,13 @@ function App() {
   const logout = () => {
     clearAuth();
     setUser(null);
-    setCart([]); // This is correct
+    setCart([]);
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} />
+        <Header user={user} logout={logout} cartCount={cart.length} />
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -320,7 +319,7 @@ function App() {
 }
 
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
+const Header = React.memo(function Header({ user, logout, cartCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -348,15 +347,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               </span>
             </Link>
             {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
-              <span className="flex items-center space-x-1">
-                <span>❤️</span>
-                <span>Wishlist</span>
-                {wishlistCount > 0 && (
-                  <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
-                )}
-              </span>
-            </Link>}
+            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
             {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -441,12 +432,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                   className="text-gray-700 hover:text-blue-600 hover:bg-white transition-colors font-medium py-3 px-4 rounded-lg mx-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <span className="flex items-center justify-between">
-                    <span>❤️ Wishlist</span>
-                    {wishlistCount > 0 && (
-                      <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1">{wishlistCount}</span>
-                    )}
-                  </span>
+                  Wishlist
                 </Link>
               )}
               {user && (
@@ -1071,20 +1057,20 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   
                   try {
-                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, {
+                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: isInWishlist ? 'DELETE' : 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const data = await response.json();
                     if (response.ok) {
                       if (isInWishlist) {
-                        setWishlistItems(prev => prev.filter(id => id !== product._id));
-                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
+                        setWishlistItems && setWishlistItems(prev => prev.filter(id => id !== product._id));
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems(prev => [...prev, product._id]);
-                        setWishlistProducts(prev => [...prev, product]);
+                        setWishlistItems && setWishlistItems(prev => [...prev, product._id]);
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
+                      setTimeout(() => setNotification && setNotification(null), 3000);
                     } else {
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
@@ -1382,10 +1368,12 @@ function CheckoutPageComponent({ user }) {
     if (!couponCode.trim()) return;
     
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/apply-coupon`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE}/apply-coupon`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ code: couponCode, total })
       });
@@ -5093,8 +5081,14 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
 
   const removeFromWishlist = async (productId) => {
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          // Assuming you might add CSRF protection to this route later
+          // 'X-CSRF-Token': await getCsrfToken() 
+        }
       });
       
       if (response.ok) {
