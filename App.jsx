@@ -42,6 +42,7 @@ function App() {
   const [wishlistProducts, setWishlistProducts] = useState([]); // New state for full product objects
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
 
   // Load user from localStorage on app start
   useEffect(() => {
@@ -280,6 +281,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} />
+        <BottomNavBar user={user} cartCount={cart.length} wishlistCount={wishlistItems.length} isVisible={isBottomNavVisible} />
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -297,7 +299,7 @@ function App() {
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
         </main>
-        <Footer />
+        <Footer setIsBottomNavVisible={setIsBottomNavVisible} />
         
         {/* Notification */}
         {notification && (
@@ -325,8 +327,8 @@ function App() {
 }
 
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
+  // Mobile menu state is no longer needed here
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -353,7 +355,15 @@ const Header = React.memo(function Header({ user, logout, cartCount }) {
               </span>
             </Link>
             {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Wishlist</Link>}
+            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
+              <span className="flex items-center space-x-1">
+                <span>❤️</span>
+                <span>Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
+                )}
+              </span>
+            </Link>}
             {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -528,7 +538,7 @@ function HomePage({ products, loading }) {
 
   return (
     <div>
-      {/* Hero Banner */}
+      {/* Hero Banner */} 
       <div 
         className="text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex flex-col justify-center items-center text-center h-80"
         style={{
@@ -538,7 +548,7 @@ function HomePage({ products, loading }) {
         {banner.backgroundImage && (
           <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>
         )}
-        <div className="relative z-10 max-w-3xl">
+        <div className="relative z-10 max-w-3xl"> 
           <h1 className="text-4xl font-bold mb-4">{banner.title}</h1>
           <p className="text-xl mb-6">{banner.subtitle}</p>
           <Link to="/products" className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
@@ -558,7 +568,7 @@ function HomePage({ products, loading }) {
         <section key={category} className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-3xl font-bold capitalize">{category}</h2>
-            <Link 
+            <Link
               to={`/products?category=${encodeURIComponent(category)}`}
               className="text-blue-600 hover:text-blue-800 font-medium"
             >
@@ -1072,10 +1082,12 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                     const data = await response.json();
                     if (response.ok) {
                       if (isInWishlist) {
-                        setWishlistItems && setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems && setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistProducts(prev => [...prev, product]);
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
                       setTimeout(() => setNotification && setNotification(null), 3000);
@@ -5415,9 +5427,31 @@ function CustomerServicePage() {
 }
 
 // Footer Component
-const Footer = React.memo(function Footer() {
+const Footer = React.memo(function Footer({ setIsBottomNavVisible }) {
+  const footerRef = React.useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // When footer is visible, hide the bottom nav. When it's not, show it.
+        setIsBottomNavVisible(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1 // Trigger when 10% of the footer is visible
+      }
+    );
+
+    if (footerRef.current) {
+      observer.observe(footerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [setIsBottomNavVisible]);
+
   return (
-    <footer className="bg-gray-800 text-white py-8 mt-12">
+    <footer ref={footerRef} className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -5462,5 +5496,40 @@ const Footer = React.memo(function Footer() {
       </div>
     </footer>
   );});
+
+// Bottom Navigation Bar for Mobile
+const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlistCount, isVisible }) {
+  const location = useLocation();
+  const navItems = [
+    { to: '/', icon: '🏠', label: 'Home' },
+    { to: '/products', icon: '🛍️', label: 'Products' },
+    { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
+    { to: '/cart', icon: '🛒', label: 'Cart', count: cartCount },
+    { to: '/profile', icon: '👤', label: 'Profile', requiresUser: true },
+  ];
+
+  return (
+    <div className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-t-lg z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+      <nav className="flex justify-around items-center h-16">
+        {navItems.map(item => {
+          if (item.requiresUser && !user) return null;
+          const isActive = location.pathname === item.to;
+          return (
+            <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
+              <span className="text-2xl">{item.icon}</span>
+              <span className={`text-xs font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
+              {item.count > 0 && (
+                <span className={`absolute top-1 right-[28%] transform translate-x-1/2 bg-pink-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center p-1`}>
+                  {item.count}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+});
+
 
 export default App;
