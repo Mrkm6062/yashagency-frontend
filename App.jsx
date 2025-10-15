@@ -2344,8 +2344,14 @@ function OrderStatusPageComponent({ user }) {
                   )}
                   
                   <div className="flex justify-between items-center pt-2 border-t font-semibold">
-                    <span>Total Paid</span>
-                    <span className="text-green-600">₹{order.total.toFixed(2)}</span>
+                    {order.paymentMethod === 'cod' && order.paymentStatus !== 'received' ? (
+                      <>
+                        <span>Payment Due</span>
+                        <span className="text-orange-600">₹{order.total.toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <p><strong>Payment Method:</strong> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -3260,8 +3266,16 @@ function TrackOrderPageComponent({ user }) {
             )}
             
             <div className="flex justify-between items-center pt-2 border-t">
-              <span className="text-lg font-semibold">Total Paid</span>
-              <span className="text-lg font-bold text-green-600">₹{order.total.toFixed(2)}</span>
+              {order.paymentMethod === 'cod' && order.paymentStatus !== 'received' ? (
+                <>
+                  <span className="text-lg font-semibold">Payment Due at Delivery</span>
+                  <span className="text-lg font-bold text-orange-600">₹{order.total.toFixed(2)}</span>
+                </>
+              ) : (
+                <>
+                  <p><strong>Payment Method:</strong> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -4440,6 +4454,13 @@ function AdminPanelComponent({ user }) {
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {order.status.toUpperCase()}
+                          </span>
+                          <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ml-2 ${
+                            order.paymentMethod === 'cod' && order.paymentStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
+                            order.paymentMethod === 'cod' && order.paymentStatus === 'received' ? 'bg-green-100 text-green-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {order.paymentMethod === 'cod' ? `COD: ${order.paymentStatus}` : 'Prepaid'}
                           </span>
                           <button
                             onClick={() => handlePrintKOT(order)}
