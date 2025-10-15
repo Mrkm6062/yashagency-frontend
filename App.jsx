@@ -3571,7 +3571,6 @@ function AdminPanelComponent({ user }) {
   const handlePrintKOT = (order) => {
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     printWindow.document.write('<html><head><title>Customer Receipt</title>');
-    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
     printWindow.document.write('<style>');
     printWindow.document.write('<style media="print"> @page { size: 80mm auto; margin: 0; } </style>');
     printWindow.document.write(`      
@@ -3598,7 +3597,7 @@ function AdminPanelComponent({ user }) {
 
     printWindow.document.write('<div class="kot-container">');
     printWindow.document.write('<div class="logo-container">');
-    printWindow.document.write('<img src="https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png" alt="SamriddhiShop Logo" class="logo" />');    
+    printWindow.document.write('<img src="https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png" alt="SamriddhiShop Logo" class="logo" />');
     printWindow.document.write('</div>');
     printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write('<div class="details-grid">');
@@ -3638,6 +3637,7 @@ function AdminPanelComponent({ user }) {
 
     printWindow.document.write('</div>');
 
+    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
     printWindow.document.write('<script>');
     printWindow.document.write(`JsBarcode("#barcode", "${orderId}", { format: "CODE128", height: 50, displayValue: true, fontSize: 16 });`);
     printWindow.document.write('</script>');
