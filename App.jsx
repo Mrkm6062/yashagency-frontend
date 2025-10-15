@@ -1077,13 +1077,14 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                     const data = await response.json();
                     if (response.ok) {
                       if (isInWishlist) {
-                        setWishlistItems && setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistItems(prev => prev.filter(id => id !== product._id));
+                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems && setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistItems(prev => [...prev, product._id]);
+                        setWishlistProducts(prev => [...prev, product]);
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
-                      setTimeout(() => setNotification && setNotification(null), 3000);
                     } else {
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
