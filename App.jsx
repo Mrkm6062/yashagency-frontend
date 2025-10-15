@@ -5409,13 +5409,14 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlis
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
     { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
     { to: '/profile', icon: '👤', label: 'Profile', requiresUser: true },
+    { to: '/login', icon: '🔑', label: 'Login', showWhenLoggedOut: true },
   ];
 
   return (
     <div className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-t-lg z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
       <nav className="flex justify-around items-center h-16">
         {navItems.map(item => {
-          if (item.requiresUser && !user) return null;
+          if ((item.requiresUser && !user) || (item.showWhenLoggedOut && user)) return null;
           const isActive = location.pathname === item.to;
           return (
             <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
