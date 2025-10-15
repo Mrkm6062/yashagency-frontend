@@ -1053,9 +1053,8 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   
                   try {
-                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
+                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: isInWishlist ? 'DELETE' : 'POST',
-                      headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const data = await response.json();
                     if (response.ok) {
@@ -5075,14 +5074,8 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
 
   const removeFromWishlist = async (productId) => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          // Assuming you might add CSRF protection to this route later
-          // 'X-CSRF-Token': await getCsrfToken() 
-        }
       });
       
       if (response.ok) {
