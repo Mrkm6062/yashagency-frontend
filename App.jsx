@@ -117,12 +117,12 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (Array.isArray(data)) { // The API now returns an array of product objects
-          setWishlistProducts(data);
+        if (data && Array.isArray(data.products)) {
+          setWishlistProducts(data.products);
           // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
-          setWishlistItems(data.map(item => item._id));
+          setWishlistItems(data.products.map(item => item._id));
         } else {
-          setWishlistItems([]);
+          setWishlistProducts([]);
         }
       }
     } catch (error) {
