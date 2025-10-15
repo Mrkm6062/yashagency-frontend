@@ -3423,15 +3423,13 @@ function AdminPanelComponent({ user }) {
   const saveProduct = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const url = editingProduct ? `${API_BASE}/api/admin/products/${editingProduct._id}` : `${API_BASE}/api/admin/products`;
       const method = editingProduct ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      const response = await makeSecureRequest(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(productForm)
       });
@@ -3460,12 +3458,10 @@ function AdminPanelComponent({ user }) {
 
   const toggleProduct = async (productId, enabled) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/api/admin/products/${productId}/toggle`, {
+      await makeSecureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ enabled: !enabled })
       });
@@ -3477,7 +3473,6 @@ function AdminPanelComponent({ user }) {
 
   const updateOrderStatus = async (orderId, status, withCourier = false) => {
     try {
-      const token = localStorage.getItem('token');
       const payload = { status };
       
       if (withCourier && status === 'shipped') {
@@ -3487,11 +3482,10 @@ function AdminPanelComponent({ user }) {
         payload.notes = courierForm.notes;
       }
       
-      await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+      await makeSecureRequest(`${API_BASE}/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
