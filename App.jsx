@@ -5405,9 +5405,9 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlis
   const location = useLocation();
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
-    { to: '/products', icon: '🛍️', label: 'Products' },
+    { to: '/products', icon: '🛍️', label: 'Shop' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
-    { to: '/cart', icon: '🛒', label: 'Cart', count: cartCount },
+    { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
     { to: '/profile', icon: '👤', label: 'Profile', requiresUser: true },
   ];
 
