@@ -1399,6 +1399,13 @@ function CheckoutPageComponent({ user }) {
     fetchShippingCost();
   }, [user, items, navigate]);
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
   const fetchShippingCost = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/shipping-cost`);
@@ -1423,6 +1430,65 @@ function CheckoutPageComponent({ user }) {
   };
 
   const processOrder = async () => {
+    if (paymentMethod === 'razorpay') {
+      handleRazorpayPayment();
+    } else {
+      placeOrder();
+    }
+  };
+
+  const handleRazorpayPayment = async () => {
+    let shippingAddress;
+    if (selectedAddress) {
+      shippingAddress = addresses.find(addr => addr._id === selectedAddress);
+    } else if (newAddress.street && newAddress.city) {
+      shippingAddress = newAddress;
+    } else {
+      alert('Please select or enter a shipping address');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const orderRes = await makeSecureRequest(`${API_BASE}/api/payment/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: finalTotal })
+      });
+
+      if (!orderRes.ok) throw new Error('Failed to create Razorpay order');
+      const { orderId, amount, keyId } = await orderRes.json();
+
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: "INR",
+        name: "SamriddhiShop",
+        description: "Order Payment",
+        order_id: orderId,
+        handler: async function (response) {
+          await placeOrder({
+            ...response,
+            shippingAddress,
+          });
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone
+        },
+        theme: { color: "#3399cc" }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      alert('Payment failed. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  const placeOrder = async (paymentDetails = {}) => {
     let shippingAddress;
     
     if (selectedAddress) {
@@ -1436,16 +1502,26 @@ function CheckoutPageComponent({ user }) {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/checkout`, {
+      const payload = {
+        items,
+        total: finalTotal,
+        shippingAddress,
+        paymentMethod,
+        couponCode,
+        couponId,
+        discount,
+        shippingCost,
+        tax,
+        ...paymentDetails
+      };
+
+      const response = await makeSecureRequest(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ items, total, shippingAddress, paymentMethod, couponCode, couponId, discount, shippingCost, tax: tax })
+        body: JSON.stringify(payload)
       });
-
       if (response.ok) {
         const data = await response.json();
         alert('Order placed successfully!');
@@ -1564,13 +1640,20 @@ function CheckoutPageComponent({ user }) {
                   </div>
                 </label>
                 
-                <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer opacity-50">
-                  <input type="radio" disabled className="text-blue-500" />
+                <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="payment"
+                    value="razorpay"
+                    checked={paymentMethod === 'razorpay'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="text-blue-500"
+                  />
                   <div className="flex items-center space-x-3">
                     <span className="text-2xl">💳</span>
                     <div>
-                      <p className="font-medium text-gray-900">Credit/Debit Card</p>
-                      <p className="text-gray-600 text-sm">Coming soon</p>
+                      <p className="font-medium text-gray-900">Credit/Debit Card, UPI</p>
+                      <p className="text-gray-600 text-sm">Pay securely with Razorpay</p>
                     </div>
                   </div>
                 </label>
