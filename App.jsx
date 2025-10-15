@@ -4,6 +4,7 @@ import { t } from './src/i18n.js';
 import { makeSecureRequest } from './src/csrf.js';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 
+
 // Lazy load heavy components
 const ProductDetailPage = lazy(() => Promise.resolve({ default: ProductDetailPageComponent }));
 const CheckoutPage = lazy(() => Promise.resolve({ default: CheckoutPageComponent }));
@@ -11,6 +12,7 @@ const AdminPanel = lazy(() => Promise.resolve({ default: AdminPanelComponent }))
 const TrackOrderPage = lazy(() => Promise.resolve({ default: TrackOrderPageComponent }));
 const ProfilePage = lazy(() => Promise.resolve({ default: ProfilePageComponent }));
 const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageComponent }));
+import { getCSRFToken } from './src/csrf.js';
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
@@ -78,6 +80,12 @@ function App() {
            phone: profileData.phone 
          };
          setUser(userObj); // Set the validated user object
+         // After validating token, fetch user data and CSRF token
+         Promise.all([
+           fetchWishlist(),
+           fetchCart(),
+           getCSRFToken()
+         ]).catch(console.error);
          // No need to call setUser from storage.js here
        } else {
          clearAuth();
@@ -249,7 +257,7 @@ function App() {
         Promise.all([
           fetchWishlist(),
           fetchCart(),
-          makeSecureRequest(`${API_BASE}/api/csrf-token`)
+          getCSRFToken()
         ]).catch(console.error);
         
         return true;

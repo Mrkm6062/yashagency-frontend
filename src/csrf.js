@@ -7,9 +7,12 @@ export const getCSRFToken = async () => {
   if (csrfToken) return csrfToken;
   
   try {
+    const authToken = localStorage.getItem('token');
+    if (!authToken) return null; // Can't get CSRF if not logged in
+
     const response = await fetch(`${API_BASE}/api/csrf-token`, {
       headers: {
-        'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : 'anonymous'
+        'Authorization': `Bearer ${authToken}`
       }
     });
     const data = await response.json();
@@ -27,7 +30,8 @@ export const makeSecureRequest = async (url, options = {}) => {
     return fetch(url, options);
   }
   
-  const token = await getCSRFToken();
+  // Fetch the CSRF token if it's not already cached
+  const token = csrfToken || await getCSRFToken();
   
   return fetch(url, {
     ...options,
