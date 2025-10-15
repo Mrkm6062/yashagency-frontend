@@ -278,12 +278,12 @@ function App() {
   };
 
   return (
-    <Router>
+    <Router>      
       <div className="min-h-screen bg-gray-50">
         <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} />
-        <BottomNavBar user={user} cartCount={cart.length} wishlistCount={wishlistItems.length} isVisible={isBottomNavVisible} />
+        <ConditionalLayout user={user} cartCount={cart.length} wishlistCount={wishlistItems.length} isBottomNavVisible={isBottomNavVisible} setIsBottomNavVisible={setIsBottomNavVisible}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
-          <Routes>
+          <Routes>            
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
             <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setWishlistProducts={setWishlistProducts} setNotification={setNotification} /></Suspense>} />
@@ -299,7 +299,7 @@ function App() {
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
         </main>
-        <Footer setIsBottomNavVisible={setIsBottomNavVisible} />
+        </ConditionalLayout>
         
         {/* Notification */}
         {notification && (
@@ -326,6 +326,18 @@ function App() {
   );
 }
 
+const ConditionalLayout = ({ children, user, cartCount, wishlistCount, isBottomNavVisible, setIsBottomNavVisible }) => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
+  return (
+    <>
+      {children}
+      {!isLoginPage && <BottomNavBar user={user} cartCount={cartCount} wishlistCount={wishlistCount} isVisible={isBottomNavVisible} />}
+      {!isLoginPage && <Footer setIsBottomNavVisible={setIsBottomNavVisible} />}
+    </>
+  );
+};
 // Header Component
 const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -980,10 +992,11 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                       method: isInWishlist ? 'DELETE' : 'POST',
                       headers: { 
                         'Authorization': `Bearer ${token}`
-                      }
+                      },
                     });
-                    const data = await response.json();
+
                     if (response.ok) {
+                      // The request was successful, update the UI state immediately.
                       if (isInWishlist) {
                         setWishlistItems(prev => prev.filter(id => id !== product._id));
                         setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
@@ -995,6 +1008,8 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                       }
                       setTimeout(() => setNotification && setNotification(null), 3000);
                     } else {
+                      // If the response is not ok, then try to parse the error message.
+                      const data = await response.json();
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
                   } catch (error) {
