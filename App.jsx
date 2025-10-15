@@ -1376,12 +1376,10 @@ function CheckoutPageComponent({ user }) {
     if (!couponCode.trim()) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/apply-coupon`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/apply-coupon`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ code: couponCode, total })
       });
