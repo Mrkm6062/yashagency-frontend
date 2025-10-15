@@ -14,7 +14,7 @@ const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageCom
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
-const API_BASE = (import.meta.env.VITE_API_URL || 'https://samriddhi-shop-backend.onrender.com').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 // Main App Component
 function App() {
@@ -64,43 +64,37 @@ function App() {
 
   // Validate token and set user
   const validateToken = async (token, userData) => {
-    try {
-      const response = await fetch(`${API_BASE}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const profileData = await response.json();
-        const fullUser = { ...userData, ...profileData };
-        setUser(fullUser);
-        setToken(token); // Re-set token to ensure it's fresh
-      } else {
-        // If the token is invalid (e.g., expired), clear everything
-        clearAuth();
-        setUser(null);
-        setCart([]);
-      }
-    } catch (error) {
-      console.error('Token validation failed, likely a network error:', error);
-      // If validation fails due to network, trust stored data for this session
-      setUser(userData);
-    }
-    setIsInitialLoad(false);
+     try {
+       const response = await fetch(`${API_BASE}/api/profile`, {
+         headers: { 'Authorization': `Bearer ${token}` }
+       });
+       
+       if (response.ok) {
+         const profileData = await response.json();
+         const userObj = { 
+           id: profileData._id, 
+           name: profileData.name, 
+           email: profileData.email, 
+           phone: profileData.phone 
+         };
+         setUser(userObj); // Set the validated user object
+         // No need to call setUser from storage.js here
+       } else {
+         clearAuth();
+         setUser(null);
+         setCart([]);
+       }
+     } catch (error) {
+       console.error('Token validation error:', error);
+       // In case of network error, we can still set the user from stored data
+       if (userData && userData.email) {
+         setUser(userData);
+       }
+     }
+     setIsInitialLoad(false);
   };
 
   // Sync cart with server when cart changes for logged-in users
-  useEffect(() => {
-    if (user && !isInitialLoad) {
-      // Fetch CSRF token whenever user state is set (after login/initial load)
-      makeSecureRequest(`${API_BASE}/api/csrf-token`)
-        .catch(err => console.error("Failed to fetch CSRF token", err));
-      
-      // Fetch user-specific data
-      fetchWishlist();
-      fetchCart();
-    }
-  }, [user, isInitialLoad]);
-
   useEffect(() => {
     if (user && !isInitialLoad && cart.length >= 0) {
       syncCart(cart);
@@ -108,6 +102,7 @@ function App() {
   }, [cart, user, isInitialLoad]);
 
   const fetchWishlist = async () => {
+    // This function is now called after successful login/token validation
     try {
       const token = getToken();
       if (!token) return;
@@ -119,11 +114,13 @@ function App() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (Array.isArray(data)) { // The API now returns an array of product objects
-          setWishlistProducts(data);
+        // The backend /api/wishlist returns { wishlist: [], products: [] }
+        if (data && Array.isArray(data.products)) {
+          setWishlistProducts(data.products);
           // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
-          setWishlistItems(data.map(item => item._id));
+          setWishlistItems(data.products.map(item => item._id));
         } else {
+          setWishlistProducts([]);
           setWishlistItems([]);
         }
       }
@@ -133,6 +130,7 @@ function App() {
   };
 
   const fetchCart = async () => {
+    // This function is now called after successful login/token validation
     try {
       const token = getToken();
       if (!token) {
@@ -247,6 +245,12 @@ function App() {
       if (response.ok) {
         setToken(data.token);
         setUser(data.user);
+        // After successful login, fetch user data and CSRF token
+        Promise.all([
+          fetchWishlist(),
+          fetchCart(),
+          makeSecureRequest(`${API_BASE}/api/csrf-token`)
+        ]).catch(console.error);
         
         return true;
       }
