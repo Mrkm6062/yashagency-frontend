@@ -1381,7 +1381,7 @@ function CheckoutPageComponent({ user }) {
         headers: { 
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ code: couponCode, total })
+        body: JSON.stringify({ code: couponCode, total: subtotal })
       });
       
       const data = await response.json();
@@ -3683,12 +3683,10 @@ function AdminPanelComponent({ user }) {
 
   const updateBanner = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/api/admin/banner`, {
+      await makeSecureRequest(`${API_BASE}/api/admin/banner`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(bannerForm)
       });
