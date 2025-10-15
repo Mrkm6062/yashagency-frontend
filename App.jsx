@@ -3571,16 +3571,17 @@ function AdminPanelComponent({ user }) {
   const handlePrintKOT = (order) => {
     const printWindow = window.open('', '_blank', 'width=400,height=600');
     printWindow.document.write('<html><head><title>Customer Receipt</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write('<style media="print"> @page { size: 80mm auto; margin: 0; } </style>');
-    printWindow.document.write(`      
+    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
+    printWindow.document.write('<style>');    
+    printWindow.document.write(`
+      @media print { @page { size: 80mm auto; margin: 0; } }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
       .kot-container { border: 2px solid #000; padding: 15px; width: 380px; }
       .logo-container { text-align: center; margin-bottom: 15px; }
       .logo { max-height: 60px; }
       .barcode-container { text-align: center; margin-top: 15px; }
       h1 { text-align: center; margin: 0 0 15px; font-size: 1.5rem; }
-      .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-bottom: 15px; }
+      .details-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 15px; margin-bottom: 15px; }
       .details-grid p { margin: 0; font-size: 0.9rem; }
       .details-grid .full-width { grid-column: 1 / -1; }
       .products-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -3637,13 +3638,11 @@ function AdminPanelComponent({ user }) {
 
     printWindow.document.write('</div>');
 
-    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
     printWindow.document.write('<script>');
     printWindow.document.write(`JsBarcode("#barcode", "${orderId}", { format: "CODE128", height: 50, displayValue: true, fontSize: 16 });`);
     printWindow.document.write('</script>');
 
     printWindow.document.write('</body></html>');
-
     printWindow.document.close();
     printWindow.print();
   };
