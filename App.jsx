@@ -5090,13 +5090,12 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
   const removeFromWishlist = async (productId) => {
     try {
       const token = getToken();
-      const response = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
         headers: { 
-          'Authorization': `Bearer ${token}`,
-          // Assuming you might add CSRF protection to this route later
-          // 'X-CSRF-Token': await getCsrfToken() 
-        }
+          'Authorization': `Bearer ${token}`
+          // No need to manually add CSRF token, makeSecureRequest handles it
+        },
       });
       
       if (response.ok) {
