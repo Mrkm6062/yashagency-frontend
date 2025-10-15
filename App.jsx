@@ -2344,13 +2344,16 @@ function OrderStatusPageComponent({ user }) {
                   )}
                   
                   <div className="flex justify-between items-center pt-2 border-t font-semibold">
-                    {order.paymentMethod === 'cod' && order.paymentStatus !== 'received' ? (
+                    {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' ? (
                       <>
                         <span>Payment Due</span>
                         <span className="text-orange-600">₹{order.total.toFixed(2)}</span>
                       </>
                     ) : (
-                      <p><strong>Payment Method:</strong> {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}</p>
+                      <>
+                        <span>Total Paid</span>
+                        <span className="text-green-600">₹{order.total.toFixed(2)}</span>
+                      </>
                     )}
                   </div>
                 </div>
