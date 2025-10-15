@@ -1063,9 +1063,11 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   
                   try {
-                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
+                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: isInWishlist ? 'DELETE' : 'POST',
-                      headers: { 'Authorization': `Bearer ${token}` }
+                      headers: { 
+                        'Authorization': `Bearer ${token}`
+                      }
                     });
                     const data = await response.json();
                     if (response.ok) {
