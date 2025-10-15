@@ -3568,6 +3568,61 @@ function AdminPanelComponent({ user }) {
     }
   };
 
+  const handlePrintKOT = (order) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Order KOT</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write(`
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
+      .kot-container { border: 2px solid #000; padding: 15px; width: 380px; }
+      h1 { text-align: center; margin: 0 0 15px; font-size: 1.5rem; }
+      .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 15px; margin-bottom: 15px; }
+      .details-grid p { margin: 0; font-size: 0.9rem; }
+      .details-grid .full-width { grid-column: 1 / -1; }
+      .products-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+      .products-table th, .products-table td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 0.9rem; }
+      .products-table th { background-color: #f2f2f2; }
+      .total-row td { font-weight: bold; }
+      strong { font-weight: 600; }
+    `);
+    printWindow.document.write('</style></head><body>');
+    
+    const address = order.shippingAddress;
+    const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}, ${address.country || ''}`;
+
+    printWindow.document.write('<div class="kot-container">');
+    printWindow.document.write('<h1>SamriddhiShop Order</h1>');
+    printWindow.document.write('<div class="details-grid">');
+    printWindow.document.write(`<p><strong>Order ID:</strong> ${order.orderNumber || order._id.slice(-8)}</p>`);
+    printWindow.document.write(`<p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>`);
+    printWindow.document.write(`<p><strong>Name:</strong> ${order.userId?.name || 'N/A'}</p>`);
+    printWindow.document.write(`<p><strong>Phone:</strong> ${order.userId?.phone || 'N/A'}</p>`);
+    printWindow.document.write(`<p class="full-width"><strong>Email:</strong> ${order.userId?.email || 'N/A'}</p>`);
+    printWindow.document.write(`<p class="full-width"><strong>Address:</strong> ${fullAddress}</p>`);
+    printWindow.document.write('</div>');
+
+    printWindow.document.write('<table class="products-table">');
+    printWindow.document.write('<thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>');
+    printWindow.document.write('<tbody>');
+    
+    let subtotal = 0;
+    order.items.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      subtotal += itemTotal;
+      printWindow.document.write(`<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price.toFixed(2)}</td><td>₹${itemTotal.toFixed(2)}</td></tr>`);
+    });
+
+    printWindow.document.write('</tbody>');
+    printWindow.document.write('</table>');
+
+    printWindow.document.write(`<div style="text-align: right; margin-top: 15px; font-size: 1.1rem;"><strong>Grand Total: ₹${order.total.toFixed(2)}</strong></div>`);
+
+    printWindow.document.write('</div>');
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const applyUserFilters = (filters) => {
     let filtered = [...users];
 
@@ -4361,6 +4416,12 @@ function AdminPanelComponent({ user }) {
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {order.status.toUpperCase()}
+                          </span>
+                          <span
+                            onClick={() => handlePrintKOT(order)}
+                            className="cursor-pointer text-blue-600 hover:text-blue-800"
+                            title="Print KOT">
+                            🖨️
                           </span>
                         </div>
                       </div>
