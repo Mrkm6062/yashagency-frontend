@@ -3569,9 +3569,9 @@ function AdminPanelComponent({ user }) {
   };
 
   const handlePrintKOT = (order) => {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Order KOT</title>');
-    printWindow.document.write('<style>');
+    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    printWindow.document.write('<html><head><title>Customer Receipt</title>');
+    printWindow.document.write('<style media="print"> @page { size: 80mm auto; margin: 0; } </style>');
     printWindow.document.write(`
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
       .kot-container { border: 2px solid #000; padding: 15px; width: 380px; }
@@ -3584,14 +3584,14 @@ function AdminPanelComponent({ user }) {
       .products-table th { background-color: #f2f2f2; }
       .total-row td { font-weight: bold; }
       strong { font-weight: 600; }
-    `);
-    printWindow.document.write('</style></head><body>');
+    `);    
+    printWindow.document.write('</head><body>');
     
     const address = order.shippingAddress;
     const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}, ${address.country || ''}`;
 
     printWindow.document.write('<div class="kot-container">');
-    printWindow.document.write('<h1>SamriddhiShop Order</h1>');
+    printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write('<div class="details-grid">');
     printWindow.document.write(`<p><strong>Order ID:</strong> ${order.orderNumber || order._id.slice(-8)}</p>`);
     printWindow.document.write(`<p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>`);
@@ -4417,12 +4417,12 @@ function AdminPanelComponent({ user }) {
                           }`}>
                             {order.status.toUpperCase()}
                           </span>
-                          <span
+                          <button
                             onClick={() => handlePrintKOT(order)}
-                            className="cursor-pointer text-blue-600 hover:text-blue-800"
-                            title="Print KOT">
-                            🖨️
-                          </span>
+                            className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm font-medium ml-2"
+                            title="Print Receipt">
+                            🖨️ Print
+                          </button>
                         </div>
                       </div>
                       <div className="text-sm text-gray-600 break-words">
