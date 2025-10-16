@@ -296,7 +296,7 @@ function App() {
   return (
     <Router>      
       <div className="min-h-screen bg-gray-50">
-        <ConditionalLayout user={user} cartCount={cart.length} wishlistCount={wishlistItems.length}>
+        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>            
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -343,17 +343,17 @@ function App() {
   );
 }
 
-const ConditionalLayout = ({ children, user, cartCount, wishlistCount }) => {
+const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount }) => {
   const location = useLocation();
   const noNavPages = ['/login']; // Array of paths to hide nav and footer
   const hideNavAndFooter = noNavPages.includes(location.pathname);
 
   return (
     <>
-      {!hideNavAndFooter && <Header user={user} cartCount={cartCount} wishlistCount={wishlistCount} />}
+      {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} />}
       {children}
       {/* The bottom nav and footer are now part of the main layout flow */}
-      {!hideNavAndFooter && <BottomNavBar user={user} cartCount={cartCount} wishlistCount={wishlistCount} />}
+      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} />}
       {!hideNavAndFooter && <Footer />}
     </>
   );
@@ -5533,6 +5533,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlis
             </Link>
           );
         })}
+        {user && <button onClick={logout} className="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-600"><span className="text-2xl">🚪</span><span className="text-xs font-medium">Logout</span></button>}
       </nav>
     </div>
   );
