@@ -300,11 +300,11 @@ function App() {
           <Routes>            
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
-            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setWishlistProducts={setWishlistProducts} setNotification={setNotification} /></Suspense>} />
+            <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} /></Suspense>} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
             <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
-            <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} setWishlistProducts={setWishlistProducts} setWishlistItems={setWishlistItems} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
+            <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} fetchWishlist={fetchWishlist} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
             <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
@@ -848,7 +848,7 @@ function ProductListPage({ products, loading }) {
 }
 
 // Product Detail Page Component
-function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWishlistItems, setNotification }) {
+function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchWishlist, setNotification }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1015,11 +1015,11 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
 
                     if (response.ok) {
                       // The request was successful, update the UI state immediately.
+                      // And then re-fetch the full wishlist to keep all states in sync.
+                      fetchWishlist(); 
                       if (isInWishlist) {
-                        setWishlistItems(prev => prev.filter(id => id !== product._id));                        
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems(prev => [...prev, product._id]);                        
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
                       setTimeout(() => setNotification && setNotification(null), 3000);
@@ -5004,7 +5004,7 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
 }
 
 // Wishlist Page Component
-function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, setWishlistItems, addToCart, setNotification }) {
+function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCart, setNotification }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -5022,8 +5022,7 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
       });
       
       if (response.ok) {
-        setWishlistItems(prev => prev.filter(id => id !== productId));
-        setWishlistProducts(prev => prev.filter(product => product._id !== productId));
+        fetchWishlist(); // Re-fetch the wishlist to update the state globally
       }
     } catch (error) {
       alert('Failed to remove item from wishlist.');
