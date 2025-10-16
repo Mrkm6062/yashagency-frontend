@@ -4,6 +4,8 @@ import { t } from './src/i18n.js';
 import { makeSecureRequest } from './src/csrf.js';
 import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 
 
 // Lazy load heavy components
@@ -18,6 +20,15 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Main App Component
 function App() {
@@ -3392,6 +3403,42 @@ function TrackOrderPageComponent({ user }) {
   );
 }
 
+const SalesChart = ({ salesData }) => {
+  const labels = salesData.map(d => new Date(d._id).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' }));
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: 'Daily Sales (₹)',
+        data: salesData.map(d => d.totalSales),
+        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1,
+        borderRadius: 5,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Last 7 Days Sales',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
+  return <Bar options={options} data={data} />;
+};
 
 
 // Admin Panel Component
@@ -3925,6 +3972,12 @@ function AdminPanelComponent({ user }) {
                     <p className="text-2xl font-bold text-indigo-600">₹{(analytics.today?.prepaidRevenue || 0).toLocaleString()}</p>
                   </div>
                 </div>
+
+                {/* Sales Chart */}
+                {analytics.weeklySales && analytics.weeklySales.length > 0 && (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>
+                )}
+
                 {/* Status Distribution */}
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h4 className="font-semibold mb-4">Order Status Distribution</h4>
