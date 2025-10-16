@@ -301,6 +301,7 @@ function App() {
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
             <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} /></Suspense>} />
+            <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
             <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
