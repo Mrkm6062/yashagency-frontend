@@ -1423,7 +1423,7 @@ function CheckoutPageComponent({ user }) {
 
   const fetchShippingCost = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/shipping-cost`);
+      const response = await fetch(`${API_BASE}/api/settings`);
       const data = await response.json();
       setShippingCost(data.cost || 0);
     } catch (error) {
@@ -3424,6 +3424,13 @@ function AdminPanelComponent({ user }) {
   const [contacts, setContacts] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    shippingCost: 0,
+    phone: '',
+    email: '',
+    instagram: '',
+    facebook: ''
+  });
   const [analytics, setAnalytics] = useState({});
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '', status: 'all' });
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -3481,7 +3488,8 @@ function AdminPanelComponent({ user }) {
       setUsers(userData);
       setFilteredUsers(userData);
       setContacts(await contactsRes.json());
-      setShippingCost((await shippingRes.json()).cost || 0);
+      const settingsData = await settingsRes.json();
+      setSettingsForm(settingsData || { shippingCost: 0, phone: '', email: '', instagram: '', facebook: '' });
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
       setBannerForm({
@@ -3651,20 +3659,18 @@ function AdminPanelComponent({ user }) {
     }
   };
 
-  const updateShipping = async () => {
+  const updateSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/api/admin/shipping`, {
+      await makeSecureRequest(`${API_BASE}/api/admin/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ cost: shippingCost })
+        body: JSON.stringify(settingsForm)
       });
-      alert('Shipping cost updated!');
+      alert('Settings updated successfully!');
     } catch (error) {
-      alert('Failed to update shipping cost');
+      alert('Failed to update settings.');
     }
   };
 
