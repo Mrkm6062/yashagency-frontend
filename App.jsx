@@ -5246,7 +5246,7 @@ function CustomerServicePage() {
                           }
                           setLoading(true);
                           try {
-                            const response = await fetch(`${API_BASE}/contact`, {
+                            const response = await makeSecureRequest(`${API_BASE}/api/contact`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify(contactForm)
