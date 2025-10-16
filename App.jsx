@@ -5144,6 +5144,7 @@ function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCar
 function CustomerServicePage() {
   const [activeTab, setActiveTab] = useState('contact');
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const tabs = [
@@ -5160,6 +5161,28 @@ function CustomerServicePage() {
     { q: 'Can I cancel my order?', a: 'Yes, you can cancel your order within 24 hours of placing it. Contact our support team for assistance.' },
     { q: 'What is your return policy?', a: 'You can return items within 5 days after delivery. Items must be unused and in original packaging.' }
   ];
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!contactForm.name.trim()) newErrors.name = 'Name is required.';
+    if (!contactForm.email.trim()) {
+      newErrors.email = 'Email is required.';
+    } else if (!/\S+@\S+\.\S+/.test(contactForm.email)) {
+      newErrors.email = 'Email is invalid.';
+    }
+    if (!contactForm.subject.trim()) newErrors.subject = 'Subject is required.';
+    if (!contactForm.message.trim()) newErrors.message = 'Message is required.';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm({ ...contactForm, [name]: value });
+    // Clear error for the field when user starts typing
+    if (errors[name]) setErrors({ ...errors, [name]: null });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
@@ -5210,50 +5233,57 @@ function CustomerServicePage() {
                       <span>Send us a Message</span>
                     </h2>
                     <div className="space-y-4">
-                      <input
-                        type="text"
-                        placeholder="Your Name"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Your Email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Subject"
-                        value={contactForm.subject}
-                        onChange={(e) => setContactForm({...contactForm, subject: e.target.value})}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <textarea
-                        placeholder="Your Message"
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                        rows="4"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                      <div>
+                        <input
+                          type="text" name="name" placeholder="Your Name" value={contactForm.name}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                        />
+                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                      </div>
+                      <div>
+                        <input
+                          type="email" name="email" placeholder="Your Email" value={contactForm.email}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                        />
+                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                      </div>
+                      <div>
+                        <input
+                          type="text" name="subject" placeholder="Subject" value={contactForm.subject}
+                          onChange={handleInputChange}
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.subject ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                        />
+                        {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
+                      </div>
+                      <div>
+                        <textarea
+                          name="message" placeholder="Your Message" value={contactForm.message}
+                          onChange={handleInputChange}
+                          rows="4"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${errors.message ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                        />
+                        {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+                      </div>
                       <button 
                         onClick={async () => {
-                          if (!contactForm.name || !contactForm.email || !contactForm.message) {
-                            alert('Please fill in all required fields');
+                          if (!validateForm()) {
                             return;
                           }
                           setLoading(true);
                           try {
                             const response = await makeSecureRequest(`${API_BASE}/api/contact`, {
                               method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
+                              headers: { 
+                                'Content-Type': 'application/json'
+                              },
                               body: JSON.stringify(contactForm)
                             });
                             if (response.ok) {
                               alert('Message sent successfully! We\'ll get back to you soon.');
                               setContactForm({ name: '', email: '', subject: '', message: '' });
+                              setErrors({});
                             } else {
                               alert('Failed to send message. Please try again.');
                             }
