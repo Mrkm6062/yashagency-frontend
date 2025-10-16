@@ -2017,6 +2017,9 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 function LoginPage({ login, user }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
