@@ -1,8 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { t } from './src/i18n.js';
-import { makeSecureRequest } from './src/csrf.js';
-import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
+import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -3993,18 +3993,26 @@ function AdminPanelComponent({ user }) {
                     <h4 className="font-semibold mb-4">Order Status Distribution</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         {analytics.statusCounts?.map(status => {
-                            const getStatusColorClass = (status) => {
-                                switch (status) {
-                                    case 'pending': return 'bg-red-100 text-red-800';
-                                    case 'processing': return 'bg-yellow-100 text-yellow-800';
-                                    case 'shipped': return 'bg-blue-100 text-blue-800';
-                                    case 'delivered': return 'bg-green-100 text-green-800';
-                                    default: return 'bg-gray-100 text-gray-800';
+                            const getStatusConfig = (statusId) => {
+                                switch (statusId) {
+                                    case 'pending':
+                                        return { color: 'bg-red-100 text-red-800', icon: <FaHourglassHalf className="mx-auto mb-2 text-3xl" /> };
+                                    case 'processing':
+                                        return { color: 'bg-yellow-100 text-yellow-800', icon: <FaCog className="mx-auto mb-2 text-3xl animate-spin-slow" /> };
+                                    case 'shipped':
+                                        return { color: 'bg-blue-100 text-blue-800', icon: <FaTruck className="mx-auto mb-2 text-3xl" /> };
+                                    case 'delivered':
+                                        return { color: 'bg-green-100 text-green-800', icon: <FaCheckCircle className="mx-auto mb-2 text-3xl" /> };
+                                    default:
+                                        return { color: 'bg-gray-100 text-gray-800', icon: <FaQuestionCircle className="mx-auto mb-2 text-3xl" /> };
                                 }
                             };
 
+                            const config = getStatusConfig(status._id);
+
                             return (
-                                <div key={status._id} className={`p-6 rounded-lg text-center ${getStatusColorClass(status._id)}`}>
+                                <div key={status._id} className={`p-6 rounded-lg text-center ${config.color}`}>
+                                    {config.icon}
                                     <p className="text-2xl font-bold">{status.count}</p>
                                     <p className="font-semibold capitalize">{status._id}</p>
                                 </div>
