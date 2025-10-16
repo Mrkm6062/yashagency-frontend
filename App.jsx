@@ -42,7 +42,7 @@ function App() {
   const [wishlistProducts, setWishlistProducts] = useState([]); // New state for full product objects
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   // Load user from localStorage on app start
   useEffect(() => {
@@ -63,6 +63,21 @@ function App() {
     // to prevent re-fetching on every component mount that uses the hook.
     // The hook can be used in other components for accessing the products.
     fetchProducts().then(() => setLoading(false));
+
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+
   }, []);
 
   // Validate token and set user
@@ -280,14 +295,12 @@ function App() {
   return (
     <Router>      
       <div className="min-h-screen bg-gray-50">
-        <Header user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} />        
-        <ConditionalLayout user={user} cartCount={cart.length} wishlistCount={wishlistItems.length} isBottomNavVisible={isBottomNavVisible} setIsBottomNavVisible={setIsBottomNavVisible}>
+        <ConditionalLayout user={user} cartCount={cart.length} wishlistCount={wishlistItems.length}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>            
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
             <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} setWishlistItems={setWishlistItems} setWishlistProducts={setWishlistProducts} setNotification={setNotification} /></Suspense>} />
-            <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
             <Route path="/login" element={<LoginPage login={login} user={user} />} />
 
             <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
@@ -321,22 +334,25 @@ function App() {
             </Link>
           </div>
         )}
+
+        {showBackToTop && <BackToTopButton />}
       </div>
     </Router>
   );
 }
 
-const ConditionalLayout = ({ children, user, cartCount, wishlistCount, isBottomNavVisible, setIsBottomNavVisible }) => {
+const ConditionalLayout = ({ children, user, cartCount, wishlistCount }) => {
   const location = useLocation();
-  const noNavPages = ['/login']; // Array of paths to hide nav and footer
+  const noNavPages = ['/login', '/admin']; // Array of paths to hide nav and footer
   const hideNavAndFooter = noNavPages.includes(location.pathname);
 
   return (
     <>
+      {!hideNavAndFooter && <Header user={user} cartCount={cartCount} wishlistCount={wishlistCount} />}
       {children}
-      {!hideNavAndFooter && <BottomNavBar user={user} cartCount={cartCount} wishlistCount={wishlistCount} isVisible={isBottomNavVisible} />}
-      {!hideNavAndFooter && <Footer setIsBottomNavVisible={setIsBottomNavVisible} />}
-      {!isBottomNavVisible && !hideNavAndFooter && <BackToTopButton />}
+      {/* The bottom nav and footer are now part of the main layout flow */}
+      {!hideNavAndFooter && <BottomNavBar user={user} cartCount={cartCount} wishlistCount={wishlistCount} />}
+      {!hideNavAndFooter && <Footer />}
     </>
   );
 };
@@ -5341,31 +5357,9 @@ function CustomerServicePage() {
 }
 
 // Footer Component
-const Footer = React.memo(function Footer({ setIsBottomNavVisible }) {
-  const footerRef = React.useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // When footer is visible, hide the bottom nav. When it's not, show it.
-        setIsBottomNavVisible(!entry.isIntersecting);
-      },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1 // Trigger when 10% of the footer is visible
-      }
-    );
-
-    if (footerRef.current) {
-      observer.observe(footerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [setIsBottomNavVisible]);
-
+const Footer = React.memo(function Footer() {
   return (
-    <footer ref={footerRef} className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
+    <footer className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -5411,7 +5405,6 @@ const Footer = React.memo(function Footer({ setIsBottomNavVisible }) {
     </footer>
   );});
 
-// Back to Top Button Component
 const BackToTopButton = () => {
   const scrollToTop = () => {
     window.scrollTo({
@@ -5421,13 +5414,15 @@ const BackToTopButton = () => {
   };
 
   return (
-    <button onClick={scrollToTop} className="fixed bottom-6 right-6 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-blue-700 transition-all duration-300 z-50">
+    <button 
+      onClick={scrollToTop} 
+      className="fixed bottom-24 lg:bottom-6 right-6 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl hover:bg-blue-700 transition-all duration-300 z-50"
+    >
       ↑
     </button>
   );
 };
-// Bottom Navigation Bar for Mobile
-const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlistCount, isVisible }) {
+const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlistCount }) {
   const location = useLocation();
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
@@ -5439,7 +5434,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlis
   ];
 
   return (
-    <div className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-t-lg z-40 transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-t-lg z-40">
       <nav className="flex justify-around items-center h-16">
         {navItems.map(item => {
           if ((item.requiresUser && !user) || (item.showWhenLoggedOut && user)) return null;
