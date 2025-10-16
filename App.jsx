@@ -3404,7 +3404,13 @@ function TrackOrderPageComponent({ user }) {
 }
 
 const SalesChart = ({ salesData }) => {
-  const labels = salesData.map(d => new Date(d._id).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' }));
+  const labels = salesData.map(d => {
+    // Ensure we handle the date string correctly, especially if it's just YYYY-MM-DD
+    const dateParts = d._id.split('-');
+    const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+  });
+
   const data = {
     labels,
     datasets: [
