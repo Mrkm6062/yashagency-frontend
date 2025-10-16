@@ -2,6 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest } from './src/csrf.js';
+import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 
 
@@ -2017,9 +2018,6 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 function LoginPage({ login, user }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -2030,63 +2028,6 @@ function LoginPage({ login, user }) {
       navigate(from);
     }
   }, [user, navigate, location]);
-
-  const handleAuthAction = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    if (isLogin) {
-      const success = await login(email, password);
-      if (!success) {
-        alert('Login failed. Please check your credentials.');
-        setLoading(false);
-      }
-      // On success, the useEffect hook will handle navigation
-    } else {
-      if (!otpSent) {
-        // Step 1: Request OTP
-        try {
-          const response = await fetch(`${API_BASE}/api/register/send-otp`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-          });
-          const data = await response.json();
-          if (response.ok) {
-            setOtpSent(true);
-            alert(data.message);
-          } else {
-            alert(data.error || 'Failed to send OTP.');
-          }
-        } catch (error) {
-          alert('Failed to send OTP. Please try again.');
-        }
-      } else {
-        // Step 2: Verify OTP and Register
-        try {
-          const response = await fetch(`${API_BASE}/api/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, otp })
-          });
-          const data = await response.json();
-          if (response.ok) {
-            alert('Registration successful! Please login.');
-            setIsLogin(true);
-            setOtpSent(false);
-            setPassword('');
-            setOtp('');
-            setName('');
-          } else {
-            alert(data.error || 'Registration failed.');
-          }
-        } catch (error) {
-          alert('Registration failed. Please try again.');
-        }
-      }
-    }
-    setLoading(false);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -2152,7 +2093,7 @@ function LoginPage({ login, user }) {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={handleAuthAction} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 📧 Email Address
@@ -2162,7 +2103,7 @@ function LoginPage({ login, user }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
-                placeholder="Enter your email address"                
+                placeholder="Enter your email address"
                 required
               />
             </div>
@@ -2177,7 +2118,6 @@ function LoginPage({ login, user }) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
-                
                 required
               />
             </div>
@@ -2189,12 +2129,12 @@ function LoginPage({ login, user }) {
             >
               {loading ? (
                 <span className="flex items-center justify-center space-x-2">
-                  <span className="animate-spin">⏳</span>                  
-                  <span>Processing...</span>
+                  <span className="animate-spin">⏳</span>
+                  <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
                 </span>
               ) : (
                 <span className="flex items-center justify-center space-x-2">
-                  <span>{isLogin ? '🚀' : otpSent ? '✨' : '➡️'}</span>
+                  <span>{isLogin ? '🚀' : '✨'}</span>
                   <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
                 </span>
               )}
@@ -2219,8 +2159,6 @@ function LoginPage({ login, user }) {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setPassword('');
-                setOtpSent(false);
-                setOtp('');
               }}
               className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline"
             >
@@ -5534,10 +5472,10 @@ const Footer = React.memo(function Footer() {
           <div>
             <h4 className="font-semibold mb-3">Connect</h4>
             <div className="flex space-x-4">
-              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl">📷</a>}
-              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl">📘</a>}
-              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl">📧</a>}
-              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl">📞</a>}
+              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl"><FaInstagram /></a>}
+              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl"><FaFacebook /></a>}
+              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl"><FaEnvelope /></a>}
+              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl"><FaPhone /></a>}
             </div>
           </div>
         </div>
