@@ -3405,49 +3405,6 @@ function TrackOrderPageComponent({ user }) {
   );
 }
 
-const SalesChart = ({ salesData }) => {
-  const labels = salesData.map(d => {
-    // Ensure we handle the date string correctly, especially if it's just YYYY-MM-DD
-    const dateParts = d._id.split('-');
-    const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-    return date.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
-  });
-
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Daily Sales (₹)',
-        data: salesData.map(d => d.totalSales),
-        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-        borderColor: 'rgba(59, 130, 246, 1)',
-        borderWidth: 1,
-        borderRadius: 5,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: `Sales for Last ${range === 'all' ? 'All Time' : `${range} Days`}`,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  };
-
-  return <Line options={options} data={data} />;
-};
-
 
 // Admin Panel Component
 function AdminPanelComponent({ user }) {
