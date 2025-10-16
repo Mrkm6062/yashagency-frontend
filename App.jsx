@@ -15,7 +15,6 @@ const AdminPanel = lazy(() => Promise.resolve({ default: AdminPanelComponent }))
 const TrackOrderPage = lazy(() => Promise.resolve({ default: TrackOrderPageComponent }));
 const ProfilePage = lazy(() => Promise.resolve({ default: ProfilePageComponent }));
 const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageComponent }));
-import { getCSRFToken } from './src/csrf.js';
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
 
 // API Base URL
