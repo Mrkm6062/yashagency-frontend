@@ -1423,7 +1423,7 @@ function CheckoutPageComponent({ user }) {
 
   const fetchShippingCost = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/settings`);
+      const response = await fetch(`${API_BASE}/api/shipping-cost`);
       const data = await response.json();
       setShippingCost(data.cost || 0);
     } catch (error) {
@@ -3424,13 +3424,6 @@ function AdminPanelComponent({ user }) {
   const [contacts, setContacts] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [settingsForm, setSettingsForm] = useState({
-    shippingCost: 0,
-    phone: '',
-    email: '',
-    instagram: '',
-    facebook: ''
-  });
   const [analytics, setAnalytics] = useState({});
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '', status: 'all' });
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -3470,13 +3463,13 @@ function AdminPanelComponent({ user }) {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, shippingRes, analyticsRes, bannerRes] = await Promise.all([
+      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes] = await Promise.all([
         fetch(`${API_BASE}/api/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/api/shipping-cost`),
+        fetch(`${API_BASE}/api/settings`),
         fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/banner`)
       ]);
@@ -3659,18 +3652,20 @@ function AdminPanelComponent({ user }) {
     }
   };
 
-  const updateSettings = async () => {
+  const updateShipping = async () => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/settings`, {
+      const token = localStorage.getItem('token');
+      await fetch(`${API_BASE}/api/admin/shipping`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(settingsForm)
+        body: JSON.stringify({ cost: shippingCost })
       });
-      alert('Settings updated successfully!');
+      alert('Shipping cost updated!');
     } catch (error) {
-      alert('Failed to update settings.');
+      alert('Failed to update shipping cost');
     }
   };
 
@@ -4955,14 +4950,14 @@ function AdminPanelComponent({ user }) {
                       className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-32"
                     />
                     <button
-                      onClick={updateShipping}
+                      onClick={updateSettings}
                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto"
                     >
                       Update
                     </button>
                   </div>
                   <p className="text-gray-600 text-sm mt-2">Set to 0 for free shipping</p>
-                </div>
+                </div>                
               </div>
             )}
           </div>
