@@ -2017,10 +2017,12 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 function LoginPage({ login, user }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
   useEffect(() => {
     if (user) {
       const from = location.state?.from?.pathname || '/';
@@ -2092,7 +2094,23 @@ function LoginPage({ login, user }) {
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleAuthAction} className="space-y-6">
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  👤 Full Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  placeholder="Enter your full name"
+                  required={!isLogin}
+                  disabled={otpSent}
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 📧 Email Address
@@ -2103,6 +2121,7 @@ function LoginPage({ login, user }) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 placeholder="Enter your email address"
+                disabled={!isLogin && otpSent}
                 required
               />
             </div>
@@ -2117,10 +2136,27 @@ function LoginPage({ login, user }) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                 placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
+                disabled={!isLogin && otpSent}
                 required
               />
             </div>
             
+            {!isLogin && otpSent && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  🔑 OTP
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  placeholder="Enter the 6-digit OTP"
+                  required
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -2129,12 +2165,12 @@ function LoginPage({ login, user }) {
               {loading ? (
                 <span className="flex items-center justify-center space-x-2">
                   <span className="animate-spin">⏳</span>
-                  <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                  <span>Processing...</span>
                 </span>
               ) : (
                 <span className="flex items-center justify-center space-x-2">
-                  <span>{isLogin ? '🚀' : '✨'}</span>
-                  <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                  <span>{isLogin ? '🚀' : otpSent ? '✨' : '➡️'}</span>
+                  <span>{isLogin ? 'Sign In' : otpSent ? 'Create Account' : 'Get OTP'}</span>
                 </span>
               )}
             </button>
@@ -2158,6 +2194,8 @@ function LoginPage({ login, user }) {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setPassword('');
+                setOtpSent(false);
+                setOtp('');
               }}
               className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline"
             >
