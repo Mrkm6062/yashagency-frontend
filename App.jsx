@@ -3468,6 +3468,27 @@ function AdminPanelComponent({ user }) {
     fetchData();
   }, [user]);
 
+  useEffect(() => {
+    if (activeTab === 'messages') {
+      const intervalId = setInterval(() => {
+        // Function to fetch only contacts to be efficient
+        const fetchContacts = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (response.ok) {
+              setContacts(await response.json());
+            }
+          } catch (error) {
+            console.error('Error polling for messages:', error);
+          }
+        };
+        fetchContacts();
+      }, 15000); // Poll every 15 seconds
+
+      return () => clearInterval(intervalId); // Cleanup interval on tab change or unmount
+    }
+  }, [activeTab]);
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
