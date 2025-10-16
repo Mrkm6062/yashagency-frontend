@@ -1927,7 +1927,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
       
       {/* Cart Items */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {cart.map(item => {
           const hasDiscount = item.originalPrice && item.discountPercentage && item.discountPercentage > 0;
           return (
