@@ -4,8 +4,8 @@ import { t } from './src/i18n.js';
 import { makeSecureRequest } from './src/csrf.js';
 import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
 
 // Lazy load heavy components
@@ -24,10 +24,12 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').repla
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 // Main App Component
@@ -3433,7 +3435,7 @@ const SalesChart = ({ salesData }) => {
       },
       title: {
         display: true,
-        text: 'Last 7 Days Sales',
+        text: `Sales for Last ${range === 'all' ? 'All Time' : `${range} Days`}`,
       },
     },
     scales: {
@@ -3443,7 +3445,7 @@ const SalesChart = ({ salesData }) => {
     }
   };
 
-  return <Bar options={options} data={data} />;
+  return <Line options={options} data={data} />;
 };
 
 
@@ -3469,6 +3471,7 @@ function AdminPanelComponent({ user }) {
   const [loading, setLoading] = useState(false);
   const [analytics, setAnalytics] = useState({});
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '', status: 'all' });
+  const [salesRange, setSalesRange] = useState('7');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [courierForm, setCourierForm] = useState({ courierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
   
@@ -3509,7 +3512,7 @@ function AdminPanelComponent({ user }) {
     const startPolling = (fetchFunction) => {
       fetchFunction(); // Fetch immediately
       return setInterval(fetchFunction, 15000); // Then poll every 15 seconds
-    };
+    };    
 
     const fetchDashboardData = async () => {
       try {
@@ -3518,7 +3521,7 @@ function AdminPanelComponent({ user }) {
         if (response.ok) setAnalytics(await response.json());
       } catch (error) { console.error('Error polling for dashboard data:', error); }
     };
-
+    
     const fetchOrdersData = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -3544,11 +3547,11 @@ function AdminPanelComponent({ user }) {
     }
 
     return () => clearInterval(intervalId); // Cleanup interval on tab change or component unmount
-  }, [activeTab]);
+  }, [activeTab, salesRange]);
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes] = await Promise.all([
+      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes] = await Promise.all([ // Added settingsRes
         fetch(`${API_BASE}/api/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -3556,7 +3559,7 @@ function AdminPanelComponent({ user }) {
         fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/settings`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/api/banner`)
+        fetch(`${API_BASE}/api/banner`),
       ]);
       
       setProducts(await productsRes.json());
@@ -3566,7 +3569,7 @@ function AdminPanelComponent({ user }) {
       setUsers(userData);
       setFilteredUsers(userData);
       setContacts(await contactsRes.json());
-      const settingsData = await settingsRes.json() || {};
+      const settingsData = await settingsRes.json() || {}; // Correctly parse settings
       setSettingsForm(settingsData || { shippingCost: 0, phone: '', email: '', instagram: '', facebook: '' });
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
@@ -3652,7 +3655,7 @@ function AdminPanelComponent({ user }) {
       
       if (withCourier && status === 'shipped') {
         payload.courierName = courierForm.courierName;
-        payload.trackingNumber = courierForm.trackingNumber;
+        payload.trackingNumber = courierForm.trackingNumber;        
         payload.estimatedDelivery = courierForm.estimatedDelivery;
         payload.notes = courierForm.notes;
       }
@@ -3980,10 +3983,30 @@ function AdminPanelComponent({ user }) {
                 </div>
 
                 {/* Sales Chart */}
-                {analytics.weeklySales && analytics.weeklySales.length > 0 && (
-                  <div className="bg-white p-6 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>
+                {analytics.salesByDay && (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border mt-6">
+                    <div className="flex justify-end mb-4">
+                      <select
+                        value={salesRange}
+                        onChange={(e) => setSalesRange(e.target.value)}
+                        className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="7">Last 7 Days</option>
+                        <option value="15">Last 15 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="all">All Time</option>
+                      </select>
+                    </div>
+                    {analytics.salesByDay.length > 0 ? (
+                      <SalesChart salesData={analytics.salesByDay} range={salesRange} />
+                    ) : (
+                      <div className="text-center py-10 text-gray-500">
+                        <p>No sales data for the selected period.</p>
+                      </div>
+                    )}
+                  </div>
                 )}
-
+                
                 {/* Status Distribution */}
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h4 className="font-semibold mb-4">Order Status Distribution</h4>
