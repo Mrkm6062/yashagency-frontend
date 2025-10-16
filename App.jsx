@@ -3897,27 +3897,34 @@ function AdminPanelComponent({ user }) {
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Dashboard Overview</h3>
-                
+
                 {/* Analytics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="bg-blue-50 p-6 rounded-lg">
-                    <h4 className="text-blue-800 font-semibold">Today's Orders</h4>
-                    <p className="text-2xl font-bold text-blue-600">{analytics.todayOrders || 0}</p>
+                    <h4 className="text-blue-800 font-semibold">Today's Total Orders</h4>
+                    <p className="text-2xl font-bold text-blue-600">{analytics.today?.totalOrders || 0}</p>
                   </div>
                   <div className="bg-green-50 p-6 rounded-lg">
-                    <h4 className="text-green-800 font-semibold">This Week</h4>
-                    <p className="text-2xl font-bold text-green-600">{analytics.weekOrders || 0}</p>
+                    <h4 className="text-green-800 font-semibold">Today's Total Revenue</h4>
+                    <p className="text-2xl font-bold text-green-600">₹{(analytics.today?.totalRevenue || 0).toLocaleString()}</p>
                   </div>
                   <div className="bg-purple-50 p-6 rounded-lg">
-                    <h4 className="text-purple-800 font-semibold">This Month</h4>
-                    <p className="text-2xl font-bold text-purple-600">{analytics.monthOrders || 0}</p>
+                    <h4 className="text-purple-800 font-semibold">Today's COD Orders</h4>
+                    <p className="text-2xl font-bold text-purple-600">{analytics.today?.codOrders || 0}</p>
                   </div>
                   <div className="bg-yellow-50 p-6 rounded-lg">
-                    <h4 className="text-yellow-800 font-semibold">Total Revenue</h4>
-                    <p className="text-2xl font-bold text-yellow-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p>
+                    <h4 className="text-yellow-800 font-semibold">Today's COD Revenue</h4>
+                    <p className="text-2xl font-bold text-yellow-600">₹{(analytics.today?.codRevenue || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="bg-red-50 p-6 rounded-lg">
+                    <h4 className="text-red-800 font-semibold">Today's Prepaid Orders</h4>
+                    <p className="text-2xl font-bold text-red-600">{analytics.today?.prepaidOrders || 0}</p>
+                  </div>
+                  <div className="bg-indigo-50 p-6 rounded-lg">
+                    <h4 className="text-indigo-800 font-semibold">Today's Prepaid Revenue</h4>
+                    <p className="text-2xl font-bold text-indigo-600">₹{(analytics.today?.prepaidRevenue || 0).toLocaleString()}</p>
                   </div>
                 </div>
-                
                 {/* Status Distribution */}
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h4 className="font-semibold mb-4">Order Status Distribution</h4>
