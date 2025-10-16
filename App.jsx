@@ -848,7 +848,7 @@ function ProductListPage({ products, loading }) {
 }
 
 // Product Detail Page Component
-function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchWishlist, setNotification }) {
+function ProductDetailPageComponent({ addToCart, wishlistItems, fetchWishlist, setNotification }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -858,11 +858,28 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const product = products.find(p => p._id === id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const token = localStorage.getItem('token');
     setCanReview(!!token);
+
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_BASE}/api/products/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProduct(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch product details:', error);
+      }
+      setLoading(false);
+    };
+
+    fetchProduct();
   }, [id]);
   
   const checkReviewEligibility = async () => {
@@ -945,7 +962,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
     }
   };
 
-  if (!product) {
+  if (loading || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
