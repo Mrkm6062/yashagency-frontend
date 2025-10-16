@@ -1006,28 +1006,27 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   
                   try {
-                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, {
+                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: isInWishlist ? 'DELETE' : 'POST',
                       headers: { 
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        // CSRF token is not needed for this simple POST/DELETE as per backend setup
                       },
                     });
 
                     if (response.ok) {
                       // The request was successful, update the UI state immediately.
                       if (isInWishlist) {
-                        setWishlistItems(prev => prev.filter(id => id !== product._id));
-                        setWishlistProducts(prev => prev.filter(p => p._id !== product._id));
+                        setWishlistItems(prev => prev.filter(id => id !== product._id));                        
                         setNotification && setNotification({ message: 'Removed from wishlist', product: product.name, type: 'wishlist' });
                       } else {
-                        setWishlistItems(prev => [...prev, product._id]);
-                        setWishlistProducts(prev => [...prev, product]);
+                        setWishlistItems(prev => [...prev, product._id]);                        
                         setNotification && setNotification({ message: 'Added to wishlist', product: product.name, type: 'wishlist' });
                       }
                       setTimeout(() => setNotification && setNotification(null), 3000);
                     } else {
                       // If the response is not ok, then try to parse the error message.
-                      const data = await response.json();
+                      const data = await response.json().catch(() => ({})); // Handle cases where body is not JSON
                       alert(data.error || `Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
                     }
                   } catch (error) {
