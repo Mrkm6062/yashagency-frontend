@@ -3451,25 +3451,46 @@ function AdminPanelComponent({ user }) {
   }, [user]);
 
   useEffect(() => {
-    if (activeTab === 'messages') {
-      const intervalId = setInterval(() => {
-        // Function to fetch only contacts to be efficient
-        const fetchContacts = async () => {
-          try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (response.ok) {
-              setContacts(await response.json());
-            }
-          } catch (error) {
-            console.error('Error polling for messages:', error);
-          }
-        };
-        fetchContacts();
-      }, 15000); // Poll every 15 seconds
+    let intervalId;
 
-      return () => clearInterval(intervalId); // Cleanup interval on tab change or unmount
+    const startPolling = (fetchFunction) => {
+      fetchFunction(); // Fetch immediately
+      return setInterval(fetchFunction, 15000); // Then poll every 15 seconds
+    };
+
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (response.ok) setAnalytics(await response.json());
+      } catch (error) { console.error('Error polling for dashboard data:', error); }
+    };
+
+    const fetchOrdersData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (response.ok) setOrders(await response.json());
+      } catch (error) { console.error('Error polling for orders data:', error); }
+    };
+
+    const fetchContacts = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (response.ok) setContacts(await response.json());
+      } catch (error) { console.error('Error polling for messages:', error); }
+    };
+
+    if (activeTab === 'dashboard') {
+      intervalId = startPolling(fetchDashboardData);
+    } else if (activeTab === 'orders') {
+      intervalId = startPolling(fetchOrdersData);
+    } else if (activeTab === 'messages') {
+      intervalId = startPolling(fetchContacts);
     }
+
+    return () => clearInterval(intervalId); // Cleanup interval on tab change or component unmount
   }, [activeTab]);
   const fetchData = async () => {
     try {
