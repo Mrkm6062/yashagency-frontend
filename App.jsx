@@ -3423,6 +3423,13 @@ function AdminPanelComponent({ user }) {
   const [userFilters, setUserFilters] = useState({ search: '', userType: 'all', sortBy: 'name' });
   const [contacts, setContacts] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
+  const [settingsForm, setSettingsForm] = useState({
+    shippingCost: 0,
+    phone: '',
+    email: '',
+    instagram: '',
+    facebook: ''
+  });
   const [loading, setLoading] = useState(false);
   const [analytics, setAnalytics] = useState({});
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '', status: 'all' });
@@ -3469,7 +3476,7 @@ function AdminPanelComponent({ user }) {
         fetch(`${API_BASE}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/api/settings`),
+        fetch(`${API_BASE}/api/settings`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/banner`)
       ]);
@@ -3481,7 +3488,7 @@ function AdminPanelComponent({ user }) {
       setUsers(userData);
       setFilteredUsers(userData);
       setContacts(await contactsRes.json());
-      const settingsData = await settingsRes.json();
+      const settingsData = await settingsRes.json() || {};
       setSettingsForm(settingsData || { shippingCost: 0, phone: '', email: '', instagram: '', facebook: '' });
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
@@ -3652,20 +3659,18 @@ function AdminPanelComponent({ user }) {
     }
   };
 
-  const updateShipping = async () => {
+  const updateSettings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/api/admin/shipping`, {
+      await makeSecureRequest(`${API_BASE}/api/admin/settings`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ cost: shippingCost })
+        body: JSON.stringify(settingsForm)
       });
-      alert('Shipping cost updated!');
+      alert('Settings updated successfully!');
     } catch (error) {
-      alert('Failed to update shipping cost');
+      alert('Failed to update settings.');
     }
   };
 
@@ -4945,8 +4950,8 @@ function AdminPanelComponent({ user }) {
                     <label className="font-medium">Shipping Cost (₹):</label>
                     <input
                       type="number"
-                      value={shippingCost}
-                      onChange={(e) => setShippingCost(Number(e.target.value))}
+                      value={settingsForm.shippingCost}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingCost: Number(e.target.value) })}
                       className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-32"
                     />
                     <button
@@ -5412,43 +5417,66 @@ function CustomerServicePage() {
 
 // Footer Component
 const Footer = React.memo(function Footer() {
+  const [settings, setSettings] = useState({
+    phone: '',
+    email: '',
+    instagram: '',
+    facebook: ''
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/settings`);
+        if (response.ok) {
+          setSettings(await response.json());
+        }
+      } catch (error) {
+        console.error("Failed to fetch settings for footer:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <footer className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-lg font-bold mb-4">SamriddhiShop</h3>
             <p className="text-gray-300 text-sm">Your trusted online shopping destination for quality products at great prices.</p>
           </div>
           
-          <div>
-            <h4 className="font-semibold mb-3">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
-              <li><Link to="/products" className="text-gray-300 hover:text-white">Products</Link></li>
-              <li><Link to="/orders" className="text-gray-300 hover:text-white">My Orders</Link></li>
-              <li><Link to="/wishlist" className="text-gray-300 hover:text-white">Wishlist</Link></li>
-              <li><Link to="/profile" className="text-gray-300 hover:text-white">Profile</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="font-semibold mb-3">Customer Service</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/support" className="text-gray-300 hover:text-white">Contact Us</Link></li>
-              <li><Link to="/support" className="text-gray-300 hover:text-white">FAQ</Link></li>
-              <li><Link to="/support" className="text-gray-300 hover:text-white">Return Policy</Link></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">Shipping Info</a></li>
-            </ul>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <h4 className="font-semibold mb-3">Quick Links</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
+                <li><Link to="/products" className="text-gray-300 hover:text-white">Products</Link></li>
+                <li><Link to="/orders" className="text-gray-300 hover:text-white">My Orders</Link></li>
+                <li><Link to="/wishlist" className="text-gray-300 hover:text-white">Wishlist</Link></li>
+                <li><Link to="/profile" className="text-gray-300 hover:text-white">Profile</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">Customer Service</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/support" className="text-gray-300 hover:text-white">Contact Us</Link></li>
+                <li><Link to="/support" className="text-gray-300 hover:text-white">FAQ</Link></li>
+                <li><Link to="/support" className="text-gray-300 hover:text-white">Return Policy</Link></li>
+                <li><a href="#" className="text-gray-300 hover:text-white">Shipping Info</a></li>
+              </ul>
+            </div>
           </div>
           
           <div>
             <h4 className="font-semibold mb-3">Connect</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-gray-300 hover:text-white">📧 support@samriddhishop.com</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">📞 +91 9876543210</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white">📍 Mumbai, India</a></li>
-            </ul>
+            <div className="flex space-x-4">
+              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl">📷</a>}
+              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl">📘</a>}
+              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl">📧</a>}
+              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl">📞</a>}
+            </div>
           </div>
         </div>
         
