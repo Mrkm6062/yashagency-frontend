@@ -3981,10 +3981,6 @@ function AdminPanelComponent({ user }) {
                     <h4 className="text-gray-800 font-semibold">Total Revenue (All Time)</h4>
                     <p className="text-2xl font-bold text-gray-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p>
                   </div>
-                  <div className="bg-teal-50 p-6 rounded-lg">
-                    <h4 className="text-teal-800 font-semibold">Total Orders (All Time)</h4>
-                    <p className="text-2xl font-bold text-teal-600">{analytics.totalOrders || 0}</p>
-                  </div>
                 </div>
 
                 {/* Sales Chart */}
@@ -3992,17 +3988,29 @@ function AdminPanelComponent({ user }) {
                   <div className="bg-white p-6 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>
                 )}
 
-                {/* Status Distribution */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h4 className="font-semibold mb-4">Order Status Distribution</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {analytics.statusCounts?.map(status => (
-                      <div key={status._id} className="text-center">
-                        <p className="text-lg font-bold">{status.count}</p>
-                        <p className="text-sm text-gray-600 capitalize">{status._id}</p>
-                      </div>
-                    ))}
-                  </div>
+                {/* Status Distribution Cards */}
+                <div className="mt-6">
+                    <h4 className="font-semibold mb-4">Order Status Distribution</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {analytics.statusCounts?.map(status => {
+                            const getStatusColorClass = (status) => {
+                                switch (status) {
+                                    case 'pending': return 'bg-red-100 text-red-800';
+                                    case 'processing': return 'bg-yellow-100 text-yellow-800';
+                                    case 'shipped': return 'bg-blue-100 text-blue-800';
+                                    case 'delivered': return 'bg-green-100 text-green-800';
+                                    default: return 'bg-gray-100 text-gray-800';
+                                }
+                            };
+
+                            return (
+                                <div key={status._id} className={`p-6 rounded-lg text-center ${getStatusColorClass(status._id)}`}>
+                                    <p className="text-2xl font-bold">{status.count}</p>
+                                    <p className="font-semibold capitalize">{status._id}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
               </div>
             )}
