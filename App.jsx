@@ -5171,7 +5171,11 @@ function CustomerServicePage() {
       newErrors.email = 'Email is invalid.';
     }
     if (!contactForm.subject.trim()) newErrors.subject = 'Subject is required.';
-    if (!contactForm.message.trim()) newErrors.message = 'Message is required.';
+    if (!contactForm.message.trim()) {
+      newErrors.message = 'Message is required.';
+    } else if (contactForm.message.trim().length < 10) {
+      newErrors.message = 'Message must be at least 10 characters long.';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
