@@ -4914,15 +4914,13 @@ function AdminPanelComponent({ user }) {
                           </button>
                           <button 
                             onClick={async () => {
-                              try {
-                                const token = localStorage.getItem('token');
-                                await fetch(`${API_BASE}/admin/contacts/${contact._id}/status`, {
+                              try {                                
+                                await makeSecureRequest(`${API_BASE}/api/admin/contacts/${contact._id}/status`, {
                                   method: 'PATCH',
                                   headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
+                                    'Content-Type': 'application/json'
                                   },
-                                  body: JSON.stringify({ status: 'read' })
+                                  body: JSON.stringify({ status: 'read' }),
                                 });
                                 fetchData();
                               } catch (error) {
