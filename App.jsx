@@ -344,7 +344,7 @@ function App() {
 
 const ConditionalLayout = ({ children, user, cartCount, wishlistCount }) => {
   const location = useLocation();
-  const noNavPages = ['/login', '/admin']; // Array of paths to hide nav and footer
+  const noNavPages = ['/login']; // Array of paths to hide nav and footer
   const hideNavAndFooter = noNavPages.includes(location.pathname);
 
   return (
