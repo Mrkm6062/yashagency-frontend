@@ -1374,8 +1374,8 @@ function CheckoutPageComponent({ user }) {
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
   const subtotal = total;
-  const tax = Math.round(subtotal * 0.18);
-  const finalTotal = subtotal + tax + shippingCost - discount;
+  const tax = 0; // Tax functionality removed
+  const finalTotal = subtotal + shippingCost - discount;
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -1744,10 +1744,6 @@ function CheckoutPageComponent({ user }) {
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
                   <span>{shippingCost > 0 ? `₹${shippingCost}` : 'Free'}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Tax (18%)</span>
-                  <span>₹{tax.toLocaleString()}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
@@ -2433,13 +2429,6 @@ function OrderStatusPageComponent({ user }) {
                     <div className="flex justify-between text-gray-600">
                       <span>Shipping</span>
                       <span>₹{order.shippingCost.toFixed(2)}</span>
-                    </div>
-                  )}
-                  
-                  {order.tax && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Tax (18%)</span>
-                      <span>₹{order.tax.toFixed(2)}</span>
                     </div>
                   )}
                   
@@ -3358,13 +3347,6 @@ function TrackOrderPageComponent({ user }) {
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
                 <span>₹{order.shippingCost.toFixed(2)}</span>
-              </div>
-            )}
-            
-            {order.tax && (
-              <div className="flex justify-between text-gray-600">
-                <span>Tax (18%)</span>
-                <span>₹{order.tax.toFixed(2)}</span>
               </div>
             )}
             
