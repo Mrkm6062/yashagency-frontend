@@ -3607,12 +3607,10 @@ function AdminPanelComponent({ user }) {
   const saveCoupon = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/admin/coupons`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/admin/coupons`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(couponForm)
       });
@@ -3621,6 +3619,9 @@ function AdminPanelComponent({ user }) {
         alert('Coupon created!');
         setCouponForm({ code: '', discount: '', type: 'percentage', minAmount: '', maxDiscount: '', expiryDate: '', oneTimeUse: false });
         fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to create coupon');
       }
     } catch (error) {
       alert('Failed to create coupon');
@@ -3630,12 +3631,10 @@ function AdminPanelComponent({ user }) {
 
   const toggleCoupon = async (couponId, isActive) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API_BASE}/api/admin/coupons/${couponId}/toggle`, {
+      await makeSecureRequest(`${API_BASE}/api/admin/coupons/${couponId}/toggle`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ isActive: !isActive })
       });
