@@ -3977,6 +3977,14 @@ function AdminPanelComponent({ user }) {
                     <h4 className="text-indigo-800 font-semibold">Today's Prepaid Revenue</h4>
                     <p className="text-2xl font-bold text-indigo-600">₹{(analytics.today?.prepaidRevenue || 0).toLocaleString()}</p>
                   </div>
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h4 className="text-gray-800 font-semibold">Total Revenue (All Time)</h4>
+                    <p className="text-2xl font-bold text-gray-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p>
+                  </div>
+                  <div className="bg-teal-50 p-6 rounded-lg">
+                    <h4 className="text-teal-800 font-semibold">Total Orders (All Time)</h4>
+                    <p className="text-2xl font-bold text-teal-600">{analytics.totalOrders || 0}</p>
+                  </div>
                 </div>
 
                 {/* Sales Chart */}
