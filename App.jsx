@@ -1006,11 +1006,10 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, setWis
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   
                   try {
-                    const response = await fetch(`${API_BASE}/api/wishlist/${product._id}`, {
+                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, {
                       method: isInWishlist ? 'DELETE' : 'POST',
                       headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        // CSRF token is not needed for this simple POST/DELETE as per backend setup
+                        'Authorization': `Bearer ${token}`
                       },
                     });
 
@@ -5015,12 +5014,10 @@ function WishlistPageComponent({ user, wishlistProducts, setWishlistProducts, se
 
   const removeFromWishlist = async (productId) => {
     try {
-      const token = getToken();
       const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
         headers: { 
-          'Authorization': `Bearer ${token}`
-          // No need to manually add CSRF token, makeSecureRequest handles it
+          'Authorization': `Bearer ${getToken()}`
         },
       });
       
