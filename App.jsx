@@ -5504,7 +5504,7 @@ const BackToTopButton = () => {
     </button>
   );
 };
-const BottomNavBar = React.memo(function BottomNavBar({ user, cartCount, wishlistCount }) {
+const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount, wishlistCount }) {
   const location = useLocation();
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
