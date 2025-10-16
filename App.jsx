@@ -1719,19 +1719,19 @@ function CheckoutPageComponent({ user }) {
               
               {/* Coupon Code */}
               <div className="border-t pt-4 mb-4">
-                <div className="flex space-x-2">
+                <div className="relative">
                   <input
                     type="text"
                     placeholder="Enter coupon code"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     onClick={applyCoupon}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="absolute inset-y-0 right-0 flex items-center justify-center w-12 text-gray-500 hover:text-blue-600 transition-colors rounded-r-lg"
                   >
-                    Apply
+                    →
                   </button>
                 </div>
               </div>
