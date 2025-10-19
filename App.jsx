@@ -5660,23 +5660,43 @@ const BackToTopButton = () => {
 };
 const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount, wishlistCount }) {
   const location = useLocation();
-  const navItems = [
-    { to: '/', icon: '🏠', label: 'Home' },
+  const isAdmin = user?.email === 'admin@samriddhishop.com';
+
+  const userNavItems = [
+    { to: '/', icon: '🏠', label: 'Home', exact: true },
     { to: '/products', icon: '🛍️', label: 'Shop' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
     { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
     { to: '/profile', icon: '👤', label: 'Profile', requiresUser: true },
-    { to: '/login', icon: '🔑', label: 'Login', showWhenLoggedOut: true },
   ];
+
+  const adminNavItems = [
+    { to: '/admin', icon: '📊', label: 'Dashboard', admin: true, tab: 'dashboard' },
+    { to: '/admin', icon: '📦', label: 'Products', admin: true, tab: 'products' },
+    { to: '/admin', icon: '🛒', label: 'Orders', admin: true, tab: 'orders' },
+    { to: '/admin', icon: '👥', label: 'Users', admin: true, tab: 'users' },
+    { to: '/admin', icon: '🖼️', label: 'Banner', admin: true, tab: 'banner' },
+    { to: '/admin', icon: '💬', label: 'Messages', admin: true, tab: 'messages' },
+    { to: '/admin', icon: '🎫', label: 'Coupons', admin: true, tab: 'coupons' },
+    { to: '/admin', icon: '⚙️', label: 'Settings', admin: true, tab: 'settings' },
+  ];
+
+  const navItems = isAdmin ? adminNavItems : userNavItems;
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 shadow-t-lg z-40">
       <nav className="flex justify-around items-center h-16">
         {navItems.map(item => {
-          if ((item.requiresUser && !user) || (item.showWhenLoggedOut && user)) return null;
-          const isActive = location.pathname === item.to;
+          if ((item.requiresUser && !user)) return null;
+
+          const isActive = item.admin
+            ? location.pathname === item.to && new URLSearchParams(location.search).get('tab') === item.tab
+            : item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to) && item.to !== '/';
+
+          const linkTo = item.admin ? `${item.to}?tab=${item.tab}` : item.to;
+
           return (
-            <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
+            <Link key={item.label} to={linkTo} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
               <span className="text-2xl">{item.icon}</span>
               <span className={`text-xs font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
               {item.count > 0 && (
@@ -5687,7 +5707,14 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
             </Link>
           );
         })}
-        {user && <button onClick={logout} className="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-600"><span className="text-2xl">🚪</span><span className="text-xs font-medium">Logout</span></button>}
+        {user ? (
+          <button onClick={logout} className="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-600"><span className="text-2xl">🚪</span><span className="text-xs font-medium">Logout</span></button>
+        ) : (
+          <Link to="/login" className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${location.pathname === '/login' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
+            <span className="text-2xl">🔑</span>
+            <span className={`text-xs font-medium ${location.pathname === '/login' ? 'font-bold' : ''}`}>Login</span>
+          </Link>
+        )}
       </nav>
     </div>
   );
