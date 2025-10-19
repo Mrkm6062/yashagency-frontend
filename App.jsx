@@ -2526,13 +2526,12 @@ function ProfilePageComponent({ user, setUser }) {
   const updateProfile = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/profile`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          'Authorization': `Bearer ${getToken()}`
+        }, // makeSecureRequest will add the CSRF token
         body: JSON.stringify(profile)
       });
       
@@ -2560,12 +2559,11 @@ function ProfilePageComponent({ user, setUser }) {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/change-password`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${getToken()}`
         },
         body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new })
       });
@@ -2593,12 +2591,11 @@ function ProfilePageComponent({ user, setUser }) {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/addresses`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/addresses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${getToken()}`
         },
         body: JSON.stringify(newAddress)
       });
@@ -2621,10 +2618,9 @@ function ProfilePageComponent({ user, setUser }) {
 
   const deleteAddress = async (addressId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/addresses/${addressId}`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/addresses/${addressId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${getToken()}` }
       });
       
       const data = await response.json();
