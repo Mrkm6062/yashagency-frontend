@@ -493,7 +493,7 @@ function HomePage({ products, loading }) {
       <Link to="/products" className="block">
         {/* Desktop Banner */}
         <div
-          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-100 cursor-pointer"
+          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-60 cursor-pointer"
           style={{ backgroundImage: banners.desktop?.backgroundImage ? `url(${banners.desktop.backgroundImage})` : undefined }}
         >
           {banners.desktop?.backgroundImage && <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>}
