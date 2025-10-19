@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
 import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
