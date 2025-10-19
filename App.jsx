@@ -446,11 +446,17 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
 
 // Home Page Component
 function HomePage({ products, loading }) {
-  const [banner, setBanner] = useState({
-    title: 'Welcome to SamriddhiShop',
-    subtitle: 'Discover amazing products at great prices',
-    buttonText: 'Shop Now',
-    backgroundImage: ''
+  const [banners, setBanners] = useState({
+    desktop: {
+      title: 'Welcome to SamriddhiShop',
+      subtitle: 'Discover amazing products at great prices',
+      backgroundImage: ''
+    },
+    mobile: {
+      title: 'Welcome to SamriddhiShop',
+      subtitle: 'Amazing products, great prices',
+      backgroundImage: ''
+    }
   });
 
   useEffect(() => {
@@ -462,7 +468,7 @@ function HomePage({ products, loading }) {
       const response = await fetch(`${API_BASE}/api/banner`);
       if (response.ok) {
         const data = await response.json();
-        setBanner(data);
+        setBanners(data);
       }
     } catch (error) {
       console.error('Error fetching banner:', error);
@@ -484,23 +490,31 @@ function HomePage({ products, loading }) {
   return (
     <div>
       {/* Hero Banner */} 
-      <div 
-        className="text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex flex-col justify-center items-center text-center h-80"
-        style={{
-          backgroundImage: banner.backgroundImage ? `url(${banner.backgroundImage})` : undefined
-        }}
-      >
-        {banner.backgroundImage && (
-          <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>
-        )}
-        <div className="relative z-10 max-w-3xl"> 
-          <h1 className="text-4xl font-bold mb-4">{banner.title}</h1>
-          <p className="text-xl mb-6">{banner.subtitle}</p>
-          <Link to="/products" className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            {banner.buttonText}
-          </Link>
+      <Link to="/products" className="block">
+        {/* Desktop Banner */}
+        <div
+          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-80 cursor-pointer"
+          style={{ backgroundImage: banners.desktop?.backgroundImage ? `url(${banners.desktop.backgroundImage})` : undefined }}
+        >
+          {banners.desktop?.backgroundImage && <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>}
+          <div className="relative z-10 max-w-3xl"> 
+            <h1 className="text-4xl font-bold mb-4">{banners.desktop?.title}</h1>
+            <p className="text-xl mb-6">{banners.desktop?.subtitle}</p>
+          </div>
         </div>
-      </div>
+
+        {/* Mobile Banner */}
+        <div
+          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
+          style={{ backgroundImage: banners.mobile?.backgroundImage ? `url(${banners.mobile.backgroundImage})` : undefined }}
+        >
+          {banners.mobile?.backgroundImage && <div className="absolute inset-0 bg-black bg-opacity-40 rounded-lg"></div>}
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold mb-3">{banners.mobile?.title}</h2>
+            <p className="text-lg mb-5">{banners.mobile?.subtitle}</p>
+          </div>
+        </div>
+      </Link>
       
       {/* Promotional Banner */}
       <div className="bg-yellow-400 text-black p-4 rounded-lg mb-8 text-center">
@@ -3486,7 +3500,8 @@ function AdminPanelComponent({ user }) {
   const [couponReport, setCouponReport] = useState([]);
   const [showReport, setShowReport] = useState(false);
   const [bannerForm, setBannerForm] = useState({
-    title: '', subtitle: '', buttonText: '', backgroundImage: ''
+    desktop: { title: '', subtitle: '', backgroundImage: '' },
+    mobile: { title: '', subtitle: '', backgroundImage: '' }
   });
   const [adminNotification, setAdminNotification] = useState(null);
 
@@ -3566,10 +3581,8 @@ function AdminPanelComponent({ user }) {
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
       setBannerForm({
-        title: bannerData.title || '',
-        subtitle: bannerData.subtitle || '',
-        buttonText: bannerData.buttonText || '',
-        backgroundImage: bannerData.backgroundImage || ''
+        desktop: bannerData.desktop || { title: '', subtitle: '', backgroundImage: '' },
+        mobile: bannerData.mobile || { title: '', subtitle: '', backgroundImage: '' }
       });
     } catch (error) {
       console.error('Error fetching admin data:', error);
