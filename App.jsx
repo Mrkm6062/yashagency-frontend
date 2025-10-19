@@ -320,7 +320,7 @@ function App() {
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
             <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
-            <Route path="/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
+            <Route path="/admin/*" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support" element={<CustomerServicePage />} />
           </Routes>
         </main>
@@ -3458,7 +3458,6 @@ const SalesChart = ({ salesData }) => {
 
 // Admin Panel Component
 function AdminPanelComponent({ user }) {
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -3505,6 +3504,8 @@ function AdminPanelComponent({ user }) {
   });
   const [adminNotification, setAdminNotification] = useState(null);
 
+  const location = useLocation();
+
   useEffect(() => {
     if (user?.email !== 'admin@samriddhishop.com') {
       alert('Access denied. Admin only.');
@@ -3512,49 +3513,6 @@ function AdminPanelComponent({ user }) {
     }
     fetchData();
   }, [user]);
-
-  useEffect(() => {
-    let intervalId;
-
-    const startPolling = (fetchFunction) => {
-      fetchFunction(); // Fetch immediately
-      return setInterval(fetchFunction, 15000); // Then poll every 15 seconds
-    };
-
-    const fetchDashboardData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (response.ok) setAnalytics(await response.json());
-      } catch (error) { console.error('Error polling for dashboard data:', error); }
-    };
-
-    const fetchOrdersData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (response.ok) setOrders(await response.json());
-      } catch (error) { console.error('Error polling for orders data:', error); }
-    };
-
-    const fetchContacts = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (response.ok) setContacts(await response.json());
-      } catch (error) { console.error('Error polling for messages:', error); }
-    };
-
-    if (activeTab === 'dashboard') {
-      intervalId = startPolling(fetchDashboardData);
-    } else if (activeTab === 'orders') {
-      intervalId = startPolling(fetchOrdersData);
-    } else if (activeTab === 'messages') {
-      intervalId = startPolling(fetchContacts);
-    }
-
-    return () => clearInterval(intervalId); // Cleanup interval on tab change or component unmount
-  }, [activeTab]);
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -3906,7 +3864,7 @@ function AdminPanelComponent({ user }) {
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg min-h-screen transition-all duration-300`}>
+        <div className={`hidden lg:block ${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg min-h-screen transition-all duration-300`}>
           <div className="p-6 border-b flex items-center justify-between">
             {sidebarOpen && <h1 className="text-xl font-bold text-gray-900">🛠️ Admin</h1>}
             <button
@@ -3928,24 +3886,25 @@ function AdminPanelComponent({ user }) {
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map(tab => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-4 py-3 rounded-lg mb-2 font-medium transition-all duration-200 ${
-                  activeTab === tab.id 
+                key={tab.id}                
+                className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-4 py-3 rounded-lg mb-2 font-medium transition-all duration-200 ${                  
+                  location.pathname.endsWith(tab.id)
                     ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
                 title={!sidebarOpen ? tab.label : ''}
               >
-                <div className="relative group">
-                  <span className="text-lg">{tab.icon}</span>
-                  {!sidebarOpen && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                      {tab.label}
-                    </div>
-                  )}
-                </div>
-                {sidebarOpen && <span>{tab.label}</span>}
+                <Link to={`/admin/${tab.id}`} className="w-full flex items-center">
+                  <div className="relative group">
+                    <span className="text-lg">{tab.icon}</span>
+                    {!sidebarOpen && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                        {tab.label}
+                      </div>
+                    )}
+                  </div>
+                  {sidebarOpen && <span className="ml-3">{tab.label}</span>}
+                </Link>
               </button>
             ))}
           </nav>
@@ -3953,9 +3912,9 @@ function AdminPanelComponent({ user }) {
         
         {/* Main Content */}
         <div className="flex-1 p-8">
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            {/* Dashboard Tab */}
-            {activeTab === 'dashboard' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">            
+            <Routes>
+              <Route path="dashboard" element={
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Dashboard Overview</h3>
 
@@ -4029,10 +3988,9 @@ function AdminPanelComponent({ user }) {
                     </div>
                 </div>
               </div>
-            )}
-            
-            {/* Products Tab */}
-            {activeTab === 'products' && (
+              } />
+
+              <Route path="products" element={
               <div className="space-y-6">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold">Products Management</h3>
@@ -4455,10 +4413,9 @@ function AdminPanelComponent({ user }) {
                   ))}
                 </div>
               </div>
-            )}
-            
-            {/* Users Tab */}
-            {activeTab === 'users' && (
+              } />
+
+              <Route path="users" element={
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">User Management</h3>
@@ -4598,11 +4555,9 @@ function AdminPanelComponent({ user }) {
                     <p>No users found</p>
                   </div>
                 )}
-              </div>
-            )}
-            
-            {/* Orders Tab */}
-            {activeTab === 'orders' && (
+              </div>} />
+
+              <Route path="orders" element={
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">Order Management</h3>
@@ -4782,10 +4737,9 @@ function AdminPanelComponent({ user }) {
                   </div>
                 )}
               </div>
-            )}
-            
-            {/* Coupons Tab */}
-            {activeTab === 'coupons' && (
+              } />
+
+              <Route path="coupons" element={
               <div className="space-y-6">
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-4">Create New Coupon</h3>
@@ -4923,10 +4877,9 @@ function AdminPanelComponent({ user }) {
                   </div>
                 )}
               </div>
-            )}
-            
-            {/* Banner Tab */}
-            {activeTab === 'banner' && (
+              } />
+
+              <Route path="banner" element={
               <div className="space-y-6">
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-4">Home Page Banner Settings</h3>
@@ -4981,10 +4934,9 @@ function AdminPanelComponent({ user }) {
                   </button>
                 </div>
               </div>
-            )}
-            
-            {/* Messages Tab */}
-            {activeTab === 'messages' && (
+              } />
+
+              <Route path="messages" element={
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Contact Messages</h3>
@@ -5059,10 +5011,9 @@ function AdminPanelComponent({ user }) {
                   </div>
                 )}
               </div>
-            )}
-            
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
+              } />
+
+              <Route path="settings" element={
               <div className="space-y-6">
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-4">Shipping Settings</h3>
@@ -5084,7 +5035,9 @@ function AdminPanelComponent({ user }) {
                   <p className="text-gray-600 text-sm mt-2">Set to 0 for free shipping</p>
                 </div>                
               </div>
-            )}
+              } />
+              <Route index element={<Navigate to="dashboard" replace />} />
+            </Routes>
           </div>
         </div>
       </div>
@@ -5663,7 +5616,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
   const isAdmin = user?.email === 'admin@samriddhishop.com';
 
   const userNavItems = [
-    { to: '/', icon: '🏠', label: 'Home', exact: true },
+    { to: '/', icon: '🏠', label: 'Home' },
     { to: '/products', icon: '🛍️', label: 'Shop' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
     { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
@@ -5671,14 +5624,11 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
   ];
 
   const adminNavItems = [
-    { to: '/admin', icon: '📊', label: 'Dashboard', admin: true, tab: 'dashboard' },
-    { to: '/admin', icon: '📦', label: 'Products', admin: true, tab: 'products' },
-    { to: '/admin', icon: '🛒', label: 'Orders', admin: true, tab: 'orders' },
-    { to: '/admin', icon: '👥', label: 'Users', admin: true, tab: 'users' },
-    { to: '/admin', icon: '🖼️', label: 'Banner', admin: true, tab: 'banner' },
-    { to: '/admin', icon: '💬', label: 'Messages', admin: true, tab: 'messages' },
-    { to: '/admin', icon: '🎫', label: 'Coupons', admin: true, tab: 'coupons' },
-    { to: '/admin', icon: '⚙️', label: 'Settings', admin: true, tab: 'settings' },
+    { to: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
+    { to: '/admin/banner', icon: '🖼️', label: 'Banner' },
+    { to: '/admin/messages', icon: '💬', label: 'Messages' },
+    { to: '/admin/coupons', icon: '🎫', label: 'Coupons' },
+    { to: '/admin/products', icon: '📦', label: 'Products' }
   ];
 
   const navItems = isAdmin ? adminNavItems : userNavItems;
@@ -5688,15 +5638,11 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
       <nav className="flex justify-around items-center h-16">
         {navItems.map(item => {
           if ((item.requiresUser && !user)) return null;
-
-          const isActive = item.admin
-            ? location.pathname === item.to && new URLSearchParams(location.search).get('tab') === item.tab
-            : item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to) && item.to !== '/';
-
-          const linkTo = item.admin ? `${item.to}?tab=${item.tab}` : item.to;
+          
+          const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
           return (
-            <Link key={item.label} to={linkTo} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
+            <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
               <span className="text-2xl">{item.icon}</span>
               <span className={`text-xs font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
               {item.count > 0 && (
