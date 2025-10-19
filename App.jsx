@@ -1874,7 +1874,7 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
             onClick={() => removeFromCart(item._id)}
             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
           >
-            Remove
+            X
           </button>
         </div>
         
