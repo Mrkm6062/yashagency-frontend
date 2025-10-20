@@ -5034,6 +5034,39 @@ function AdminPanelComponent({ user }) {
                   </div>
                   <p className="text-gray-600 text-sm mt-2">Set to 0 for free shipping</p>
                 </div>                
+
+                <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">Contact & Social Settings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Support Email</label>
+                      <input type="email" value={settingsForm.email} onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Support Phone</label>
+                      <input type="tel" value={settingsForm.phone} onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Instagram URL</label>
+                      <input type="url" value={settingsForm.instagram} onChange={(e) => setSettingsForm({ ...settingsForm, instagram: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Facebook URL</label>
+                      <input type="url" value={settingsForm.facebook} onChange={(e) => setSettingsForm({ ...settingsForm, facebook: e.target.value })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={updateSettings}
+                    className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Update Contact Info
+                  </button>
+                </div>
+
               </div>
               } />
               <Route index element={<Navigate to="dashboard" replace />} />
