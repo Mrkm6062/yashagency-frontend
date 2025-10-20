@@ -1334,13 +1334,9 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
                 </div>
               </div>
             )}
-
-            {/* You Might Also Like Section */}
-            <div className="mt-12">
-              <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
-            </div>
           </div>
         </div>
+            {/* You Might Also Like Section */}
         <div className="mt-12">
           <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
          </div>
