@@ -2050,6 +2050,8 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 function LoginPage({ login, user }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -2080,7 +2082,7 @@ function LoginPage({ login, user }) {
         const response = await fetch(`${API_BASE}/api/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name: email.includes('@') ? email.split('@')[0] : 'User' })
+          body: JSON.stringify({ name, email, password, phone })
         });
         
         if (response.status === 429) {
@@ -2126,6 +2128,19 @@ function LoginPage({ login, user }) {
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {!isLogin && (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Full Name</label>
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your phone number" required={!isLogin} />
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 📧 Email Address
