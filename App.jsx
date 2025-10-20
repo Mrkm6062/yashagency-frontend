@@ -4881,56 +4881,55 @@ function AdminPanelComponent({ user }) {
 
               <Route path="banner" element={
               <div className="space-y-6">
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">Home Page Banner Settings</h3>
+                <h2 className="text-xl font-semibold">Home Page Banner Settings</h2>
+                {/* Desktop Banner Form */}
+                <div className="bg-gray-50 p-6 rounded-lg border">
+                  <h3 className="text-lg font-semibold mb-4">🖥️ Desktop Banner</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Banner Title</label>
-                      <input
-                        type="text"
-                        value={bannerForm.title}
-                        onChange={(e) => setBannerForm({...bannerForm, title: e.target.value})}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Welcome to SamriddhiShop"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Button Text</label>
-                      <input
-                        type="text"
-                        value={bannerForm.buttonText}
-                        onChange={(e) => setBannerForm({...bannerForm, buttonText: e.target.value})}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Shop Now"
-                      />
+                    <div className="md:col-span-2"><input type="text" placeholder="Title" value={bannerForm.desktop.title}
+                      onChange={(e) => setBannerForm({ ...bannerForm, desktop: { ...bannerForm.desktop, title: e.target.value } })}
+                      className="w-full px-4 py-2 border rounded-lg" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Banner Subtitle</label>
-                      <input
-                        type="text"
-                        value={bannerForm.subtitle}
-                        onChange={(e) => setBannerForm({...bannerForm, subtitle: e.target.value})}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Discover amazing products at great prices"
-                      />
+                      <input type="text" placeholder="Subtitle" value={bannerForm.desktop.subtitle}
+                        onChange={(e) => setBannerForm({ ...bannerForm, desktop: { ...bannerForm.desktop, subtitle: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium mb-1">Background Image URL</label>
-                      <input
-                        type="url"
-                        value={bannerForm.backgroundImage}
-                        onChange={(e) => setBannerForm({...bannerForm, backgroundImage: e.target.value})}
-                        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://example.com/banner-image.jpg"
-                      />
-                      <p className="text-gray-600 text-sm mt-1">Leave empty to use default gradient background</p>
+                      <input type="url" placeholder="Background Image URL" value={bannerForm.desktop.backgroundImage}
+                        onChange={(e) => setBannerForm({ ...bannerForm, desktop: { ...bannerForm.desktop, backgroundImage: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
                     </div>
                   </div>
+                </div>
+
+                {/* Mobile Banner Form */}
+                <div className="bg-gray-50 p-6 rounded-lg border">
+                  <h3 className="text-lg font-semibold mb-4">📱 Mobile Banner</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2"><input type="text" placeholder="Title" value={bannerForm.mobile.title}
+                      onChange={(e) => setBannerForm({ ...bannerForm, mobile: { ...bannerForm.mobile, title: e.target.value } })}
+                      className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <input type="text" placeholder="Subtitle" value={bannerForm.mobile.subtitle}
+                        onChange={(e) => setBannerForm({ ...bannerForm, mobile: { ...bannerForm.mobile, subtitle: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <input type="url" placeholder="Background Image URL" value={bannerForm.mobile.backgroundImage}
+                        onChange={(e) => setBannerForm({ ...bannerForm, mobile: { ...bannerForm.mobile, backgroundImage: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
                   <button
                     onClick={updateBanner}
                     className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
                   >
-                    Update Banner
+                    Update Banners
                   </button>
                 </div>
               </div>
