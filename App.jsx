@@ -321,7 +321,7 @@ function App() {
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
             <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
             <Route path="/admin/*" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
-            <Route path="/support" element={<CustomerServicePage />} />
+            <Route path="/support/*" element={<CustomerServicePage />} />
           </Routes>
         </main>
         </ConditionalLayout>        
@@ -5215,11 +5215,12 @@ function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCar
 
 // Customer Service Page Component
 function CustomerServicePage() {
-  const [activeTab, setActiveTab] = useState('contact');
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const tabs = [
     { id: 'contact', label: 'Contact Us', icon: '📞' },
     { id: 'faq', label: 'FAQ', icon: '❓' },
@@ -5282,25 +5283,26 @@ function CustomerServicePage() {
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
             <nav className="flex overflow-x-auto">
               {tabs.map(tab => (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  to={`/support/${tab.id}`}
                   className={`flex items-center space-x-2 px-6 py-4 font-medium whitespace-nowrap transition-all ${
-                    activeTab === tab.id
+                    location.pathname.endsWith(tab.id)
                       ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
                   }`}
                 >
                   <span className="text-lg">{tab.icon}</span>
                   <span>{tab.label}</span>
-                </button>
+                </Link>
               ))}
             </nav>
           </div>
 
           <div className="p-8">
             {/* Contact Us Tab */}
-            {activeTab === 'contact' && (
+            <Routes>
+              <Route path="contact" element={
               <div className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Contact Form */}
@@ -5412,10 +5414,9 @@ function CustomerServicePage() {
                   </div>
                 </div>
               </div>
-            )}
+              } />
 
-            {/* FAQ Tab */}
-            {activeTab === 'faq' && (
+              <Route path="faq" element={
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
                   <span>❓</span>
@@ -5430,10 +5431,9 @@ function CustomerServicePage() {
                   ))}
                 </div>
               </div>
-            )}
+              } />
 
-            {/* Returns Tab */}
-            {activeTab === 'returns' && (
+              <Route path="returns" element={
               <div className="space-y-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
                   <span>↩️</span>
@@ -5464,10 +5464,9 @@ function CustomerServicePage() {
                   <p className="text-yellow-700">Items must be unused, in original packaging, and returned within 5 days of delivery. Some items like personalized products may not be eligible for return.</p>
                 </div>
               </div>
-            )}
+              } />
 
-            {/* Shipping Tab */}
-            {activeTab === 'shipping' && (
+              <Route path="shipping" element={
               <div className="space-y-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
                   <span>🚚</span>
@@ -5514,7 +5513,9 @@ function CustomerServicePage() {
                   </div>
                 </div>
               </div>
-            )}
+              } />
+              <Route index element={<Navigate to="contact" replace />} />
+            </Routes>
           </div>
         </div>
       </div>
@@ -5568,10 +5569,10 @@ const Footer = React.memo(function Footer() {
             <div>
               <h4 className="font-semibold mb-3">Customer Service</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to="/support" className="text-gray-300 hover:text-white">Contact Us</Link></li>
-                <li><Link to="/support" className="text-gray-300 hover:text-white">FAQ</Link></li>
-                <li><Link to="/support" className="text-gray-300 hover:text-white">Return Policy</Link></li>
-                <li><a href="#" className="text-gray-300 hover:text-white">Shipping Info</a></li>
+              <li><Link to="/support/contact" className="text-gray-300 hover:text-white">Contact Us</Link></li>
+              <li><Link to="/support/faq" className="text-gray-300 hover:text-white">FAQ</Link></li>
+              <li><Link to="/support/returns" className="text-gray-300 hover:text-white">Return Policy</Link></li>
+              <li><Link to="/support/shipping" className="text-gray-300 hover:text-white">Shipping Info</Link></li>
               </ul>
             </div>
           </div>
