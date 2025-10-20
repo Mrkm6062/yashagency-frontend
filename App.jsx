@@ -303,6 +303,15 @@ function App() {
     setCart([]);
   };
 
+  // Clear cart function
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem('cart');
+    if (user) {
+      syncCart([]); // Also sync with backend
+    }
+  };
+
   return (
     <Router>      
       <div className="min-h-screen bg-gray-50">
@@ -319,7 +328,7 @@ function App() {
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} fetchWishlist={fetchWishlist} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
             <Route path="/profile" element={<Suspense fallback={<LoadingSpinner />}><ProfilePage user={user} setUser={setUser} /></Suspense>} />
             <Route path="/track/:orderId" element={<Suspense fallback={<LoadingSpinner />}><TrackOrderPage user={user} /></Suspense>} />
-            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} /></Suspense>} />
+            <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} clearCart={clearCart} /></Suspense>} />
             <Route path="/admin/*" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support/*" element={<CustomerServicePage />} />
           </Routes>
@@ -1382,7 +1391,7 @@ function SuggestedProducts({ allProducts, currentProductId, currentCategory }) {
 }
 
 // Checkout Page Component
-function CheckoutPageComponent({ user }) {
+function CheckoutPageComponent({ user, clearCart }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
@@ -1584,6 +1593,9 @@ function CheckoutPageComponent({ user }) {
       if (response.ok) {
         const data = await response.json();
         alert('Order placed successfully!');
+        if (!buyNow) { // Only clear cart if it's not a "Buy Now" order
+          clearCart();
+        }
         navigate(`/track/${data.orderId}`);
       } else {
         const error = await response.json();
