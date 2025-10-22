@@ -4593,12 +4593,6 @@ function AdminPanelComponent({ user }) {
                     >
                       Apply Filters
                     </button>
-                    <button
-                      onClick={handlePrintFilteredOrders}
-                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
-                    >
-                      🖨️ Print Filtered Orders
-                    </button>
                   </div>
                 </div>
                 
