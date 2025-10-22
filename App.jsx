@@ -21,7 +21,7 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 // --- Logo Configuration ---
-const LOGO_URL = "https://storage.cloud.google.com/samriddhi-blog-images-123/VERIFYLOGO.png"; // <-- CHANGE YOUR LOGO URL HERE
+const LOGO_URL = "https://storage.cloud.google.com/samriddhi-blog-images-123/bigsize.png"; // <-- CHANGE YOUR LOGO URL HERE
 
 ChartJS.register(
   CategoryScale,
@@ -422,7 +422,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={LOGO_URL} alt="SamriddhiShop" className="h-10" />
+            <img src={LOGO_URL} alt="SamriddhiShop" className="h-14" />
           </Link>
 
           {/* Desktop Navigation */}
