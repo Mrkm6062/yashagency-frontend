@@ -4339,10 +4339,10 @@ function AdminPanelComponent({ user }) {
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        if (newSpec.key.trim() && newSpec.value.trim()) {
+                                        if (newSpec.key.trim() && newSpec.value.trim()) { // Ensure both key and value are present
                                           setProductForm({...productForm, specifications: [...productForm.specifications, {key: newSpec.key.trim(), value: newSpec.value.trim()}]});
                                           setNewSpec({key: '', value: ''});
-                                        }
+                                        } else { alert('Please provide both a specification name and value.'); }
                                       }}
                                       className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
                                     >
