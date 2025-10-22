@@ -4586,17 +4586,31 @@ function AdminPanelComponent({ user }) {
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">Order Management</h3>
-                  <button
-                    onClick={fetchOrdersByDate}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto"
-                  >
-                    Apply Filters
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={fetchOrdersByDate}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
+                    >
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={handlePrintFilteredOrders}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
+                    >
+                      🖨️ Print Filtered Orders
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Date Filters */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Search by Order ID</label>
+                      <input type="text" placeholder="Order ID..." value={orderFilters.searchTerm}
+                        onChange={(e) => setOrderFilters({ ...orderFilters, searchTerm: e.target.value })}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Start Date</label>
                       <input
