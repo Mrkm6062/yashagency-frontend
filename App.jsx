@@ -548,7 +548,6 @@ function HomePage({ products, loading }) {
           )}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-12">
             {/* Optional: Add a subtle overlay for text readability over video */}
-            <div className="absolute inset-0 bg-black bg-opacity-20 rounded-lg"></div>
             <div className="relative z-10 max-w-3xl">
               <h1 className="text-4xl font-bold mb-4">{banners.desktop?.title}</h1>
               <p className="text-xl mb-6">{banners.desktop?.subtitle}</p>
