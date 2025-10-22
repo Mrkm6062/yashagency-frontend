@@ -537,7 +537,7 @@ function HomePage({ products, loading }) {
       <Link to="/products" className="block">
         {/* Desktop Banner */}
         <div
-          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gray-900 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-[32rem] cursor-pointer"
+          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-[32rem] cursor-pointer"
           style={{ backgroundImage: banners.desktop?.backgroundImage ? `url(${banners.desktop.backgroundImage})` : undefined }}
         >
           <div className="relative z-10 max-w-3xl"> 
@@ -548,7 +548,7 @@ function HomePage({ products, loading }) {
 
         {/* Mobile Banner */}
         <div
-          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-gray-900 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
+          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
           style={{ backgroundImage: banners.mobile?.backgroundImage ? `url(${banners.mobile.backgroundImage})` : undefined }}
         >
           <div className="relative z-10">
