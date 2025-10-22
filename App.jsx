@@ -502,7 +502,7 @@ function HomePage({ products, loading }) {
       <Link to="/products" className="block">
         {/* Desktop Banner */}
         <div
-          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-[32rem] cursor-pointer"
+          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-gray-900 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-[32rem] cursor-pointer"
           style={{ backgroundImage: banners.desktop?.backgroundImage ? `url(${banners.desktop.backgroundImage})` : undefined }}
         >
           <div className="relative z-10 max-w-3xl"> 
@@ -513,7 +513,7 @@ function HomePage({ products, loading }) {
 
         {/* Mobile Banner */}
         <div
-          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-gradient-to-r from-blue-500 to-purple-600 bg-cover bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
+          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-gray-900 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
           style={{ backgroundImage: banners.mobile?.backgroundImage ? `url(${banners.mobile.backgroundImage})` : undefined }}
         >
           <div className="relative z-10">
@@ -3490,7 +3490,7 @@ function AdminPanelComponent({ user }) {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userFilters, setUserFilters] = useState({ search: '', userType: 'all', sortBy: 'name' });
-  const [contacts, setContacts] = useState([]);  
+  const [contacts, setContacts] = useState([]);
   const [shippingCost, setShippingCost] = useState(0);
   const [settingsForm, setSettingsForm] = useState({
     shippingCost: 0,
@@ -3500,8 +3500,8 @@ function AdminPanelComponent({ user }) {
     facebook: ''
   });
   const [loading, setLoading] = useState(false);
-  const [analytics, setAnalytics] = useState({});  
-  const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '', status: 'all' });
+  const [analytics, setAnalytics] = useState({});
+  const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '' });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [courierForm, setCourierForm] = useState({ courierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
   
@@ -3874,49 +3874,6 @@ function AdminPanelComponent({ user }) {
     });
 
     setFilteredUsers(filtered);
-  };
-
-  const handlePrintFilteredOrders = () => {
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    printWindow.document.write('<html><head><title>Filtered Orders Report</title>');
-    printWindow.document.write('<style>');
-    printWindow.document.write(`
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
-      h1 { text-align: center; }
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9rem; }
-      th { background-color: #f2f2f2; }
-      tr:nth-child(even) { background-color: #f9f9f9; }
-      @media print {
-        body { -webkit-print-color-adjust: exact; }
-        button { display: none; }
-      }
-    `);
-    printWindow.document.write('</style></head><body>');
-    printWindow.document.write('<h1>Filtered Orders Report</h1>');
-    printWindow.document.write(`<p>Generated on: ${new Date().toLocaleString('en-IN')}</p>`);
-    printWindow.document.write(`<p>Total Orders: ${orders.length}</p>`);
-    printWindow.document.write('<table>');
-    printWindow.document.write('<thead><tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead>');
-    printWindow.document.write('<tbody>');
-
-    orders.forEach(order => {
-      printWindow.document.write(`
-        <tr>
-          <td>${order.orderNumber || order._id.slice(-8)}</td>
-          <td>${new Date(order.createdAt).toLocaleDateString('en-IN')}</td>
-          <td>${order.userId?.name || 'N/A'}</td>
-          <td>₹${order.total.toFixed(2)}</td>
-          <td>${order.status}</td>
-          <td>${order.paymentMethod === 'cod' ? `COD: ${order.paymentStatus}` : 'Prepaid'}</td>
-        </tr>
-      `);
-    });
-
-    printWindow.document.write('</tbody></table>');
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
   };
 
   if (user?.email !== 'admin@samriddhishop.com') {
@@ -4629,31 +4586,17 @@ function AdminPanelComponent({ user }) {
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">Order Management</h3>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <button
-                      onClick={fetchOrdersByDate}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
-                    >
-                      Apply Filters
-                    </button>
-                    <button
-                      onClick={handlePrintFilteredOrders}
-                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
-                    >
-                      🖨️ Print Filtered Orders
-                    </button>
-                  </div>
+                  <button
+                    onClick={fetchOrdersByDate}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto"
+                  >
+                    Apply Filters
+                  </button>
                 </div>
                 
                 {/* Date Filters */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Search by Order ID</label>
-                      <input type="text" placeholder="Order ID..." value={orderFilters.searchTerm}
-                        onChange={(e) => setOrderFilters({ ...orderFilters, searchTerm: e.target.value })}
-                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Start Date</label>
                       <input
