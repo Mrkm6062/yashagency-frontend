@@ -3665,6 +3665,8 @@ function AdminPanelComponent({ user }) {
         setProductForm({ name: '', description: '', price: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', stock: '', variants: [], highlights: [], specifications: [], warranty: '', images: [], showHighlights: false, showSpecifications: false, showWarranty: false });
         setEditingProduct(null);
         fetchData();
+        localStorage.removeItem('products_cache'); // Clear cache on product change
+        localStorage.removeItem('products_cache_time');
       }
     } catch (error) {
       setAdminNotification({
@@ -3686,6 +3688,8 @@ function AdminPanelComponent({ user }) {
         body: JSON.stringify({ enabled: !enabled })
       });
       fetchData();
+      localStorage.removeItem('products_cache'); // Clear cache on product change
+      localStorage.removeItem('products_cache_time');
     } catch (error) {
       alert('Failed to toggle product');
     }
