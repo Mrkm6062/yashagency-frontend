@@ -524,10 +524,10 @@ function HomePage({ products, loading }) {
       </Link>
       
       {/* Promotional Banner */}
-      <div className="bg-yellow-400 text-black p-4 rounded-lg mb-8 text-center">
+      {/* <div className="bg-yellow-400 text-black p-4 rounded-lg mb-8 text-center">
         <h2 className="text-2xl font-bold mb-2">🎉 Special Offer!</h2>
         <p className="text-lg">Get 20% off on your first order. Use code: WELCOME20</p>
-      </div>
+      </div> */}
       
       {/* Products by Category */}
       {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
