@@ -2792,7 +2792,7 @@ function ProfilePageComponent({ user, setUser }) {
               <div className="space-y-8">
                 {/* Welcome Card */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-lg">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4">                    
                     <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
                       <span className="text-2xl">👋</span>
                     </div>
@@ -2800,7 +2800,7 @@ function ProfilePageComponent({ user, setUser }) {
                       <h2 className="text-2xl font-bold">Welcome back, {user.name}!</h2>
                       <p className="text-blue-100">Member since {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                     </div>
-                  </div>
+                  </div>                  
                 </div>
                 
                 {/* Profile Stats */}
