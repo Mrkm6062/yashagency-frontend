@@ -3575,7 +3575,7 @@ function AdminPanelComponent({ user }) {
   const fetchOrdersByDate = async () => {
     try {
       const token = localStorage.getItem('token');
-      const params = new URLSearchParams(dateFilter);
+      const params = new URLSearchParams(orderFilters);
       const response = await fetch(`${API_BASE}/api/admin/orders/date-range?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -4586,23 +4586,37 @@ function AdminPanelComponent({ user }) {
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">Order Management</h3>
-                  <button
-                    onClick={fetchOrdersByDate}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto"
-                  >
-                    Apply Filters
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={fetchOrdersByDate}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
+                    >
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={handlePrintFilteredOrders}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
+                    >
+                      🖨️ Print Filtered Orders
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Date Filters */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
+                      <label className="block text-sm font-medium mb-1">Search by Order ID</label>
+                      <input type="text" placeholder="Order ID..." value={orderFilters.searchTerm}
+                        onChange={(e) => setOrderFilters({ ...orderFilters, searchTerm: e.target.value })}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium mb-1">Start Date</label>
                       <input
                         type="date"
-                        value={dateFilter.startDate}
-                        onChange={(e) => setDateFilter({...dateFilter, startDate: e.target.value})}
+                        value={orderFilters.startDate}
+                        onChange={(e) => setOrderFilters({...orderFilters, startDate: e.target.value})}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
@@ -4610,16 +4624,16 @@ function AdminPanelComponent({ user }) {
                       <label className="block text-sm font-medium mb-1">End Date</label>
                       <input
                         type="date"
-                        value={dateFilter.endDate}
-                        onChange={(e) => setDateFilter({...dateFilter, endDate: e.target.value})}
+                        value={orderFilters.endDate}
+                        onChange={(e) => setOrderFilters({...orderFilters, endDate: e.target.value})}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Status</label>
                       <select
-                        value={dateFilter.status}
-                        onChange={(e) => setDateFilter({...dateFilter, status: e.target.value})}
+                        value={orderFilters.status}
+                        onChange={(e) => setOrderFilters({...orderFilters, status: e.target.value})}
                         className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="all">All Status</option>
