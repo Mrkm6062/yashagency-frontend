@@ -537,23 +537,33 @@ function HomePage({ products, loading }) {
       <Link to="/products" className="block">
         {/* Desktop Banner */}
         <div
-          className="hidden md:flex text-white p-12 rounded-lg mb-8 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-[32rem] cursor-pointer"
-          style={{ backgroundImage: banners.desktop?.backgroundImage ? `url(${banners.desktop.backgroundImage})` : undefined }}
+          className="hidden md:block relative mb-8 cursor-pointer"
         >
-          <div className="relative z-10 max-w-3xl"> 
-            <h1 className="text-4xl font-bold mb-4">{banners.desktop?.title}</h1>
-            <p className="text-xl mb-6">{banners.desktop?.subtitle}</p>
+          {banners.desktop?.backgroundImage && (
+            <img src={banners.desktop.backgroundImage} alt="Desktop Banner" className="w-full h-auto rounded-lg" />
+          )}
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-12">
+            <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
+            <div className="relative z-10 max-w-3xl">
+              <h1 className="text-4xl font-bold mb-4">{banners.desktop?.title}</h1>
+              <p className="text-xl mb-6">{banners.desktop?.subtitle}</p>
+            </div>
           </div>
         </div>
 
         {/* Mobile Banner */}
         <div
-          className="md:hidden flex text-white p-8 rounded-lg mb-8 bg-contain bg-no-repeat bg-center relative flex-col justify-center items-center text-center h-64 cursor-pointer"
-          style={{ backgroundImage: banners.mobile?.backgroundImage ? `url(${banners.mobile.backgroundImage})` : undefined }}
+          className="md:hidden block relative mb-8 cursor-pointer"
         >
-          <div className="relative z-10">
-            <h2 className="text-3xl font-bold mb-3">{banners.mobile?.title}</h2>
-            <p className="text-lg mb-5">{banners.mobile?.subtitle}</p>
+          {banners.mobile?.backgroundImage && (
+            <img src={banners.mobile.backgroundImage} alt="Mobile Banner" className="w-full h-auto rounded-lg" />
+          )}
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-8">
+            <div className="absolute inset-0 bg-black bg-opacity-30 rounded-lg"></div>
+            <div className="relative z-10">
+              <h2 className="text-3xl font-bold mb-3">{banners.mobile?.title}</h2>
+              <p className="text-lg mb-5">{banners.mobile?.subtitle}</p>
+            </div>
           </div>
         </div>
       </Link>
