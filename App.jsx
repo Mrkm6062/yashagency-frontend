@@ -4500,13 +4500,13 @@ function AdminPanelComponent({ user }) {
                             setEditingProduct(product);
                             setProductForm({
                               name: product.name,
-                              description: product.description,
-                              price: product.price.toString(),
+                              description: product.description || '',
+                              price: product.price?.toString() || '',
                               originalPrice: product.originalPrice?.toString() || '',
                               discountPercentage: product.discountPercentage?.toString() || '',
                               imageUrl: product.imageUrl,
-                              category: product.category,
-                              stock: product.stock.toString(),
+                              category: product.category || '',
+                              stock: product.stock?.toString() || '0',
                               variants: product.variants || [],
                               highlights: product.highlights || [],
                               specifications: product.specifications || [],
