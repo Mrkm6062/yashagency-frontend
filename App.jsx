@@ -539,10 +539,16 @@ function HomePage({ products, loading }) {
         <div
           className="hidden md:block relative mb-8 cursor-pointer"
         >
-          {banners.desktop?.backgroundImage && (
+          {banners.desktop?.backgroundVideo ? (
+            <video src={banners.desktop.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
+          ) : banners.desktop?.backgroundImage ? (
             <img src={banners.desktop.backgroundImage} alt="Desktop Banner" className="w-full h-auto rounded-lg" />
+          ) : (
+            <div className="w-full h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
           )}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-12">
+            {/* Optional: Add a subtle overlay for text readability over video */}
+            <div className="absolute inset-0 bg-black bg-opacity-20 rounded-lg"></div>
             <div className="relative z-10 max-w-3xl">
               <h1 className="text-4xl font-bold mb-4">{banners.desktop?.title}</h1>
               <p className="text-xl mb-6">{banners.desktop?.subtitle}</p>
@@ -554,10 +560,16 @@ function HomePage({ products, loading }) {
         <div
           className="md:hidden block relative mb-8 cursor-pointer"
         >
-          {banners.mobile?.backgroundImage && (
+          {banners.mobile?.backgroundVideo ? (
+            <video src={banners.mobile.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
+          ) : banners.mobile?.backgroundImage ? (
             <img src={banners.mobile.backgroundImage} alt="Mobile Banner" className="w-full h-auto rounded-lg" />
+          ) : (
+            <div className="w-full h-64 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
           )}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-8">
+            {/* Optional: Add a subtle overlay for text readability over video */}
+            <div className="absolute inset-0 bg-black bg-opacity-20 rounded-lg"></div>
             <div className="relative z-10">
               <h2 className="text-3xl font-bold mb-3">{banners.mobile?.title}</h2>
               <p className="text-lg mb-5">{banners.mobile?.subtitle}</p>
@@ -3567,8 +3579,8 @@ function AdminPanelComponent({ user }) {
   const [couponReport, setCouponReport] = useState([]);
   const [showReport, setShowReport] = useState(false);
   const [bannerForm, setBannerForm] = useState({
-    desktop: { title: '', subtitle: '', backgroundImage: '' },
-    mobile: { title: '', subtitle: '', backgroundImage: '' }
+    desktop: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' },
+    mobile: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }
   });
   const [adminNotification, setAdminNotification] = useState(null);
 
@@ -3607,8 +3619,8 @@ function AdminPanelComponent({ user }) {
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
       setBannerForm({
-        desktop: bannerData.desktop || { title: '', subtitle: '', backgroundImage: '' },
-        mobile: bannerData.mobile || { title: '', subtitle: '', backgroundImage: '' }
+        desktop: bannerData.desktop || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' },
+        mobile: bannerData.mobile || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }
       });
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -5025,6 +5037,11 @@ function AdminPanelComponent({ user }) {
                         onChange={(e) => setBannerForm({ ...bannerForm, desktop: { ...bannerForm.desktop, backgroundImage: e.target.value } })}
                         className="w-full px-4 py-2 border rounded-lg" />
                     </div>
+                    <div className="md:col-span-2">
+                      <input type="url" placeholder="Desktop Background Video URL" value={bannerForm.desktop.backgroundVideo}
+                        onChange={(e) => setBannerForm({ ...bannerForm, desktop: { ...bannerForm.desktop, backgroundVideo: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
                   </div>
                 </div>
 
@@ -5044,6 +5061,11 @@ function AdminPanelComponent({ user }) {
                     <div className="md:col-span-2">
                       <input type="url" placeholder="Background Image URL" value={bannerForm.mobile.backgroundImage}
                         onChange={(e) => setBannerForm({ ...bannerForm, mobile: { ...bannerForm.mobile, backgroundImage: e.target.value } })}
+                        className="w-full px-4 py-2 border rounded-lg" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <input type="url" placeholder="Mobile Background Video URL" value={bannerForm.mobile.backgroundVideo}
+                        onChange={(e) => setBannerForm({ ...bannerForm, mobile: { ...bannerForm.mobile, backgroundVideo: e.target.value } })}
                         className="w-full px-4 py-2 border rounded-lg" />
                     </div>
                   </div>
