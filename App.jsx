@@ -21,7 +21,7 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 // --- Logo Configuration ---
-const LOGO_URL = "https://storage.cloud.google.com/samriddhi-blog-images-123/FINALLOGO.png"; // <-- CHANGE YOUR LOGO URL HERE
+const LOGO_URL = "https://storage.cloud.google.com/samriddhi-blog-images-123/VERIFYLOGO.png"; // <-- CHANGE YOUR LOGO URL HERE
 
 ChartJS.register(
   CategoryScale,
