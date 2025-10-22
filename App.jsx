@@ -20,6 +20,9 @@ const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
+// --- Logo Configuration ---
+const LOGO_URL = "https://storage.cloud.google.com/samriddhi-blog-images-123/newlogo.jpg"; // <-- CHANGE YOUR LOGO URL HERE
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -419,7 +422,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src="https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png" alt="SamriddhiShop" className="h-10" />
+            <img src={LOGO_URL} alt="SamriddhiShop" className="h-10" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -3819,7 +3822,7 @@ function AdminPanelComponent({ user }) {
 
     printWindow.document.write('<div class="kot-container">');
     printWindow.document.write('<div class="logo-container">');
-    printWindow.document.write('<img src="https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png" alt="SamriddhiShop Logo" class="logo" />');
+    printWindow.document.write(`<img src="${LOGO_URL}" alt="SamriddhiShop Logo" class="logo" />`);
     printWindow.document.write('</div>');
     printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write('<div class="details-grid">');
