@@ -3836,6 +3836,49 @@ function AdminPanelComponent({ user }) {
     printWindow.print();
   };
 
+    const handlePrintFilteredOrders = () => {
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write('<html><head><title>Filtered Orders Report</title>');
+    printWindow.document.write('<style>');
+    printWindow.document.write(`
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 20px; }
+      h1 { text-align: center; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 0.9rem; }
+      th { background-color: #f2f2f2; }
+      tr:nth-child(even) { background-color: #f9f9f9; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; }
+        button { display: none; }
+      }
+    `);
+    printWindow.document.write('</style></head><body>');
+    printWindow.document.write('<h1>Filtered Orders Report</h1>');
+    printWindow.document.write(`<p>Generated on: ${new Date().toLocaleString('en-IN')}</p>`);
+    printWindow.document.write(`<p>Total Orders: ${orders.length}</p>`);
+    printWindow.document.write('<table>');
+    printWindow.document.write('<thead><tr><th>Order ID</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th></tr></thead>');
+    printWindow.document.write('<tbody>');
+
+    orders.forEach(order => {
+      printWindow.document.write(`
+        <tr>
+          <td>${order.orderNumber || order._id.slice(-8)}</td>
+          <td>${new Date(order.createdAt).toLocaleDateString('en-IN')}</td>
+          <td>${order.userId?.name || 'N/A'}</td>
+          <td>₹${order.total.toFixed(2)}</td>
+          <td>${order.status}</td>
+          <td>${order.paymentMethod === 'cod' ? `COD: ${order.paymentStatus}` : 'Prepaid'}</td>
+        </tr>
+      `);
+    });
+
+    printWindow.document.write('</tbody></table>');
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+  }
+
   const applyUserFilters = (filters) => {
     let filtered = [...users];
 
@@ -4592,6 +4635,12 @@ function AdminPanelComponent({ user }) {
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
                     >
                       Apply Filters
+                    </button>
+                    <button
+                      onClick={handlePrintFilteredOrders}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
+                    >
+                      🖨️ Print Filtered Orders
                     </button>
                   </div>
                 </div>
