@@ -2298,10 +2298,23 @@ function LoginPage({ login, user }) {
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your phone number" required={!isLogin} />
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>                  
+                  <div className="flex space-x-2">
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+919876543210" required={!isLogin} disabled={otpSent} />
+                    {!otpSent && (
+                      <button type="button" onClick={handleSendOtp} disabled={loading} className="bg-green-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50">
+                        {loading ? '...' : 'Send OTP'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </>
+                {otpSent && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">🔢 Enter OTP</label>
+                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter 6-digit OTP" required />
+                </div>
+                )}
+              </>              
             )}
 
             <div>
