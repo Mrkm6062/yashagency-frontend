@@ -16,6 +16,8 @@ const TrackOrderPage = lazy(() => Promise.resolve({ default: TrackOrderPageCompo
 const ProfilePage = lazy(() => Promise.resolve({ default: ProfilePageComponent }));
 const OrderStatusPage = lazy(() => Promise.resolve({ default: OrderStatusPageComponent }));
 const WishlistPage = lazy(() => Promise.resolve({ default: WishlistPageComponent }));
+const ForgotPasswordPage = lazy(() => Promise.resolve({ default: ForgotPasswordPageComponent }));
+const ResetPasswordPage = lazy(() => Promise.resolve({ default: ResetPasswordPageComponent }));
 
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
@@ -366,6 +368,8 @@ function App() {
             <Route path="/checkout" element={<Suspense fallback={<LoadingSpinner />}><CheckoutPage user={user} clearCart={clearCart} /></Suspense>} />
             <Route path="/admin/*" element={<Suspense fallback={<LoadingSpinner />}><AdminPanel user={user} /></Suspense>} />
             <Route path="/support/*" element={<CustomerServicePage />} />
+            <Route path="/forgot-password" element={<Suspense fallback={<LoadingSpinner />}><ForgotPasswordPage /></Suspense>} />
+            <Route path="/reset-password/:token" element={<Suspense fallback={<LoadingSpinner />}><ResetPasswordPage /></Suspense>} />
           </Routes>
         </main>
         </ConditionalLayout>        
@@ -2300,6 +2304,17 @@ function LoginPage({ login, user }) {
                 required
               />
             </div>
+
+            {isLogin && (
+              <div className="text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
             
             <button
               type="submit"
@@ -6110,5 +6125,106 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
   );
 }
 
+// Forgot Password Page Component
+function ForgotPasswordPageComponent() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${API_BASE}/api/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      setMessage(data.message || 'An error occurred.');
+    } catch (error) {
+      setMessage('An error occurred. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Reset Your Password</h2>
+        <p className="text-center text-gray-600 mb-6">Enter your email address and we will send you a link to reset your password.</p>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
+            <input
+              type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          <button
+            type="submit" disabled={loading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {loading ? 'Sending...' : 'Send Reset Link'}
+          </button>
+        </form>
+        {message && <p className="mt-4 text-center text-sm text-gray-600">{message}</p>}
+      </div>
+    </div>
+  );
+}
+
+// Reset Password Page Component
+function ResetPasswordPageComponent() {
+  const { token } = useParams();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setMessage('Passwords do not match.');
+      return;
+    }
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${API_BASE}/api/reset-password/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.message);
+        navigate('/login');
+      } else {
+        setMessage(data.error || 'Failed to reset password.');
+      }
+    } catch (error) {
+      setMessage('An error occurred. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Enter New Password</h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div><label className="block text-sm font-medium">New Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 block w-full px-3 py-2 border rounded-md" required /></div>
+          <div><label className="block text-sm font-medium">Confirm New Password</label><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-1 block w-full px-3 py-2 border rounded-md" required /></div>
+          <button type="submit" disabled={loading} className="w-full flex justify-center py-2 px-4 border rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">{loading ? 'Resetting...' : 'Reset Password'}</button>
+        </form>
+        {message && <p className="mt-4 text-center text-sm text-red-600">{message}</p>}
+      </div>
+    </div>
+  );
+}
 
 export default App;
