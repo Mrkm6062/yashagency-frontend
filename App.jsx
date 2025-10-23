@@ -3899,6 +3899,35 @@ function AdminPanelComponent({ user }) {
     }
   };
 
+  const handleBulkPincodeToggle = async (scope, deliverable) => {
+    const { state, district } = deliveryAreas.filter || {}; // Assuming filter state is managed within deliveryAreas state
+    
+    if (scope === 'state' && !state) {
+      alert('Please select a state to perform this action.');
+      return;
+    }
+    if (scope === 'district' && !district) {
+      alert('Please select a district to perform this action.');
+      return;
+    }
+
+    const target = scope === 'district' ? district : state;
+    if (!window.confirm(`Are you sure you want to ${deliverable ? 'ENABLE' : 'DISABLE'} all pincodes for ${target}?`)) {
+      return;
+    }
+
+    try {
+      await makeSecureRequest(`${API_BASE}/api/admin/delivery-areas/bulk-update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stateName: state, districtName: scope === 'district' ? district : undefined, deliverable })
+      });
+      fetchData(); // Refetch all admin data to see the changes
+    } catch (error) {
+      alert(`Failed to update pincodes for ${target}.`);
+    }
+  };
+
   const updateSettings = async () => {
     try {
       await makeSecureRequest(`${API_BASE}/api/admin/settings`, {
@@ -4660,6 +4689,7 @@ function AdminPanelComponent({ user }) {
                 <DeliveryAreaManagement 
                   deliveryAreas={deliveryAreas} 
                   togglePincode={togglePincode}
+                  handleBulkToggle={handleBulkPincodeToggle}
                 />
               } />
 
@@ -5972,7 +6002,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
 });
 
 // Delivery Area Management Component (for Admin Panel)
-function DeliveryAreaManagement({ deliveryAreas, togglePincode }) {
+function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle }) {
   const [filter, setFilter] = useState({ state: '', district: '', pincode: '' });
   const [filteredPincodes, setFilteredPincodes] = useState([]);
 
@@ -6007,6 +6037,30 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode }) {
         </select>
         <input type="text" placeholder="Search Pincode..." value={filter.pincode} onChange={e => setFilter({ ...filter, pincode: e.target.value })} className="px-3 py-2 border rounded" />
       </div>
+
+      {/* Bulk Actions */}
+      {(filter.state || filter.district) && (
+        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+          <h4 className="font-semibold text-yellow-900 mb-3">
+            Bulk Actions for: <span className="font-bold">{filter.district || filter.state}</span>
+          </h4>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
+            >
+              Enable All in {filter.district ? 'District' : 'State'}
+            </button>
+            <button
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', false)}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
+            >
+              Disable All in {filter.district ? 'District' : 'State'}
+            </button>
+          </div>
+          <p className="text-xs text-yellow-700 mt-2">This action will affect all pincodes matching the current filter and cannot be undone easily.</p>
+        </div>
+      )}
 
       <div className="overflow-x-auto bg-white border rounded-lg">
         <table className="w-full">
