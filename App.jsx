@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
-import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
+import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -1240,9 +1240,9 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
                 />
                 <button
                   onClick={checkPincode}
-                  className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900"
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"
                 >
-                  Check
+                  <FaArrowRight className="h-5 w-5" />
                 </button>
               </div>
               {pincodeStatus && (
@@ -1302,13 +1302,41 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
               </div>
             </div>
 
+            {/* Pincode Checker */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border">
+              <h3 className="font-semibold text-gray-900 mb-3">Check Delivery Availability</h3>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  placeholder="Enter Pincode"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={checkPincode}
+                  className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"
+                >
+                  <FaArrowRight className="h-5 w-5" />
+                </button>
+              </div>
+              {pincodeStatus && (
+                <div className={`mt-3 text-sm font-medium ${
+                  pincodeStatus.loading ? 'text-gray-500' :
+                  pincodeStatus.available ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
+                </div>
+              )}
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-4">
               <button 
                 onClick={handleBuyNow}
                 className="w-full bg-orange-500 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg"
               >
-                🛒 Buy Now - ₹{(product.price * quantity).toLocaleString()}
+                🛒 Buy Now  ₹{(product.price * quantity).toLocaleString()}
               </button>
               <button 
                 onClick={handleAddToCart}
