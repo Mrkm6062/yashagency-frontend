@@ -941,6 +941,8 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
   const [canReview, setCanReview] = useState(false);
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [pincodeStatus, setPincodeStatus] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1043,6 +1045,26 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
     const productWithVariant = { ...product, selectedVariant };
     for (let i = 0; i < quantity; i++) {
       addToCart(productWithVariant);
+    }
+  };
+
+  const checkPincode = async () => {
+    if (!pincode || pincode.length !== 6) {
+      setPincodeStatus({ available: false, message: 'Please enter a valid 6-digit pincode.' });
+      return;
+    }
+    setPincodeStatus({ loading: true });
+    try {
+      const response = await fetch(`${API_BASE}/api/check-pincode/${pincode}`);
+      const data = await response.json();
+      if (response.ok && data.deliverable) {
+        setPincodeStatus({ available: true, message: `Yes! Delivery is available to ${pincode}.` });
+      } else {
+        setPincodeStatus({ available: false, message: data.message || `Sorry, delivery is not available to ${pincode} yet.` });
+      }
+    } catch (error) {
+      console.error('Pincode check error:', error);
+      setPincodeStatus({ available: false, message: 'Could not verify pincode. Please try again.' });
     }
   };
 
@@ -1203,6 +1225,35 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
                 )}
               </div>
             </div>
+
+            {/* Pincode Checker */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border">
+              <h3 className="font-semibold text-gray-900 mb-3">Check Delivery Availability</h3>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  placeholder="Enter Pincode"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value)}
+                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={checkPincode}
+                  className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900"
+                >
+                  Check
+                </button>
+              </div>
+              {pincodeStatus && (
+                <div className={`mt-3 text-sm font-medium ${
+                  pincodeStatus.loading ? 'text-gray-500' :
+                  pincodeStatus.available ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
+                </div>
+              )}
+            </div>
+
 
             {/* Variant Selector */}
             {product.variants && product.variants.length > 0 && (
@@ -1453,6 +1504,8 @@ function CheckoutPageComponent({ user, clearCart }) {
   const [couponId, setCouponId] = useState(null);
   const [shippingCost, setShippingCost] = useState(0);
   
+  const MY_STATE = "Maharashtra"; // <-- SET YOUR STATE HERE
+
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
   const subtotal = total;
@@ -1546,6 +1599,29 @@ function CheckoutPageComponent({ user, clearCart }) {
       return;
     }
 
+    // Pincode and State verification
+    if (shippingAddress.state.toLowerCase() !== MY_STATE.toLowerCase()) {
+      alert(`Sorry, we currently only deliver within ${MY_STATE}.`);
+      return;
+    }
+
+    if (!shippingAddress.zipCode) {
+      alert('Please provide a pincode for delivery verification.');
+      return;
+    }
+
+    try {
+      const pincodeRes = await fetch(`${API_BASE}/api/check-pincode/${shippingAddress.zipCode}`);
+      const pincodeData = await pincodeRes.json();
+      if (!pincodeRes.ok || !pincodeData.deliverable) {
+        alert(pincodeData.message || `Sorry, we are unable to deliver to your pincode ${shippingAddress.zipCode}.`);
+        return;
+      }
+    } catch (error) {
+      alert('Could not verify your pincode. Please try again.');
+      return;
+    }
+
     setLoading(true);
     try {
       const orderRes = await makeSecureRequest(`${API_BASE}/api/payment/create-order`, {
@@ -1595,6 +1671,27 @@ function CheckoutPageComponent({ user, clearCart }) {
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
+      return;
+    }
+
+    // Pincode and State verification
+    if (shippingAddress.state.toLowerCase() !== MY_STATE.toLowerCase()) {
+      alert(`Sorry, we currently only deliver within ${MY_STATE}.`);
+      setLoading(false);
+      return;
+    }
+
+    if (!shippingAddress.zipCode) {
+      alert('Please provide a pincode for delivery verification.');
+      setLoading(false);
+      return;
+    }
+
+    const pincodeRes = await fetch(`${API_BASE}/api/check-pincode/${shippingAddress.zipCode}`);
+    const pincodeData = await pincodeRes.json();
+    if (!pincodeRes.ok || !pincodeData.deliverable) {
+      alert(pincodeData.message || `Sorry, we are unable to deliver to your pincode ${shippingAddress.zipCode}.`);
+      setLoading(false);
       return;
     }
 
@@ -3554,6 +3651,7 @@ function AdminPanelComponent({ user }) {
   const [analytics, setAnalytics] = useState({});
   const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '' });
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [deliveryAreas, setDeliveryAreas] = useState({ states: [], districts: [], pincodes: [] });
   const [courierForm, setCourierForm] = useState({ courierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
   
   // Product form state
@@ -3591,7 +3689,7 @@ function AdminPanelComponent({ user }) {
   }, [user]);
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes] = await Promise.all([
         fetch(`${API_BASE}/api/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -3600,7 +3698,8 @@ function AdminPanelComponent({ user }) {
         fetch(`${API_BASE}/api/admin/contacts`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/settings`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/analytics`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_BASE}/api/banner`)
+        fetch(`${API_BASE}/api/banner`),
+        fetch(`${API_BASE}/api/admin/delivery-areas`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
       
       setProducts(await productsRes.json());
@@ -3618,6 +3717,8 @@ function AdminPanelComponent({ user }) {
         desktop: bannerData.desktop || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' },
         mobile: bannerData.mobile || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }
       });
+      const deliveryData = await (await deliveryAreasRes).json();
+      setDeliveryAreas(deliveryData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
     }
@@ -3625,7 +3726,7 @@ function AdminPanelComponent({ user }) {
 
   const fetchOrdersByDate = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params = new URLSearchParams(orderFilters);
       const response = await fetch(`${API_BASE}/api/admin/orders/date-range?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -3770,7 +3871,7 @@ function AdminPanelComponent({ user }) {
 
   const fetchCouponReport = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await fetch(`${API_BASE}/api/admin/coupons/report`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -3779,6 +3880,22 @@ function AdminPanelComponent({ user }) {
       setShowReport(true);
     } catch (error) {
       alert('Failed to fetch coupon report');
+    }
+  };
+
+  const togglePincode = async (pincode, enabled) => {
+    try {
+      await makeSecureRequest(`${API_BASE}/api/admin/pincodes/${pincode}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deliverable: !enabled })
+      });
+      // Re-fetch delivery areas to update UI
+      const token = getToken();
+      const res = await fetch(`${API_BASE}/api/admin/delivery-areas`, { headers: { 'Authorization': `Bearer ${token}` } });
+      setDeliveryAreas(await res.json());
+    } catch (error) {
+      alert('Failed to update pincode status.');
     }
   };
 
@@ -4006,6 +4123,7 @@ function AdminPanelComponent({ user }) {
               { id: 'messages', label: 'Messages', icon: '💬' },
               { id: 'coupons', label: 'Coupons', icon: '🎫' },
               { id: 'banner', label: 'Banner', icon: '🖼️' },
+              { id: 'delivery-area', label: 'Delivery Area', icon: '🗺️' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map(tab => (
               <button
@@ -4536,6 +4654,13 @@ function AdminPanelComponent({ user }) {
                   ))}
                 </div>
               </div>
+              } />
+
+              <Route path="delivery-area" element={
+                <DeliveryAreaManagement 
+                  deliveryAreas={deliveryAreas} 
+                  togglePincode={togglePincode}
+                />
               } />
 
               <Route path="users" element={
@@ -5845,6 +5970,79 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
     </div>
   );
 });
+
+// Delivery Area Management Component (for Admin Panel)
+function DeliveryAreaManagement({ deliveryAreas, togglePincode }) {
+  const [filter, setFilter] = useState({ state: '', district: '', pincode: '' });
+  const [filteredPincodes, setFilteredPincodes] = useState([]);
+
+  useEffect(() => {
+    let pincodes = deliveryAreas.pincodes || [];
+    if (filter.state) {
+      pincodes = pincodes.filter(p => p.stateName === filter.state);
+    }
+    if (filter.district) {
+      pincodes = pincodes.filter(p => p.districtName === filter.district);
+    }
+    if (filter.pincode) {
+      pincodes = pincodes.filter(p => p.pincode.toString().startsWith(filter.pincode));
+    }
+    setFilteredPincodes(pincodes);
+  }, [filter, deliveryAreas]);
+
+  const uniqueStates = [...new Set((deliveryAreas.pincodes || []).map(p => p.stateName))];
+  const uniqueDistricts = [...new Set((deliveryAreas.pincodes || []).filter(p => !filter.state || p.stateName === filter.state).map(p => p.districtName))];
+
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-semibold">Delivery Area Management</h3>
+      <div className="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4">
+        <select value={filter.state} onChange={e => setFilter({ ...filter, state: e.target.value, district: '' })} className="px-3 py-2 border rounded">
+          <option value="">All States</option>
+          {uniqueStates.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filter.district} onChange={e => setFilter({ ...filter, district: e.target.value })} className="px-3 py-2 border rounded">
+          <option value="">All Districts</option>
+          {uniqueDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <input type="text" placeholder="Search Pincode..." value={filter.pincode} onChange={e => setFilter({ ...filter, pincode: e.target.value })} className="px-3 py-2 border rounded" />
+      </div>
+
+      <div className="overflow-x-auto bg-white border rounded-lg">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Pincode</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Office Name</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">District</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">State</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filteredPincodes.slice(0, 100).map(pincode => (
+              <tr key={pincode._id} className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-sm font-medium">{pincode.pincode}</td>
+                <td className="px-4 py-3 text-sm">{pincode.officeName}</td>
+                <td className="px-4 py-3 text-sm">{pincode.districtName}</td>
+                <td className="px-4 py-3 text-sm">{pincode.stateName}</td>
+                <td className="px-4 py-3 text-sm">
+                  <button
+                    onClick={() => togglePincode(pincode.pincode, pincode.deliverable)}
+                    className={`px-3 py-1 rounded text-xs ${pincode.deliverable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                  >
+                    {pincode.deliverable ? 'Enabled' : 'Disabled'}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filteredPincodes.length > 100 && <p className="p-4 text-sm text-gray-600">Showing first 100 of {filteredPincodes.length} results. Refine your search.</p>}
+      </div>
+    </div>
+  );
+}
 
 
 export default App;
