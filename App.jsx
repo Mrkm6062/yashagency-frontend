@@ -1225,37 +1225,7 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
                 )}
               </div>
             </div>
-
-            {/* Pincode Checker */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h3 className="font-semibold text-gray-900 mb-3">Check Delivery Availability</h3>
-              <div className="flex space-x-2">
-                <input
-                  type="number"
-                  placeholder="Enter Pincode"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={checkPincode}
-                  className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"
-                >
-                  <FaArrowRight className="h-5 w-5" />
-                </button>
-              </div>
-              {pincodeStatus && (
-                <div className={`mt-3 text-sm font-medium ${
-                  pincodeStatus.loading ? 'text-gray-500' :
-                  pincodeStatus.available ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
-                </div>
-              )}
-            </div>
-
-
+            
             {/* Variant Selector */}
             {product.variants && product.variants.length > 0 && (
               <div className="bg-white p-6 rounded-xl shadow-sm border">
