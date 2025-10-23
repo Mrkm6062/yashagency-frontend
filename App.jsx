@@ -3689,8 +3689,8 @@ function AdminPanelComponent({ user }) {
   }, [user]);
   const fetchData = async () => {
     try {
-      const token = getToken();
-      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes] = await Promise.all([
+      const token = getToken(); // Corrected: Added deliveryAreasRes to the destructuring
+      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes, deliveryAreasRes] = await Promise.all([
         fetch(`${API_BASE}/api/admin/products`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/orders`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`${API_BASE}/api/admin/coupons`, { headers: { 'Authorization': `Bearer ${token}` } }),
@@ -3717,7 +3717,7 @@ function AdminPanelComponent({ user }) {
         desktop: bannerData.desktop || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' },
         mobile: bannerData.mobile || { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }
       });
-      const deliveryData = await (await deliveryAreasRes).json();
+      const deliveryData = await deliveryAreasRes.json(); // Corrected: Simplified the JSON parsing
       setDeliveryAreas(deliveryData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
