@@ -2190,8 +2190,6 @@ function LoginPage({ login, user }) {
   const [phone, setPhone] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -2200,31 +2198,6 @@ function LoginPage({ login, user }) {
       navigate(from);
     }
   }, [user, navigate, location]);
-
-  const handleSendOtp = async () => {
-    if (!phone) {
-      alert('Please enter a valid phone number.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/send-verification-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setOtpSent(true);
-        alert('An OTP has been sent to your mobile number.');
-      } else {
-        alert(data.error || 'Failed to send OTP.');
-      }
-    } catch (error) {
-      alert('An error occurred while sending the OTP.');
-    }
-    setLoading(false);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -2245,7 +2218,7 @@ function LoginPage({ login, user }) {
         const response = await fetch(`${API_BASE}/api/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, phone, otp })
+          body: JSON.stringify({ name, email, password, phone })
         });
         
         if (response.status === 429) {
@@ -2298,22 +2271,9 @@ function LoginPage({ login, user }) {
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>                  
-                  <div className="flex space-x-2">
-                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="+919876543210" required={!isLogin} disabled={otpSent} />
-                    {!otpSent && (
-                      <button type="button" onClick={handleSendOtp} disabled={loading} className="bg-green-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50">
-                        {loading ? '...' : 'Send OTP'}
-                      </button>
-                    )}
-                  </div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
+                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your phone number" required={!isLogin} />
                 </div>
-                {otpSent && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">🔢 Enter OTP</label>
-                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter 6-digit OTP" required />
-                </div>
-                )}
               </>              
             )}
 
