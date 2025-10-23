@@ -1558,9 +1558,9 @@ function CheckoutPageComponent({ user, clearCart }) {
 
   const fetchShippingCost = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/shipping-cost`);
+      const response = await fetch(`${API_BASE}/api/settings`);
       const data = await response.json();
-      setShippingCost(data.cost || 0);
+      setShippingCost(data.shippingCost || 0);
     } catch (error) {
       console.error('Error fetching shipping cost:', error);
     }
