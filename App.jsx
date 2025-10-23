@@ -2190,6 +2190,8 @@ function LoginPage({ login, user }) {
   const [phone, setPhone] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -2198,6 +2200,31 @@ function LoginPage({ login, user }) {
       navigate(from);
     }
   }, [user, navigate, location]);
+
+  const handleSendOtp = async () => {
+    if (!phone) {
+      alert('Please enter a valid phone number.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/send-verification-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setOtpSent(true);
+        alert('An OTP has been sent to your mobile number.');
+      } else {
+        alert(data.error || 'Failed to send OTP.');
+      }
+    } catch (error) {
+      alert('An error occurred while sending the OTP.');
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -2218,7 +2245,7 @@ function LoginPage({ login, user }) {
         const response = await fetch(`${API_BASE}/api/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, phone })
+          body: JSON.stringify({ name, email, password, phone, otp })
         });
         
         if (response.status === 429) {
