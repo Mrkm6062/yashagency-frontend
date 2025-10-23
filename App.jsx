@@ -6001,44 +6001,58 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
 
 // Delivery Area Management Component (for Admin Panel)
 function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle, setDeliveryAreas }) {
-  const [filter, setFilter] = useState({ state: '', district: '', pincode: '' });
-  const [filteredPincodes, setFilteredPincodes] = useState([]);
+  const [filter, setFilter] = useState({ state: '', district: '' });
+  const [pincodeSearch, setPincodeSearch] = useState('');
+  const [pincodes, setPincodes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   useEffect(() => {
-    let pincodes = deliveryAreas.pincodes || [];
-    if (filter.state) {
-      pincodes = pincodes.filter(p => p.stateName === filter.state);
-    }
-    if (filter.district) {
-      pincodes = pincodes.filter(p => p.districtName === filter.district);
-    }
-    if (filter.pincode) {
-      pincodes = pincodes.filter(p => p.pincode.toString().startsWith(filter.pincode));
-    }
-    setFilteredPincodes(pincodes);
-  }, [filter, deliveryAreas]);
+    // This effect is no longer needed as we fetch on demand
+  }, []);
 
-  const handleFilterChange = (newFilter) => {
-    setFilter(newFilter);
-    setDeliveryAreas(prev => ({ ...prev, filter: newFilter }));
+  const searchPincodes = async () => {
+    if (!filter.state && !filter.district && !pincodeSearch) {
+      alert('Please select a state/district or enter a pincode to search.');
+      return;
+    }
+    setLoading(true);
+    setSearched(true);
+    try {
+      const params = new URLSearchParams({
+        state: filter.state,
+        district: filter.district,
+        pincode: pincodeSearch
+      });
+      const response = await makeSecureRequest(`${API_BASE}/api/admin/pincodes/search?${params}`);
+      const data = await response.json();
+      setPincodes(data);
+    } catch (error) {
+      alert('Failed to fetch pincodes.');
+    }
+    setLoading(false);
   };
 
-  const uniqueStates = [...new Set((deliveryAreas.pincodes || []).map(p => p.stateName))];
-  const uniqueDistricts = [...new Set((deliveryAreas.pincodes || []).filter(p => !filter.state || p.stateName === filter.state).map(p => p.districtName))];
+  const stateDistrictMap = deliveryAreas.stateDistrictMap || [];
+  const uniqueStates = stateDistrictMap.map(item => item.stateName);
+  const uniqueDistricts = filter.state 
+    ? stateDistrictMap.find(s => s.stateName === filter.state)?.districts || [] 
+    : [];
 
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Delivery Area Management</h3>
-      <div className="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select value={filter.state} onChange={e => handleFilterChange({ ...filter, state: e.target.value, district: '' })} className="px-3 py-2 border rounded">
+      <div className="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <select value={filter.state} onChange={e => setFilter({ ...filter, state: e.target.value, district: '' })} className="px-3 py-2 border rounded">
           <option value="">All States</option>
           {uniqueStates.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filter.district} onChange={e => handleFilterChange({ ...filter, district: e.target.value })} className="px-3 py-2 border rounded">
+        <select value={filter.district} onChange={e => setFilter({ ...filter, district: e.target.value })} className="px-3 py-2 border rounded" disabled={!filter.state}>
           <option value="">All Districts</option>
           {uniqueDistricts.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <input type="text" placeholder="Search Pincode..." value={filter.pincode} onChange={e => handleFilterChange({ ...filter, pincode: e.target.value })} className="px-3 py-2 border rounded" />
+        <input type="text" placeholder="Search Pincode..." value={pincodeSearch} onChange={e => setPincodeSearch(e.target.value)} className="px-3 py-2 border rounded" />
+        <button onClick={searchPincodes} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Search</button>
       </div>
 
       {/* Bulk Actions */}
@@ -6049,13 +6063,13 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
           </h4>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', true, filter)}
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', true, { ...filter, pincode: pincodeSearch })}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
             >
               Enable All in {filter.district ? 'District' : 'State'}
             </button>
             <button
-              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', false, filter)}
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', false, { ...filter, pincode: pincodeSearch })}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
             >
               Disable All in {filter.district ? 'District' : 'State'}
@@ -6077,7 +6091,7 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredPincodes.slice(0, 100).map(pincode => (
+            {pincodes.map(pincode => (
               <tr key={pincode._id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm font-medium">{pincode.pincode}</td>
                 <td className="px-4 py-3 text-sm">{pincode.officeName}</td>
@@ -6095,7 +6109,13 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
             ))}
           </tbody>
         </table>
-        {filteredPincodes.length > 100 && <p className="p-4 text-sm text-gray-600">Showing first 100 of {filteredPincodes.length} results. Refine your search.</p>}
+        {loading && <p className="p-4 text-center text-gray-600">Loading...</p>}
+        {!loading && searched && pincodes.length === 0 && (
+          <p className="p-4 text-center text-gray-600">No pincodes found for this filter.</p>
+        )}
+        {!loading && pincodes.length >= 500 && (
+          <p className="p-4 text-sm text-yellow-700 bg-yellow-50">Showing first 500 results. Please refine your search for more specific data.</p>
+        )}
       </div>
     </div>
   );
