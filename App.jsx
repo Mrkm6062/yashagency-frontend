@@ -6024,7 +6024,10 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
         district: filter.district,
         pincode: pincodeSearch
       });
-      const response = await makeSecureRequest(`${API_BASE}/api/admin/pincodes/search?${params}`);
+      const response = await fetch(`${API_BASE}/api/admin/pincodes/search?${params}`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+
       const data = await response.json();
       setPincodes(data);
     } catch (error) {
