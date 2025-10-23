@@ -3899,28 +3899,26 @@ function AdminPanelComponent({ user }) {
     }
   };
 
-  const handleBulkPincodeToggle = async (scope, deliverable) => {
-    const { state, district } = deliveryAreas.filter || {}; // Assuming filter state is managed within deliveryAreas state
-    
-    if (scope === 'state' && !state) {
+  const handleBulkPincodeToggle = async (scope, deliverable, filter) => {
+    if (scope === 'state' && !filter.state) {
       alert('Please select a state to perform this action.');
       return;
     }
-    if (scope === 'district' && !district) {
+    if (scope === 'district' && !filter.district) {
       alert('Please select a district to perform this action.');
       return;
     }
 
-    const target = scope === 'district' ? district : state;
+    const target = scope === 'district' ? filter.district : filter.state;
     if (!window.confirm(`Are you sure you want to ${deliverable ? 'ENABLE' : 'DISABLE'} all pincodes for ${target}?`)) {
       return;
     }
 
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/delivery-areas/bulk-update`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/admin/delivery-areas/bulk-update`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stateName: state, districtName: scope === 'district' ? district : undefined, deliverable })
+        body: JSON.stringify({ stateName: filter.state, districtName: scope === 'district' ? filter.district : undefined, deliverable })
       });
       fetchData(); // Refetch all admin data to see the changes
     } catch (error) {
@@ -6002,7 +6000,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
 });
 
 // Delivery Area Management Component (for Admin Panel)
-function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle }) {
+function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle, setDeliveryAreas }) {
   const [filter, setFilter] = useState({ state: '', district: '', pincode: '' });
   const [filteredPincodes, setFilteredPincodes] = useState([]);
 
@@ -6020,6 +6018,11 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
     setFilteredPincodes(pincodes);
   }, [filter, deliveryAreas]);
 
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setDeliveryAreas(prev => ({ ...prev, filter: newFilter }));
+  };
+
   const uniqueStates = [...new Set((deliveryAreas.pincodes || []).map(p => p.stateName))];
   const uniqueDistricts = [...new Set((deliveryAreas.pincodes || []).filter(p => !filter.state || p.stateName === filter.state).map(p => p.districtName))];
 
@@ -6027,15 +6030,15 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Delivery Area Management</h3>
       <div className="bg-gray-50 p-4 rounded-lg grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select value={filter.state} onChange={e => setFilter({ ...filter, state: e.target.value, district: '' })} className="px-3 py-2 border rounded">
+        <select value={filter.state} onChange={e => handleFilterChange({ ...filter, state: e.target.value, district: '' })} className="px-3 py-2 border rounded">
           <option value="">All States</option>
           {uniqueStates.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filter.district} onChange={e => setFilter({ ...filter, district: e.target.value })} className="px-3 py-2 border rounded">
+        <select value={filter.district} onChange={e => handleFilterChange({ ...filter, district: e.target.value })} className="px-3 py-2 border rounded">
           <option value="">All Districts</option>
           {uniqueDistricts.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <input type="text" placeholder="Search Pincode..." value={filter.pincode} onChange={e => setFilter({ ...filter, pincode: e.target.value })} className="px-3 py-2 border rounded" />
+        <input type="text" placeholder="Search Pincode..." value={filter.pincode} onChange={e => handleFilterChange({ ...filter, pincode: e.target.value })} className="px-3 py-2 border rounded" />
       </div>
 
       {/* Bulk Actions */}
@@ -6046,13 +6049,13 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
           </h4>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', true)}
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', true, filter)}
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
             >
               Enable All in {filter.district ? 'District' : 'State'}
             </button>
             <button
-              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', false)}
+              onClick={() => handleBulkToggle(filter.district ? 'district' : 'state', false, filter)}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm"
             >
               Disable All in {filter.district ? 'District' : 'State'}
