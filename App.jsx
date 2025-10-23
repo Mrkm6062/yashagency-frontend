@@ -1598,12 +1598,6 @@ function CheckoutPageComponent({ user, clearCart }) {
       return;
     }
 
-    // Pincode and State verification
-    if (shippingAddress.state.toLowerCase() !== MY_STATE.toLowerCase()) {
-      alert(`Sorry, we currently only deliver within ${MY_STATE}.`);
-      return;
-    }
-
     if (!shippingAddress.zipCode) {
       alert('Please provide a pincode for delivery verification.');
       return;
@@ -1670,13 +1664,6 @@ function CheckoutPageComponent({ user, clearCart }) {
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
-      return;
-    }
-
-    // Pincode and State verification
-    if (shippingAddress.state.toLowerCase() !== MY_STATE.toLowerCase()) {
-      alert(`Sorry, we currently only deliver within ${MY_STATE}.`);
-      setLoading(false);
       return;
     }
 
