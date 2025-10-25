@@ -403,8 +403,8 @@ function App() {
 
 const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount }) => {
   const location = useLocation();
-  const noNavPages = ['/login']; // Array of paths to hide nav and footer
-  const hideNavAndFooter = noNavPages.includes(location.pathname);
+  // No pages will hide the header and footer now.
+  const hideNavAndFooter = false;
 
   return (
     <>
@@ -2276,26 +2276,27 @@ function LoginPage({ login, user }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-3xl text-white">{isLogin ? '🔐' : '👋'}</span>
+    <div className="py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl">
+        {/* Left Column: Header */}
+        <div className="text-center lg:text-left">
+          <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6 shadow-lg">
+            <span className="text-4xl text-white">{isLogin ? '🔐' : '👋'}</span>
           </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
             {isLogin ? 'Welcome Back!' : 'Join SamriddhiShop'}
           </h1>
-          <p className="text-gray-600">
-            {isLogin ? 'Sign in to your account to continue' : 'Create your account to get started'}
+          <p className="text-lg text-gray-600">
+            {isLogin ? 'Sign in to your account to continue your shopping journey.' : 'Create your account to get started with exclusive deals and a personalized experience.'}
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
-              <>
+        {/* Right Column: Form */}
+        <div>
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {!isLogin && (
+                <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Full Name</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
@@ -2304,134 +2305,135 @@ function LoginPage({ login, user }) {
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
                   <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your phone number" required={!isLogin} />
                 </div>
-              </>              
-            )}
+                </>              
+              )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                📧 Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
-                placeholder="Enter your email address"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                🔒 Password
-              </label>
-              <div className="relative">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  📧 Email Address
+                </label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
-                  placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  placeholder="Enter your email address"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
               </div>
-            </div>
-
-            {!isLogin && (
+              
               <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="rounded text-blue-500 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-600">
-                    I accept the{' '}
-                    <Link to="/support/terms" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
-                    {' '}and{' '}
-                    <Link to="/support/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>.
-                  </span>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  🔒 Password
                 </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
-            )}
 
-            {isLogin && (
-              <div className="text-right">
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-            )}
-            
-            <button
-              type="submit"
-              disabled={loading || (!isLogin && !termsAccepted)}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center space-x-2">
-                  <span className="animate-spin">⏳</span>
-                  <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
-                </span>
-              ) : (
-                <span className="flex items-center justify-center space-x-2">
-                  <span>{isLogin ? '🚀' : '✨'}</span>
-                  <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
-                </span>
+              {!isLogin && (
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="rounded text-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">
+                      I accept the{' '}
+                      <Link to="/support/terms" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
+                      {' '}and{' '}
+                      <Link to="/support/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+                    </span>
+                  </label>
+                </div>
               )}
-            </button>
-          </form>
-          
-          {/* Toggle Form */}
-          <div className="mt-8 text-center">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">or</span>
-              </div>
-            </div>
-            
-            <p className="mt-4 text-gray-600">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
-            </p>
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setPassword('');
-              }}
-              className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline"
-            >
-              {isLogin ? '🎯 Create New Account' : '🔑 Sign In Instead'}
-            </button>
-          </div>
-        </div>
 
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-            <div className="text-2xl mb-2">🛡️</div>
-            <p className="text-sm text-gray-600 font-medium">Secure & Safe</p>
+              {isLogin && (
+                <div className="text-right">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                disabled={loading || (!isLogin && !termsAccepted)}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span className="animate-spin">⏳</span>
+                    <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center space-x-2">
+                    <span>{isLogin ? '🚀' : '✨'}</span>
+                    <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                  </span>
+                )}
+              </button>
+            </form>
+            
+            {/* Toggle Form */}
+            <div className="mt-8 text-center">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">or</span>
+                </div>
+              </div>
+              
+              <p className="mt-4 text-gray-600">
+                {isLogin ? "Don't have an account?" : "Already have an account?"}
+              </p>
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setPassword('');
+                }}
+                className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline"
+              >
+                {isLogin ? '🎯 Create New Account' : '🔑 Sign In Instead'}
+              </button>
+            </div>
           </div>
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-            <div className="text-2xl mb-2">🚚</div>
-            <p className="text-sm text-gray-600 font-medium">Fast Delivery</p>
-          </div>
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-            <div className="text-2xl mb-2">💎</div>
-            <p className="text-sm text-gray-600 font-medium">Quality Products</p>
+
+          {/* Features */}
+          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+              <div className="text-2xl mb-2">🛡️</div>
+              <p className="text-sm text-gray-600 font-medium">Secure & Safe</p>
+            </div>
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+              <div className="text-2xl mb-2">🚚</div>
+              <p className="text-sm text-gray-600 font-medium">Fast Delivery</p>
+            </div>
+            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+              <div className="text-2xl mb-2">💎</div>
+              <p className="text-sm text-gray-600 font-medium">Quality Products</p>
+            </div>
           </div>
         </div>
       </div>
@@ -5969,8 +5971,9 @@ const Footer = React.memo(function Footer() {
     <footer className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="text-lg font-bold mb-4">SamriddhiShop</h3>
+          <div className="pr-4">
+            {/* Use the logo instead of text */}
+            <img src={LOGO_URL} alt="SamriddhiShop" className="h-24 mb-4" />
             <p className="text-gray-300 text-sm">Your trusted online shopping destination for quality products at great prices.</p>
           </div>
           
@@ -5992,6 +5995,8 @@ const Footer = React.memo(function Footer() {
               <li><Link to="/support/faq" className="text-gray-300 hover:text-white">FAQ</Link></li>
               <li><Link to="/support/returns" className="text-gray-300 hover:text-white">Return Policy</Link></li>
               <li><Link to="/support/shipping" className="text-gray-300 hover:text-white">Shipping Info</Link></li>
+              <li><Link to="/support/terms" className="text-gray-300 hover:text-white">Terms of Service</Link></li>
+              <li><Link to="/support/privacy" className="text-gray-300 hover:text-white">Privacy Policy</Link></li>              
               </ul>
             </div>
           </div>
