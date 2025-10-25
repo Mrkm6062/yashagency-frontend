@@ -2335,24 +2335,15 @@ function LoginPage({ login, user, setNotification }) {
   };
 
   return (
-    <div className="py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl">
-        {/* Left Column: Header */}
-        <div className="text-center lg:text-left">
-          <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6 shadow-lg">
-            <span className="text-4xl text-white">{isLogin ? '🔐' : '👋'}</span>
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
-            {isLogin ? 'Welcome Back!' : 'Join SamriddhiShop'}
-          </h1>
-          <p className="text-lg text-gray-600">
-            {isLogin ? 'Sign in to your account to continue your shopping journey.' : 'Create your account to get started with exclusive deals and a personalized experience.'}
-          </p>
+    <div className="relative min-h-[80vh] flex items-center justify-center py-6 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+      {/* Form Container */}
+      <div className="relative z-10 max-w-md w-full space-y-6">
+        <div className="text-center">
+          <h2 className="text-center text-3xl font-extrabold text-gray-900">
+            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+          </h2>
         </div>
-
-        {/* Right Column: Form */}
-        <div>
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-100">
             <form onSubmit={handleSubmit} className="space-y-6">
               {!isLogin && (
                 <>
@@ -2477,22 +2468,21 @@ function LoginPage({ login, user, setNotification }) {
                 {isLogin ? '🎯 Create New Account' : '🔑 Sign In Instead'}
               </button>
             </div>
-          </div>
+        </div>
 
-          {/* Features */}
-          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-              <div className="text-2xl mb-2">🛡️</div>
-              <p className="text-sm text-gray-600 font-medium">Secure & Safe</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-              <div className="text-2xl mb-2">🚚</div>
-              <p className="text-sm text-gray-600 font-medium">Fast Delivery</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
-              <div className="text-2xl mb-2">💎</div>
-              <p className="text-sm text-gray-600 font-medium">Quality Products</p>
-            </div>
+        {/* Features */}
+        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+            <div className="text-2xl mb-2">🛡️</div>
+            <p className="text-sm text-gray-600 font-medium">Secure & Safe</p>
+          </div>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+            <div className="text-2xl mb-2">🚚</div>
+            <p className="text-sm text-gray-600 font-medium">Fast Delivery</p>
+          </div>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl">
+            <div className="text-2xl mb-2">💎</div>
+            <p className="text-sm text-gray-600 font-medium">Quality Products</p>
           </div>
         </div>
       </div>
