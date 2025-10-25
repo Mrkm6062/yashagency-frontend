@@ -359,7 +359,7 @@ function App() {
             <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
             <Route path="/product/:id" element={<Suspense fallback={<LoadingSpinner />}><ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} /></Suspense>} />
             <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} />} />
-            <Route path="/login" element={<LoginPage login={login} user={user} />} />
+            <Route path="/login" element={<LoginPage login={login} user={user} setNotification={setNotification} />} />
 
             <Route path="/orders" element={<Suspense fallback={<LoadingSpinner />}><OrderStatusPage user={user} /></Suspense>} />
             <Route path="/wishlist" element={<Suspense fallback={<LoadingSpinner />}><WishlistPage user={user} wishlistProducts={wishlistProducts} fetchWishlist={fetchWishlist} addToCart={addToCart} setNotification={setNotification} /></Suspense>} />
@@ -377,20 +377,27 @@ function App() {
         {/* Notification */}
         {notification && (
           <div className={`fixed top-4 right-4 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 ${
-            notification.type === 'wishlist' ? 'bg-pink-500' : 'bg-green-500'
+            notification.type === 'wishlist' ? 'bg-pink-500' : 
+            notification.type === 'success' ? 'bg-blue-500' : 'bg-green-500'
           }`}>
             <div>
               <p className="font-semibold">{notification.message}</p>
               <p className="text-sm opacity-90">{notification.product}</p>
             </div>
             <Link 
-              to={notification.type === 'wishlist' ? '/wishlist' : '/cart'}
+              to={
+                notification.type === 'wishlist' ? '/wishlist' :
+                notification.type === 'success' ? '/products' : '/cart'
+              }
               className={`bg-white px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 ${
-                notification.type === 'wishlist' ? 'text-pink-500' : 'text-green-500'
+                notification.type === 'wishlist' ? 'text-pink-500' :
+                notification.type === 'success' ? 'text-blue-500' : 'text-green-500'
               }`}
               onClick={() => setNotification(null)}
             >
-              {notification.type === 'wishlist' ? 'Go to Wishlist' : 'Go to Cart'}
+              {notification.type === 'wishlist' ? 'Go to Wishlist' :
+               notification.type === 'success' ? 'Start Shopping' : 'Go to Cart'
+              }
             </Link>
           </div>
         )}
@@ -2238,7 +2245,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 }
 
 // Login Page Component
-function LoginPage({ login, user }) {
+function LoginPage({ login, user, setNotification }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -2292,9 +2299,17 @@ function LoginPage({ login, user }) {
         }
         
         if (response.ok) {
-          alert('Registration successful! Please login.');
-          setIsLogin(true);
-          setPassword('');
+          setNotification({
+            message: 'Account created successfully!',
+            product: 'Welcome to SamriddhiShop!',
+            type: 'success'
+          });
+          // Automatically log the user in
+          const success = await login(email, password);
+          if (!success) {
+            // If auto-login fails, switch to login form for manual attempt
+            setIsLogin(true);
+          }
         } else {
           const data = await response.json().catch(() => ({ error: 'Registration failed' }));
           alert(data.error || 'Registration failed. Please try again.');
@@ -2304,9 +2319,7 @@ function LoginPage({ login, user }) {
         alert('Registration failed. Please try again.');
       }
     }
-    if (isLogin) {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   return (
