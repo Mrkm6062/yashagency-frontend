@@ -3804,16 +3804,16 @@ function AdminPanelComponent({ user }) {
   const location = useLocation();
 
   useEffect(() => {
-    document.title = 'Admin Panel - SamriddhiShop';
-    return () => {
-      document.title = 'SamriddhiShop';
-    };
     if (user?.email !== 'admin@samriddhishop.com') {
       alert('Access denied. Admin only.');
       return;
     }
     fetchData();
-  }, [user]);
+    document.title = 'Admin Panel - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
+  }, [user, location]);
   const fetchData = async () => {
     try {
       const token = getToken(); // Corrected: Added deliveryAreasRes to the destructuring
