@@ -3006,11 +3006,11 @@ function ProfilePageComponent({ user, setUser }) {
                 {/* Welcome Card */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-lg">
                   <div className="flex items-center space-x-4">                    
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                    {/* <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
                       <span className="text-2xl">👋</span>
-                    </div>
+                    </div> */}
                     <div>
-                      <h2 className="text-2xl font-bold">Welcome back, {user.name}!</h2>
+                      <h4 className="text-2xl font-bold">{user.name}</h4>
                       <p className="text-blue-100">Member since {new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                     </div>
                   </div>                  
@@ -3020,9 +3020,9 @@ function ProfilePageComponent({ user, setUser }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                      {/* <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <span className="text-xl">📧</span>
-                      </div>
+                      </div> */}
                       <div>
                         <p className="text-sm text-green-600 font-medium">Email</p>
                         <p className="text-green-800 font-semibold">{user.email}</p>
@@ -3031,9 +3031,9 @@ function ProfilePageComponent({ user, setUser }) {
                   </div>
                   <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-200">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                      {/* <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                         <span className="text-xl">📱</span>
-                      </div>
+                      </div> */}
                       <div>
                         <p className="text-sm text-purple-600 font-medium">Phone</p>
                         <p className="text-purple-800 font-semibold">{user.phone || 'Not provided'}</p>
@@ -3042,9 +3042,9 @@ function ProfilePageComponent({ user, setUser }) {
                   </div>
                   <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-200">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      {/* <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                         <span className="text-xl">🛡️</span>
-                      </div>
+                      </div> */}
                       <div>
                         <p className="text-sm text-orange-600 font-medium">Account Status</p>
                         <p className="text-orange-800 font-semibold">Verified</p>
