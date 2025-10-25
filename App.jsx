@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
-import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight } from 'react-icons/fa';
+import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -1505,6 +1505,7 @@ function CheckoutPageComponent({ user, clearCart }) {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponId, setCouponId] = useState(null);
+  const [saveAddress, setSaveAddress] = useState(true);
   const [shippingCost, setShippingCost] = useState(0);
   
   const MY_STATE = "Maharashtra"; // <-- SET YOUR STATE HERE
@@ -1677,6 +1678,25 @@ function CheckoutPageComponent({ user, clearCart }) {
       return;
     }
 
+    // If a new address is entered and the user wants to save it
+    if (!selectedAddress && saveAddress && newAddress.street && newAddress.city) {
+      try {
+        const saveResponse = await makeSecureRequest(`${API_BASE}/api/addresses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newAddress)
+        });
+        if (!saveResponse.ok) {
+          // Don't block the order, but log the error
+          console.error('Could not save new address.');
+        }
+      } catch (error) {
+        console.error('Error saving new address:', error);
+      }
+      // The address will be used for the current order regardless of save success
+      shippingAddress = newAddress;
+    }
+
     const pincodeRes = await fetch(`${API_BASE}/api/check-pincode/${shippingAddress.zipCode}`);
     const pincodeData = await pincodeRes.json();
     if (!pincodeRes.ok || !pincodeData.deliverable) {
@@ -1821,6 +1841,14 @@ function CheckoutPageComponent({ user, clearCart }) {
                     onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})}
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="flex items-center space-x-2 mt-2">
+                    <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="rounded text-blue-500" />
+                    <span className="text-sm text-gray-700">
+                      Save this address for future orders
+                    </span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -2190,6 +2218,8 @@ function LoginPage({ login, user }) {
   const [phone, setPhone] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -2295,15 +2325,43 @@ function LoginPage({ login, user }) {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 🔒 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
-                placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
+
+            {!isLogin && (
+              <div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="rounded text-blue-500 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-600">
+                    I accept the{' '}
+                    <Link to="/support/terms" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
+                    {' '}and{' '}
+                    <Link to="/support/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+                  </span>
+                </label>
+              </div>
+            )}
 
             {isLogin && (
               <div className="text-right">
@@ -2318,7 +2376,7 @@ function LoginPage({ login, user }) {
             
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !termsAccepted)}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               {loading ? (
@@ -4137,12 +4195,12 @@ function AdminPanelComponent({ user }) {
             {sidebarOpen && <h1 className="text-xl font-bold text-gray-900">🛠️ Admin</h1>}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
             >
               {sidebarOpen ? '←' : '→'}
             </button>
           </div>
-          <nav className="p-4">
+          <nav className="p-6">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
               { id: 'products', label: 'Products', icon: '📦' },
@@ -5558,15 +5616,17 @@ function CustomerServicePage() {
     { id: 'contact', label: 'Contact Us', icon: '📞' },
     { id: 'faq', label: 'FAQ', icon: '❓' },
     { id: 'returns', label: 'Returns', icon: '↩️' },
-    { id: 'shipping', label: 'Shipping', icon: '🚚' }
+    { id: 'shipping', label: 'Shipping', icon: '🚚' },
+    { id: 'terms', label: 'Terms', icon: '📜' },
+    { id: 'privacy', label: 'Privacy', icon: '🛡️' }
   ];
 
   const faqs = [
     { q: 'How do I track my order?', a: 'You can track your order by visiting the "My Orders" section in your profile or using the tracking link sent to your email.' },
-    { q: 'What payment methods do you accept?', a: 'We accept Cash on Delivery (COD). Credit/Debit cards and UPI payments are coming soon.' },
-    { q: 'How long does delivery take?', a: 'Standard delivery takes 3-5 business days. Express delivery options are available for faster shipping.' },
-    { q: 'Can I cancel my order?', a: 'Yes, you can cancel your order within 24 hours of placing it. Contact our support team for assistance.' },
-    { q: 'What is your return policy?', a: 'You can return items within 5 days after delivery. Items must be unused and in original packaging.' }
+    { q: 'What payment methods do you accept?', a: 'We accept Cash on Delivery (COD). Credit/Debit cards and UPI payments are also available.' },
+    { q: 'How long does delivery take?', a: 'Standard delivery takes 5-7 business days. Express delivery options are available for faster shipping.' },
+    { q: 'Can I cancel my order?', a: 'Yes, you can cancel your order within 2 hours of placing it. Contact our support team for assistance.' },
+    { q: 'What is your return policy?', a: 'You can return items within 1 day after delivery. Items must be unused and in original packaging.' }
   ];
 
   const validateForm = () => {
@@ -5776,7 +5836,7 @@ function CustomerServicePage() {
                   <div className="bg-green-50 p-6 rounded-xl">
                     <h3 className="text-xl font-bold text-green-800 mb-4">✅ Easy Returns</h3>
                     <ul className="space-y-2 text-green-700">
-                      <li>• 5-day return window after delivery</li>
+                      <li>• 1-day return window after delivery</li>
                       <li>• Free return shipping</li>
                       <li>• some questions asked for refund</li>
                       <li>• Full refund guarantee</li>
@@ -5794,7 +5854,7 @@ function CustomerServicePage() {
                 </div>
                 <div className="bg-yellow-50 p-6 rounded-xl">
                   <h3 className="text-xl font-bold text-yellow-800 mb-4">⚠️ Return Conditions</h3>
-                  <p className="text-yellow-700">Items must be unused, in original packaging, and returned within 5 days of delivery. Some items like personalized products may not be eligible for return.</p>
+                  <p className="text-yellow-700">Items must be unused, in original packaging, and returned within 1 day of delivery. Some items like personalized products may not be eligible for return.</p>
                 </div>
               </div>
               } />
@@ -5811,16 +5871,16 @@ function CustomerServicePage() {
                       <span className="text-2xl">🚛</span>
                     </div>
                     <h3 className="text-lg font-bold text-blue-800 mb-2">Standard Delivery</h3>
-                    <p className="text-blue-600 mb-2">3-5 Business Days</p>
-                    <p className="text-sm text-blue-500">Free on orders over ₹500</p>
+                    <p className="text-blue-600 mb-2">5-7 Business Days</p>
+                    <p className="text-sm text-blue-500">₹99 shipping fee</p>
                   </div>
                   <div className="bg-green-50 p-6 rounded-xl text-center">
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-2xl">⚡</span>
                     </div>
                     <h3 className="text-lg font-bold text-green-800 mb-2">Express Delivery</h3>
-                    <p className="text-green-600 mb-2">1-2 Business Days</p>
-                    <p className="text-sm text-green-500">₹99 shipping fee</p>
+                    <p className="text-green-600 mb-2">3-4 Business Days</p>
+                    <p className="text-sm text-green-500">Only For Prepaid Orders</p>
                   </div>
                   <div className="bg-purple-50 p-6 rounded-xl text-center">
                     <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -5833,19 +5893,45 @@ function CustomerServicePage() {
                 </div>
                 <div className="bg-gray-50 p-6 rounded-xl">
                   <h3 className="text-xl font-bold text-gray-800 mb-4">📍 Delivery Areas</h3>
-                  <p className="text-gray-600 mb-4">We currently deliver to all major cities across India. Remote areas may have extended delivery times.</p>
+                  <p className="text-gray-600 mb-4">We currently deliver to all major cities in Uttar Pradesh.</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="text-gray-700">• Mumbai</div>
-                    <div className="text-gray-700">• Delhi</div>
-                    <div className="text-gray-700">• Bangalore</div>
-                    <div className="text-gray-700">• Chennai</div>
-                    <div className="text-gray-700">• Kolkata</div>
-                    <div className="text-gray-700">• Hyderabad</div>
-                    <div className="text-gray-700">• Pune</div>
-                    <div className="text-gray-700">• And 500+ more cities</div>
+                    <div className="text-gray-700">• Jaunpur</div>
+                    <div className="text-gray-700">• Varanasi</div>
+                    <div className="text-gray-700">• Prayagraj</div>
+                    <div className="text-gray-700">• Bhadhoi</div>
+                    <div className="text-gray-700">• Mirzapur</div>
+                    <div className="text-gray-700">• Lucknow</div>
+                    <div className="text-gray-700">• Kanpur</div>
+                    <div className="text-gray-700">• And all cities in UP</div>
                   </div>
                 </div>
               </div>
+              } />
+              <Route path="terms" element={
+                <div className="prose max-w-none">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
+                    <span className="text-2xl">📜</span>
+                    <span>Terms of Service</span>
+                  </h2>
+                  <h3>1. Introduction</h3>
+                  <p>Welcome to SamriddhiShop. These are our terms and conditions for use of the website, which you may access in several ways, including but not limited to the World Wide Web via samriddhishop.in, mobile phone and RSS feeds. These terms and conditions apply whenever you access the site, on whatever device.</p>
+                  <h3>2. Use of this site</h3>
+                  <p>By using this site, you agree to be bound by these terms and conditions. If you do not agree to be bound by all of the following terms please do not access, use and/or contribute to samriddhishop.in.</p>
+                  <p>[...Add your full terms of service here...]</p>
+                </div>
+              } />
+              <Route path="privacy" element={
+                <div className="prose max-w-none">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
+                    <span className="text-2xl">🛡️</span>
+                    <span>Privacy Policy</span>
+                  </h2>
+                  <h3>1. Information We Collect</h3>
+                  <p>We collect information to provide better services to all our users. We collect information in the following ways: information you give us (for example, your name, email address, telephone number with your account) and information we get from your use of our services (for example, device information, log information).</p>
+                  <h3>2. How we use information we collect</h3>
+                  <p>We use the information we collect from all of our services to provide, maintain, protect and improve them, to develop new ones, and to protect SamriddhiShop and our users.</p>
+                  <p>[...Add your full privacy policy here...]</p>
+                </div>
               } />
               <Route index element={<Navigate to="contact" replace />} />
             </Routes>
