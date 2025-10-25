@@ -65,6 +65,17 @@ const MetaPixelTracker = () => {
   return null; // This component does not render anything
 };
 
+// Helper component to scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 // Main App Component
 function App() {
   const [user, setUser] = useState(null);
@@ -350,6 +361,7 @@ function App() {
 
   return (
     <Router>      
+      <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
         <MetaPixelTracker />
         <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length}>
@@ -2637,16 +2649,14 @@ const LoadingSpinner = React.memo(function LoadingSpinner() {
 // Order Status Page Component
 function OrderStatusPageComponent({ user }) {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     document.title = 'My Orders - SamriddhiShop';
-    return () => {
-      document.title = 'SamriddhiShop';
-    };
     if (user) {
       fetchOrders();
     }
+    return () => { document.title = 'SamriddhiShop'; };
   }, [user]);
 
   const fetchOrders = async () => {
@@ -5601,15 +5611,13 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
 
 // Wishlist Page Component
 function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCart, setNotification }) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     document.title = 'My Wishlist - SamriddhiShop';
-    return () => {
-      document.title = 'SamriddhiShop';
-    };
-    // Data is now passed via props, so we just need to handle the loading state.
-    setLoading(false);
+    if (user && !wishlistProducts.length) {
+      fetchWishlist();
+    }
   }, [wishlistProducts]);
 
   const removeFromWishlist = async (productId) => {
