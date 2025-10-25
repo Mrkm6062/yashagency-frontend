@@ -2497,12 +2497,10 @@ function OrderHistory({ user }) {
 
   useEffect(() => {
     document.title = 'My Orders - SamriddhiShop';
-    return () => {
-      document.title = 'SamriddhiShop';
-    };
     if (user) {
       fetchOrders();
     }
+    return () => { document.title = 'SamriddhiShop'; };
   }, [user]);
 
   const fetchOrders = async () => {
