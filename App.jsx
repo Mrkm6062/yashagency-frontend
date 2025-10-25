@@ -419,6 +419,17 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount })
 // Header Component
 const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const NavLink = ({ to, children }) => {
+    const isActive = location.pathname === to;
+    return (
+      <Link to={to} className="relative group text-gray-700 transition-colors font-medium py-2">
+        <span className={isActive ? 'text-green-600' : 'group-hover:text-green-600'}>{children}</span>
+        <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : ''}`}></span>
+      </Link>
+    );
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -431,33 +442,29 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">{t('Home')}</Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">{t('Products')}</Link>
-            <Link to="/cart" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
-              <span className="flex items-center space-x-1">
-                <span>🛒</span>
-                <span>{t('Cart')}</span>
-                {cartCount > 0 && (
-                  <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1 ml-1">
-                    {cartCount}
-                  </span>
-                )}
+            <NavLink to="/">{t('HOME')}</NavLink>
+            <NavLink to="/products">{t('PRODUCTS')}</NavLink>
+            <NavLink to="/cart">
+              <span className="flex items-center space-x-1"><span>🛒</span><span>{t('CART')}</span>
+              {cartCount > 0 && (
+                <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1 ml-1">{cartCount}</span>
+              )}
               </span>
-            </Link>
-            {user && <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">My Orders</Link>}
-            {user && <Link to="/wishlist" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative">
+            </NavLink>
+            {user && <NavLink to="/orders">MY ORDERS</NavLink>}
+            {user && <NavLink to="/wishlist">
               <span className="flex items-center space-x-1">
                 <span>❤️</span>
-                <span>Wishlist</span>
+                <span>WISHLIST</span>
                 {wishlistCount > 0 && (
                   <span className="bg-pink-500 text-white text-xs rounded-full px-2 py-1 ml-1">{wishlistCount}</span>
                 )}
               </span>
-            </Link>}
-            {user && <Link to="/profile" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Profile</Link>}
+            </NavLink>}
+            {user && <NavLink to="/profile">PROFILE</NavLink>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
-                Admin
+                ADMIN
               </Link>
             )}
             {user ? (
@@ -467,12 +474,12 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                   onClick={logout} 
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors border"
                 >
-                  {t('Logout')}
+                  {t('LOGOUT')}
                 </button>
               </div>
             ) : (
               <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                {t('Login')}
+                {t('LOGIN')}
               </Link>
             )}
           </nav>
@@ -509,6 +516,10 @@ function HomePage({ products, loading }) {
 
   useEffect(() => {
     fetchBanner();
+    document.title = 'SamriddhiShop - Quality Products, Great Prices';
+    return () => {
+      document.title = 'SamriddhiShop'; // Reset title on unmount
+    };
   }, []);
 
   const fetchBanner = async () => {
@@ -623,6 +634,10 @@ function ProductListPage({ products, loading }) {
 
   useEffect(() => {
     applyFilters();
+    document.title = 'All Products - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
   }, [products, filters, searchTerm]);
 
   const applyFilters = () => {
@@ -951,6 +966,14 @@ function ProductDetailPageComponent({ products, addToCart, wishlistItems, fetchW
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    if (product) {
+      document.title = `${product.name} - SamriddhiShop`;
+    }
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
+  }, [product]);
   useEffect(() => {
     const token = localStorage.getItem('token');
     setCanReview(!!token);
@@ -2084,6 +2107,10 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 
   useEffect(() => {
     fetchSuggestedProducts();
+    document.title = 'Your Cart - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
   }, []);
 
   const fetchSuggestedProducts = async () => {
@@ -2222,6 +2249,13 @@ function LoginPage({ login, user }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (isLogin) {
+      document.title = 'Login - SamriddhiShop';
+    } else {
+      document.title = 'Create Account - SamriddhiShop';
+    }
+  }, [isLogin]);
   useEffect(() => {
     if (user) {
       const from = location.state?.from?.pathname || '/';
@@ -2447,6 +2481,10 @@ function OrderHistory({ user }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'My Orders - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
     if (user) {
       fetchOrders();
     }
@@ -2589,6 +2627,10 @@ function OrderStatusPageComponent({ user }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'My Orders - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
     if (user) {
       fetchOrders();
     }
@@ -2751,11 +2793,21 @@ function ProfilePageComponent({ user, setUser }) {
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
   const [loading, setLoading] = useState(false);
 
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'orders', label: 'Orders', icon: '📦' },
+    { id: 'password', label: 'Security', icon: '🔒' },
+    { id: 'addresses', label: 'Addresses', icon: '📍' }
+  ];
+
   useEffect(() => {
     if (user) {
       fetchProfile();
     }
-  }, [user]);
+    const currentTab = tabs.find(tab => tab.id === activeTab);
+    document.title = `${currentTab?.label || 'Profile'} - SamriddhiShop`;
+    return () => { document.title = 'SamriddhiShop'; };
+  }, [user, activeTab]);
 
   const fetchProfile = async () => {
     try {
@@ -2884,13 +2936,6 @@ function ProfilePageComponent({ user, setUser }) {
       alert('Failed to delete address');
     }
   };
-
-  const tabs = [
-    { id: 'profile', label: 'Profile', icon: '👤' },
-    { id: 'orders', label: 'Orders', icon: '📦' },
-    { id: 'password', label: 'Security', icon: '🔒' },
-    { id: 'addresses', label: 'Addresses', icon: '📍' }
-  ];
 
   if (!user) {
     return (
@@ -3231,6 +3276,10 @@ function TrackOrderPageComponent({ user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = `Track Order #${orderId.slice(-8)} - SamriddhiShop`;
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
     if (user && orderId) {
       fetchOrderDetails();
     }
@@ -3742,6 +3791,10 @@ function AdminPanelComponent({ user }) {
   const location = useLocation();
 
   useEffect(() => {
+    document.title = 'Admin Panel - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
     if (user?.email !== 'admin@samriddhishop.com') {
       alert('Access denied. Admin only.');
       return;
@@ -5538,6 +5591,10 @@ function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCar
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'My Wishlist - SamriddhiShop';
+    return () => {
+      document.title = 'SamriddhiShop';
+    };
     // Data is now passed via props, so we just need to handle the loading state.
     setLoading(false);
   }, [wishlistProducts]);
@@ -5613,6 +5670,14 @@ function CustomerServicePage() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const currentTab = location.pathname.split('/').pop();
+    const activeTabInfo = tabs.find(t => t.id === currentTab);
+    if (activeTabInfo) {
+      document.title = `${activeTabInfo.label} - SamriddhiShop`;
+    }
+  }, [location]);
   
   const tabs = [
     { id: 'contact', label: 'Contact Us', icon: '📞' },
@@ -5784,7 +5849,7 @@ function CustomerServicePage() {
                         </div>
                         <div>
                           <p className="font-semibold text-green-800">Email Support</p>
-                          <p className="text-green-600">support@samriddhishop.com</p>
+                          <p className="text-green-600">support@samriddhishop.in</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl">
@@ -5793,7 +5858,7 @@ function CustomerServicePage() {
                         </div>
                         <div>
                           <p className="font-semibold text-blue-800">Phone Support</p>
-                          <p className="text-blue-600">+91 9876543210</p>
+                          <p className="text-blue-600">+91 9580889615</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl">
@@ -6222,6 +6287,10 @@ function ForgotPasswordPageComponent() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    document.title = 'Forgot Password - SamriddhiShop';
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -6275,6 +6344,10 @@ function ResetPasswordPageComponent() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    document.title = 'Reset Password - SamriddhiShop';
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
