@@ -5601,7 +5601,7 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
             onClick={() => removeFromWishlist(product._id)}
             className="w-full bg-red-100 text-red-600 py-2 px-4 rounded-lg hover:bg-red-200 transition-colors"
           >
-            Remove from Wishlist
+            Remove
           </button>
         </div>
       </div>
