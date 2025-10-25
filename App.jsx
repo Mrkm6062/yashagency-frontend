@@ -2987,7 +2987,7 @@ function ProfilePageComponent({ user, setUser }) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex-grow ${
                     activeTab === tab.id
                       ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
@@ -5757,14 +5757,14 @@ function CustomerServicePage() {
                 <Link
                   key={tab.id}
                   to={`/support/${tab.id}`}
-                  className={`flex items-center space-x-2 px-6 py-4 font-medium whitespace-nowrap transition-all ${
+                  className={`flex flex-col items-center justify-center space-y-0.5 px-3 py-2 font-medium whitespace-nowrap transition-all flex-grow ${
                     location.pathname.endsWith(tab.id)
                       ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
                   }`}
                 >
-                  <span className="text-lg">{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  <span className="text-base">{tab.icon}</span>
+                  <span className="text-xs">{tab.label}</span>
                 </Link>
               ))}
             </nav>
@@ -6143,8 +6143,8 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
           const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
           return (
-            <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
-              <span className="text-2xl">{item.icon}</span>
+            <Link key={item.label} to={item.to} className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`} style={{ lineHeight: '1.2' }}>
+              <span className="text-2xl mb-0.5">{item.icon}</span>
               <span className={`text-xs font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
               {item.count > 0 && (
                 <span className={`absolute top-1 right-[28%] transform translate-x-1/2 bg-pink-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center p-1`}>
