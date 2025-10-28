@@ -470,6 +470,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate(); // Add useNavigate hook
   const notificationRef = useRef(null);
 
   // Use the custom hook to close the dropdown
@@ -499,6 +500,9 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
       }
     }
     setShowNotifications(false);
+    if (notification.link) {
+      navigate(notification.link); // Explicitly navigate
+    }
     // Navigate to link if it exists
   };
 
@@ -550,7 +554,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 ADMIN
               </Link>
             )}
-            {/* Notification Icon (all screens) */}
+            {/* Notification Icon  */}
             {user && (
               <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
@@ -573,7 +577,10 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                           <Link
                             key={n._id}
                             to={n.link || '#'}
-                            onClick={() => handleNotificationClick(n)}
+                            onClick={(e) => {
+                              e.preventDefault(); // Prevent default Link navigation
+                              handleNotificationClick(n); // Handle marking as read and programmatic navigation
+                            }}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
                           >
                             <p className="text-sm text-left">{n.message}</p>
@@ -588,7 +595,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 )}
               </div>
             )}
-                {/* Desktop Login/Logout */}
+
               {user ? (
                 <div className="flex items-center space-x-3">
                   <span className="text-gray-600 text-sm">Hi, {user.name}</span>
@@ -599,7 +606,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               )}
           </nav>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Cart Icon (Mobile only) */}
+            {/* Cart & Notification Icon (Mobile only) */}
             <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
               <span>🛒</span>
               {cartCount > 0 && (
@@ -627,7 +634,10 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                           <Link
                             key={n._id}
                             to={n.link || '#'}
-                            onClick={() => handleNotificationClick(n)}
+                            onClick={(e) => {
+                              e.preventDefault(); // Prevent default Link navigation
+                              handleNotificationClick(n); // Handle marking as read and programmatic navigation
+                            }}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
                           >
                             <p className="text-sm text-left">{n.message}</p>
