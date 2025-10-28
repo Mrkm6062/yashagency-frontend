@@ -289,33 +289,67 @@ const validateToken = async (token) => {
     setLoading(false);
   };
 
-  // Add item to cart
-  const addToCart = (product) => {
-    const existingItem = cart.find(item => item._id === product._id);
-    let newCart;
-    if (existingItem) {
-      newCart = cart.map(item => 
-        item._id === product._id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    } else {
-      newCart = [...cart, { ...product, quantity: 1 }];
-    }
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-    
-    // Show notification
-    setNotification({ message: 'Added to cart', product: product.name });
-    setTimeout(() => setNotification(null), 3000);
-  };
+ // Add item to cart
+const addToCart = async (product) => {
+  let newCart;
+  const existingItem = cart.find(item => item._id === product._id);
 
-  // Remove item from cart
-  const removeFromCart = (productId) => {
-    const newCart = cart.filter(item => item._id !== productId);
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
-  };
+  if (existingItem) {
+    newCart = cart.map(item =>
+      item._id === product._id
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+  } else {
+    newCart = [...cart, { ...product, quantity: 1 }];
+  }
+
+  setCart(newCart);
+  localStorage.setItem('cart', JSON.stringify(newCart));
+
+  // If user is logged in, sync with backend
+  if (user) {
+    try {
+      await fetch(`${API_BASE}/api/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ cart: newCart })
+      });
+    } catch (error) {
+      console.error('Failed to sync cart with backend:', error);
+    }
+  }
+
+  // Show notification
+  setNotification({ message: 'Added to cart', product: product.name });
+  setTimeout(() => setNotification(null), 3000);
+};
+
+// Remove item from cart
+const removeFromCart = async (productId) => {
+  const newCart = cart.filter(item => item._id !== productId);
+  setCart(newCart);
+  localStorage.setItem('cart', JSON.stringify(newCart));
+
+  if (user) {
+    try {
+      await fetch(`${API_BASE}/api/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ cart: newCart })
+      });
+    } catch (error) {
+      console.error('Failed to sync cart with backend:', error);
+    }
+  }
+};
+
 
   // Login function
   const login = async (email, password) => {
@@ -363,14 +397,14 @@ const validateToken = async (token) => {
 
   // Logout function
 const logout = () => {
-  localStorage.removeItem('token'); // ✅ clear persistent token
+  localStorage.removeItem('token');
   clearAuth();
   setUser(null);
-  setCart([]);
+  setCart([]); // state cleared, but localStorage cart can remain for guest
   setUserNotifications([]);
 };
 
-  // Fetch user-specific notifications
+  // Fetch user-specific notificatio
   const fetchUserNotifications = async () => {
     const token = getToken();
     if (!token) return;
