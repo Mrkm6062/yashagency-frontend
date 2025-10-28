@@ -2,7 +2,8 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
-import { FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { subscribeUser } from './src/pushNotifications.js';
+import { FaBell, FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -100,6 +101,7 @@ function App() {
   const [wishlistProducts, setWishlistProducts] = useState([]); // New state for full product objects
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [userNotifications, setUserNotifications] = useState([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   // Load user from localStorage on app start
@@ -157,7 +159,8 @@ function App() {
          // After validating token, fetch user data and CSRF token
          Promise.all([
            fetchWishlist(),
-           fetchCart(),
+            fetchCart(),
+            fetchUserNotifications(),
            getCSRFToken()
          ]).catch(console.error);
          // No need to call setUser from storage.js here
@@ -181,6 +184,12 @@ function App() {
     if (user && !isInitialLoad && cart.length >= 0) {
       syncCart(cart);
     }
+    // Set up notification polling for logged-in users
+    if (user && !isInitialLoad) {
+      const intervalId = setInterval(fetchUserNotifications, 60000); // Poll every 60 seconds
+      return () => clearInterval(intervalId);
+    }
+
   }, [cart, user, isInitialLoad]);
 
   const fetchWishlist = async () => {
@@ -330,9 +339,11 @@ function App() {
         // After successful login, fetch user data and CSRF token
         Promise.all([
           fetchWishlist(),
-          fetchCart(),
+          fetchCart(),          
+          fetchUserNotifications(),
           getCSRFToken()
         ]).catch(console.error);
+        subscribeUser(); // Subscribe user to push notifications
         
         return true;
       }
@@ -348,6 +359,24 @@ function App() {
     clearAuth();
     setUser(null);
     setCart([]);
+    setUserNotifications([]);
+  };
+
+  // Fetch user-specific notifications
+  const fetchUserNotifications = async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/notifications`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserNotifications(data);
+      }
+    } catch (error) {
+      console.error('Error fetching user notifications:', error);
+    }
   };
 
   // Clear cart function
@@ -364,7 +393,7 @@ function App() {
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
         <MetaPixelTracker />
-        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length}>
+        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>            
             <Route path="/" element={<HomePage products={products} loading={loading} />} />
@@ -420,24 +449,25 @@ function App() {
   );
 }
 
-const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount }) => {
+const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, notifications, setUserNotifications }) => {
   const location = useLocation();
   // No pages will hide the header and footer now.
   const hideNavAndFooter = false;
 
   return (
     <>
-      {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} />}
+      {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} />}
       {children}
       {/* The bottom nav and footer are now part of the main layout flow */}
-      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} />}
+      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistItems.length} />}
       {!hideNavAndFooter && <Footer />}
     </>
   );
 };
 // Header Component
-const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount }) {
+const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount, notifications, setUserNotifications }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
 
   const NavLink = ({ to, children }) => {
@@ -448,6 +478,21 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
         <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : ''}`}></span>
       </Link>
     );
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.read) {
+      try {
+        await makeSecureRequest(`${API_BASE}/api/notifications/${notification._id}/read`, { method: 'PATCH' });
+        setUserNotifications(prev => prev.map(n => n._id === notification._id ? { ...n, read: true } : n));
+      } catch (error) {
+        console.error("Failed to mark notification as read", error);
+      }
+    }
+    setShowNotifications(false);
+    // Navigate to link if it exists
   };
 
   return (
@@ -480,6 +525,40 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 )}
               </span>
             </NavLink>}
+            {user && (
+              <div className="relative">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative group text-gray-700 transition-colors font-medium py-2">
+                  <span className="flex items-center space-x-1 group-hover:text-green-600">
+                    <FaBell />
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-10">
+                    <div className="p-3 font-semibold border-b">Notifications</div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map(n => (
+                          <Link
+                            key={n._id}
+                            to={n.link || '#'}
+                            onClick={() => handleNotificationClick(n)}
+                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                          >
+                            <p className="text-sm">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="p-4 text-sm text-gray-500">No new notifications.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {user && <NavLink to="/profile">PROFILE</NavLink>}
             {user?.email === 'admin@samriddhishop.com' && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
@@ -503,14 +582,61 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             )}
           </nav>
 
-          {/* Mobile Menu Button - Now just shows cart count */}
-          <div className="lg:hidden relative">
-            <Link to="/cart" className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+          {/* Right side icons (visible on all screen sizes) */}
+          <div className="flex items-center space-x-4">
+            {/* Notification Icon (all screens) */}
+            {user && (
+              <div className="relative">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                  <FaBell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-10">
+                    <div className="p-3 font-semibold border-b">Notifications</div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map(n => (
+                          <Link
+                            key={n._id}
+                            to={n.link || '#'}
+                            onClick={() => handleNotificationClick(n)}
+                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                          >
+                            <p className="text-sm">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="p-4 text-sm text-gray-500">No new notifications.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Cart Icon (Mobile only) */}
+            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
               <span>🛒</span>
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
+
+            {/* Desktop Login/Logout */}
+            <div className="hidden lg:flex items-center">
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <span className="text-gray-600 text-sm">Hi, {user.name}</span>
+                  <button onClick={logout} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors border">{t('LOGOUT')}</button>
+                </div>
+              ) : (
+                <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">{t('LOGIN')}</Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
