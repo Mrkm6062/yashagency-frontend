@@ -1678,7 +1678,7 @@ function CheckoutPageComponent({ user, clearCart }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
-  const [selectedAddress, setSelectedAddress] = useState('');
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
@@ -1844,7 +1844,7 @@ function CheckoutPageComponent({ user, clearCart }) {
     let shippingAddress;
     
     if (selectedAddress) {
-      shippingAddress = addresses.find(addr => addr._id === selectedAddress);
+      shippingAddress = selectedAddress;
     } else if (newAddress.street && newAddress.city) {
       shippingAddress = newAddress;
     } else {
@@ -1967,12 +1967,15 @@ function CheckoutPageComponent({ user, clearCart }) {
                       <input
                         type="radio"
                         name="address"
-                        value={address._id}
-                        onChange={(e) => setSelectedAddress(e.target.value)}
+                        onChange={() => setSelectedAddress(address)}
                         className="mt-1 text-blue-500"
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{address.street}</p>
+                        <p className="font-bold text-gray-900">{address.name}
+                          <span className="ml-2 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full capitalize">{address.addressType}</span>
+                        </p>
+                        <p className="font-medium text-gray-800">{address.mobileNumber}</p>
+                        <p className="text-gray-600">{address.street}</p>
                         <p className="text-gray-600">{address.city}, {address.state} - {address.zipCode}</p>
                         <p className="text-gray-500 text-sm">{address.country}</p>
                       </div>
@@ -1986,7 +1989,7 @@ function CheckoutPageComponent({ user, clearCart }) {
                   <input
                     type="radio"
                     name="address"
-                    onChange={() => setSelectedAddress('')}
+                    onChange={() => setSelectedAddress(null)}
                     className="text-blue-500"
                   />
                   <span className="font-medium text-gray-900">Add New Address</span>
@@ -1995,32 +1998,57 @@ function CheckoutPageComponent({ user, clearCart }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
                     type="text"
+                    placeholder="Full Name *"
+                    value={newAddress.name || ''}
+                    onChange={(e) => setNewAddress({...newAddress, name: e.target.value})}
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Mobile Number *"
+                    value={newAddress.mobileNumber || ''}
+                    onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})}
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                   <input
+                    type="tel"
+                    placeholder="Alternate Mobile (Optional)"
+                    value={newAddress.alternateMobileNumber || ''}
+                    onChange={(e) => setNewAddress({...newAddress, alternateMobileNumber: e.target.value})}
+                    className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <input
+                    type="text"
                     placeholder="Street Address *"
-                    value={newAddress.street}
+                    value={newAddress.street || ''}
                     onChange={(e) => setNewAddress({...newAddress, street: e.target.value})}
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="City *"
-                    value={newAddress.city}
+                    value={newAddress.city || ''}
                     onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="State"
-                    value={newAddress.state}
+                    value={newAddress.state || ''}
                     onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <input
                     type="text"
                     placeholder="ZIP Code"
-                    value={newAddress.zipCode}
+                    value={newAddress.zipCode || ''}
                     onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})}
                     className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                  <div className="flex items-center space-x-4">
+                    <label><input type="radio" name="addressTypeCheckout" value="home" checked={newAddress.addressType === 'home'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Home</label>
+                    <label><input type="radio" name="addressTypeCheckout" value="work" checked={newAddress.addressType === 'work'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Work</label>
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="flex items-center space-x-2 mt-2">
@@ -2938,7 +2966,7 @@ function ProfilePageComponent({ user, setUser }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState({ name: '', email: '', phone: '' });
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
-  const [addresses, setAddresses] = useState([]);
+  const [addresses, setAddresses] = useState([]); // This will be updated to include the new fields
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
   const [loading, setLoading] = useState(false);
 
@@ -3334,9 +3362,10 @@ function ProfilePageComponent({ user, setUser }) {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-3">
-                            <span className="text-lg">🏠</span>
-                            <span className="font-semibold text-blue-800">Delivery Address</span>
+                            <span className="text-lg">{address.addressType === 'home' ? '🏠' : '🏢'}</span>
+                            <span className="font-semibold text-blue-800">{address.name} ({address.addressType})</span>
                           </div>
+                          <p className="font-medium text-gray-800 mb-1">{address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
                           <p className="font-medium text-gray-800 mb-1">{address.street}</p>
                           <p className="text-gray-600 mb-1">{address.city}, {address.state}</p>
                           <p className="text-gray-600">{address.zipCode}, {address.country}</p>
@@ -3362,32 +3391,57 @@ function ProfilePageComponent({ user, setUser }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <input
                       type="text"
+                      placeholder="Full Name *"
+                      value={newAddress.name || ''}
+                      onChange={(e) => setNewAddress({...newAddress, name: e.target.value})}
+                      className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Mobile Number *"
+                      value={newAddress.mobileNumber || ''}
+                      onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})}
+                      className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Alternate Mobile (Optional)"
+                      value={newAddress.alternateMobileNumber || ''}
+                      onChange={(e) => setNewAddress({...newAddress, alternateMobileNumber: e.target.value})}
+                      className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    <input
+                      type="text"
                       placeholder="Street Address *"
-                      value={newAddress.street}
+                      value={newAddress.street || ''}
                       onChange={(e) => setNewAddress({...newAddress, street: e.target.value})}
                       className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     />
                     <input
                       type="text"
                       placeholder="City *"
-                      value={newAddress.city}
+                      value={newAddress.city || ''}
                       onChange={(e) => setNewAddress({...newAddress, city: e.target.value})}
                       className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     />
                     <input
                       type="text"
                       placeholder="State"
-                      value={newAddress.state}
+                      value={newAddress.state || ''}
                       onChange={(e) => setNewAddress({...newAddress, state: e.target.value})}
                       className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     />
                     <input
                       type="text"
                       placeholder="ZIP Code"
-                      value={newAddress.zipCode}
+                      value={newAddress.zipCode || ''}
                       onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})}
                       className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                     />
+                    <div className="flex items-center space-x-4">
+                      <label><input type="radio" name="addressType" value="home" checked={newAddress.addressType === 'home'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Home</label>
+                      <label><input type="radio" name="addressType" value="work" checked={newAddress.addressType === 'work'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Work</label>
+                    </div>
                   </div>
                   <button
                     onClick={addAddress}
@@ -4260,11 +4314,11 @@ function AdminPanelComponent({ user }) {
     printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write('<div class="details-grid">');
     printWindow.document.write(`<p><strong>Order ID:</strong> ${order.orderNumber || order._id.slice(-8)}</p>`);
-    printWindow.document.write(`<p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>`);
-    printWindow.document.write(`<p><strong>Name:</strong> ${order.userId?.name || 'N/A'}</p>`);
-    printWindow.document.write(`<p><strong>Phone:</strong> ${order.userId?.phone || 'N/A'}</p>`);
-    printWindow.document.write(`<p class="full-width"><strong>Email:</strong> ${order.userId?.email || 'N/A'}</p>`);
+    printWindow.document.write(`<p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>`);    
+    printWindow.document.write(`<p><strong>Name:</strong> ${address.name || order.userId?.name || 'N/A'}</p>`);
+    printWindow.document.write(`<p><strong>Phone:</strong> ${address.mobileNumber || order.userId?.phone || 'N/A'}</p>`);
     printWindow.document.write(`<p class="full-width"><strong>Address:</strong> ${fullAddress}</p>`);
+    printWindow.document.write(`<p class="full-width"><strong>Email:</strong> ${order.userId?.email || 'N/A'}</p>`);
     printWindow.document.write(`<p class="full-width"><strong>Payment:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod || 'N/A'}</p>`);
     printWindow.document.write('</div>');
 
