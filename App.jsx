@@ -106,28 +106,28 @@ function App() {
   const [showBackToTop, setShowBackToTop] = useState(false);
 
     // Load user from localStorage on app start
-    useEffect(() => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      const savedCart = localStorage.getItem('cart');
+ useEffect(() => {
+  const token = localStorage.getItem('token');
+  const savedUser = localStorage.getItem('user');
+  const savedCart = localStorage.getItem('cart');
 
   const restoreSession = async () => {
-    if (token && userData) {
-      try {
-        // Set token and user immediately so app state is ready
-        setToken(token);
-        setUser(JSON.parse(userData));
+    if (token && savedUser) {
+      setToken(token); // update state
+      setUser(JSON.parse(savedUser));
 
-        // Validate token with backend
-        const isValid = await validateToken(token);
-        if (!isValid) {
-          logout(); // clear invalid token/user
-        } else if (savedCart) {
-          setCart(JSON.parse(savedCart));
-        }
-      } catch (err) {
-        console.error('Token validation failed', err);
+      const isValid = await validateToken(token);
+
+      if (!isValid) {
         logout();
+      } else {
+        // Sync cart after token validation
+        if (savedCart) {
+          setCart(JSON.parse(savedCart));
+          syncCart(JSON.parse(savedCart)); // push to backend
+        } else {
+          fetchCart(); // get cart from backend if no localStorage
+        }
       }
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
@@ -139,11 +139,8 @@ function App() {
 
   restoreSession();
 
-  const handleScroll = () => {
-    setShowBackToTop(window.scrollY > 300);
-  };
+  const handleScroll = () => setShowBackToTop(window.scrollY > 300);
   window.addEventListener('scroll', handleScroll);
-
   return () => window.removeEventListener('scroll', handleScroll);
 }, []);
 
@@ -163,27 +160,26 @@ function App() {
            phone: profileData.phone 
          };
          setUser(userObj); // Set the validated user object
-         // After validating token, fetch user data and CSRF token
          Promise.all([
            fetchWishlist(),
-            fetchCart(),
-            fetchUserNotifications(),
+           fetchCart(),
+           fetchUserNotifications(),
            getCSRFToken()
          ]).catch(console.error);
-         // No need to call setUser from storage.js here
+        return true; // Token is valid
+       } else if (response.status === 401 || response.status === 403) {
+         // Token is explicitly invalid or expired, so log out.
+         return false;
        } else {
-         clearAuth();
-         setUser(null);
-         setCart([]);
+         // For other errors (like network issues), trust the stored user data for now.
+         console.warn('Token validation failed with status:', response.status);
+         return true;
        }
      } catch (error) {
        console.error('Token validation error:', error);
-       // In case of network error, we can still set the user from stored data
-       if (userData && userData.email) {
-         setUser(userData);
-       }
+       // On network error, assume the token is still valid and trust the stored user data.
+       return true;
      }
-     setIsInitialLoad(false);
   };
 
   // Sync cart with server when cart changes for logged-in users
