@@ -459,7 +459,7 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
       {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} />}
       {children}
       {/* The bottom nav and footer are now part of the main layout flow */}
-      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistItems.length} />}
+      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} />}
       {!hideNavAndFooter && <Footer />}
     </>
   );
@@ -582,61 +582,14 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             )}
           </nav>
 
-          {/* Right side icons (visible on all screen sizes) */}
-          <div className="flex items-center space-x-4">
-            {/* Notification Icon (all screens) */}
-            {user && (
-              <div className="relative">
-                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-                  <FaBell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
-                  )}
-                </button>
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-10">
-                    <div className="p-3 font-semibold border-b">Notifications</div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map(n => (
-                          <Link
-                            key={n._id}
-                            to={n.link || '#'}
-                            onClick={() => handleNotificationClick(n)}
-                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
-                          >
-                            <p className="text-sm">{n.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
-                          </Link>
-                        ))
-                      ) : (
-                        <p className="p-4 text-sm text-gray-500">No new notifications.</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Cart Icon (Mobile only) */}
-            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+          {/* Mobile Menu Button - Now just shows cart count */}
+          <div className="lg:hidden relative">
+            <Link to="/cart" className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
               <span>🛒</span>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
-
-            {/* Desktop Login/Logout */}
-            <div className="hidden lg:flex items-center">
-              {user ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-gray-600 text-sm">Hi, {user.name}</span>
-                  <button onClick={logout} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors border">{t('LOGOUT')}</button>
-                </div>
-              ) : (
-                <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">{t('LOGIN')}</Link>
-              )}
-            </div>
           </div>
         </div>
       </div>
