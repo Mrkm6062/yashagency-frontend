@@ -249,10 +249,7 @@ const validateToken = async (token) => {
     try {
       await makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart: cartData })
       });
     } catch (error) {
@@ -291,7 +288,7 @@ const validateToken = async (token) => {
 
 // Add item to cart
 const addToCart = async (product) => {
-  let newCart;
+  let newCart; // This is correct
   const existingItem = cart.find(item => item._id === product._id);
 
   if (existingItem) {
@@ -312,49 +309,15 @@ const addToCart = async (product) => {
   setNotification({ message: 'Added to cart', product: product.name });
   setTimeout(() => setNotification(null), 3000);
 
-  // Sync with backend if user is logged in
-  if (user) {
-    try {
-      const csrfToken = await getCSRFToken(); // Make sure this returns the valid CSRF token
-
-      await fetch(`${API_BASE}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-          'CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({ cart: newCart })
-      });
-    } catch (error) {
-      console.error('Failed to sync cart with backend:', error);
-    }
-  }
+  // The useEffect hook will handle syncing the cart.
 };
 
 // Remove item from cart
 const removeFromCart = async (productId) => {
+  // The useEffect hook will handle syncing the cart.
   const newCart = cart.filter(item => item._id !== productId);
   setCart(newCart);
   localStorage.setItem('cart', JSON.stringify(newCart));
-
-  if (user) {
-    try {
-      const csrfToken = await getCSRFToken();
-
-      await fetch(`${API_BASE}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-          'CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({ cart: newCart })
-      });
-    } catch (error) {
-      console.error('Failed to sync cart with backend:', error);
-    }
-  }
 };
 
 
