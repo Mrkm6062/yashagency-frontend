@@ -1974,7 +1974,7 @@ function CheckoutPageComponent({ user, clearCart }) {
                         <p className="font-bold text-gray-900">{address.name}
                           <span className="ml-2 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full capitalize">{address.addressType}</span>
                         </p>
-                        <p className="font-medium text-gray-800">{address.mobileNumber}</p>
+                        <p className="font-medium text-gray-800">{address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
                         <p className="text-gray-600">{address.street}</p>
                         <p className="text-gray-600">{address.city}, {address.state} - {address.zipCode}</p>
                         <p className="text-gray-500 text-sm">{address.country}</p>
@@ -2968,6 +2968,8 @@ function ProfilePageComponent({ user, setUser }) {
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
   const [addresses, setAddresses] = useState([]); // This will be updated to include the new fields
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zipCode: '', country: 'India' });
+  const [editingAddress, setEditingAddress] = useState(null); // State for the address being edited
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for modal visibility
   const [loading, setLoading] = useState(false);
 
   const tabs = [
@@ -3370,13 +3372,22 @@ function ProfilePageComponent({ user, setUser }) {
                           <p className="text-gray-600 mb-1">{address.city}, {address.state}</p>
                           <p className="text-gray-600">{address.zipCode}, {address.country}</p>
                         </div>
-                        <button
-                          onClick={() => deleteAddress(address._id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                          title="Delete address"
-                        >
-                          🗑️
-                        </button>
+                        <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => openEditModal(address)}
+                            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg"
+                            title="Edit address"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => deleteAddress(address._id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg"
+                            title="Delete address"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -3460,6 +3471,75 @@ function ProfilePageComponent({ user, setUser }) {
                       </span>
                     )}
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Address Modal */}
+            {isEditModalOpen && editingAddress && (
+              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full">
+                  <div className="p-6 border-b">
+                    <h3 className="text-xl font-bold text-gray-800">Edit Address</h3>
+                  </div>
+                  <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <input
+                        type="text" placeholder="Full Name *" value={editingAddress.name || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, name: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="tel" placeholder="Mobile Number *" value={editingAddress.mobileNumber || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, mobileNumber: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="tel" placeholder="Alternate Mobile (Optional)" value={editingAddress.alternateMobileNumber || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, alternateMobileNumber: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text" placeholder="Street Address *" value={editingAddress.street || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text" placeholder="City *" value={editingAddress.city || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text" placeholder="State" value={editingAddress.state || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="text" placeholder="ZIP Code" value={editingAddress.zipCode || ''}
+                        onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
+                        className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <div className="flex items-center space-x-4">
+                        <label><input type="radio" name="editAddressType" value="home" checked={editingAddress.addressType === 'home'} onChange={(e) => setEditingAddress({ ...editingAddress, addressType: e.target.value })} className="mr-1" /> Home</label>
+                        <label><input type="radio" name="editAddressType" value="work" checked={editingAddress.addressType === 'work'} onChange={(e) => setEditingAddress({ ...editingAddress, addressType: e.target.value })} className="mr-1" /> Work</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t flex justify-end space-x-4">
+                    <button
+                      onClick={() => setIsEditModalOpen(false)}
+                      className="bg-gray-200 text-gray-700 px-6 py-2 rounded-xl font-semibold hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateAddress}
+                      disabled={loading}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                      {loading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
