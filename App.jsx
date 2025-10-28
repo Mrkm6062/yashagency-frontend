@@ -355,8 +355,11 @@ const validateToken = async (token) => {
           return true; // Still consider login successful even if sync has issues
         }
       }
+    } catch (error) {
+      console.error('Login error:', error);
       return false;
     }
+  };
 
   // Logout function
 const logout = () => {
