@@ -338,19 +338,20 @@ const validateToken = async (token) => {
         localStorage.setItem('user', JSON.stringify(data.user)); 
         setToken(data.token);
         setUser(data.user);
-        
-        await handleLoginCartSync(data.token);
 
         // After successful login, fetch user data and CSRF token
-        Promise.all([
-          fetchWishlist(),        
-          fetchUserNotifications(),          getCSRFToken()
+        // We await the cart sync to ensure it completes before navigation.
+        await Promise.all([
+          handleLoginCartSync(data.token),
+          fetchWishlist(),
+          fetchUserNotifications(),
+          getCSRFToken()
         ]).catch(console.error);
+
         subscribeUser(); // Subscribe user to push notifications
         
         return true;
       }
-      return false;
     } catch (error) {
       console.error('Login error:', error);
       return false;
