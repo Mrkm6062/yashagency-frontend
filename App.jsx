@@ -105,41 +105,47 @@ function App() {
   const [userNotifications, setUserNotifications] = useState([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Load user from localStorage on app start
-  useEffect(() => {
-    const token = getToken();
-    const userData = getUser();
-    const savedCart = localStorage.getItem('cart');
-    
+    // Load user from localStorage on app start
+    useEffect(() => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      const savedCart = localStorage.getItem('cart');
+
+  const restoreSession = async () => {
     if (token && userData) {
-      // Validate token by making a test API call
-      validateToken(token, userData);
+      try {
+        // Set token and user immediately so app state is ready
+        setToken(token);
+        setUser(JSON.parse(userData));
+
+        // Validate token with backend
+        const isValid = await validateToken(token);
+        if (!isValid) {
+          logout(); // clear invalid token/user
+        } else if (savedCart) {
+          setCart(JSON.parse(savedCart));
+        }
+      } catch (err) {
+        console.error('Token validation failed', err);
+        logout();
+      }
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
-      setIsInitialLoad(false);
-    } else {
-      setIsInitialLoad(false);
     }
-    // Initial product fetch is now handled inside the App component
-    // to prevent re-fetching on every component mount that uses the hook.
-    // The hook can be used in other components for accessing the products.
+
+    setIsInitialLoad(false);
     fetchProducts().then(() => setLoading(false));
+  };
 
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowBackToTop(true);
-      } else {
-        setShowBackToTop(false);
-      }
-    };
+  restoreSession();
 
-    window.addEventListener('scroll', handleScroll);
+  const handleScroll = () => {
+    setShowBackToTop(window.scrollY > 300);
+  };
+  window.addEventListener('scroll', handleScroll);
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-
-  }, []);
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
 
   // Validate token and set user
   const validateToken = async (token, userData) => {
@@ -336,6 +342,8 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user)); 
         setToken(data.token);
         setUser(data.user);
         // After successful login, fetch user data and CSRF token
@@ -357,12 +365,13 @@ function App() {
   };
 
   // Logout function
-  const logout = () => {
-    clearAuth();
-    setUser(null);
-    setCart([]);
-    setUserNotifications([]);
-  };
+const logout = () => {
+  localStorage.removeItem('token'); // ✅ clear persistent token
+  clearAuth();
+  setUser(null);
+  setCart([]);
+  setUserNotifications([]);
+};
 
   // Fetch user-specific notifications
   const fetchUserNotifications = async () => {
