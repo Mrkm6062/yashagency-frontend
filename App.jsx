@@ -6559,12 +6559,6 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
   );
 }
 
-function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle }) {
-  // ... implementation of DeliveryAreaManagement component
-  return <div>Delivery Area Management Component</div>;
-}
-
-
 // Forgot Password Page Component
 function ForgotPasswordPageComponent() {
   const [email, setEmail] = useState('');
