@@ -606,6 +606,41 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
               )}
             </Link>
+              <div className="relative" ref={notificationRef}>
+                <button onClick={() => setShowNotifications(!showNotifications)} className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                  <FaBell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
+                  )}
+                </button>
+                {showNotifications && (                  
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
+                    <div className="p-3 font-semibold border-b flex justify-between items-center">
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <button onClick={markAllAsRead} className="text-xs font-medium text-blue-600 hover:underline">Mark all as read</button>
+                      )}
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.map(n => (
+                          <Link
+                            key={n._id}
+                            to={n.link || '#'}
+                            onClick={() => handleNotificationClick(n)}
+                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                          >
+                            <p className="text-sm text-left">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                          </Link>
+                        ))
+                      ) : (
+                        <p className="p-4 text-sm text-gray-500">No new notifications.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
           </div>
         </div>
       </div>
