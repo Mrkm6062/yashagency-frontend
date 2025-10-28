@@ -1,10 +1,12 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
 import { makeSecureRequest, getCSRFToken } from './src/csrf.js';
 import { subscribeUser } from './src/pushNotifications.js';
 import { FaBell, FaInstagram, FaFacebook, FaEnvelope, FaPhone, FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaArrowRight, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { getToken, setToken, getUser, setUser, clearAuth } from './src/storage.js';
+import { useOutsideClick } from './src/useOutsideClick.js';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
@@ -469,6 +471,12 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const notificationRef = useRef(null);
+
+  // Use the custom hook to close the dropdown
+  useOutsideClick(notificationRef, () => {
+    if (showNotifications) setShowNotifications(false);
+  });
 
   const NavLink = ({ to, children }) => {
     const isActive = location.pathname === to;
@@ -493,6 +501,18 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
     }
     setShowNotifications(false);
     // Navigate to link if it exists
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await makeSecureRequest(`${API_BASE}/api/notifications/read-all`, { method: 'PATCH' });
+      // Optimistically update the UI
+      setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (error) {
+      console.error("Failed to mark all notifications as read", error);
+      // Optionally show an error to the user
+      alert('Could not mark all notifications as read. Please try again.');
+    }
   };
 
   return (
@@ -587,15 +607,21 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             {/* Notification Icon (all screens) */}
             {user && (
               <div className="relative">
+              <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <FaBell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
                   )}
                 </button>
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border z-10">
-                    <div className="p-3 font-semibold border-b">Notifications</div>
+                {showNotifications && (                  
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
+                    <div className="p-3 font-semibold border-b flex justify-between items-center">
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <button onClick={markAllAsRead} className="text-xs font-medium text-blue-600 hover:underline">Mark all as read</button>
+                      )}
+                    </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map(n => (
@@ -605,8 +631,8 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                             onClick={() => handleNotificationClick(n)}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
                           >
-                            <p className="text-sm">{n.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                            <p className="text-sm text-left">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
                           </Link>
                         ))
                       ) : (
