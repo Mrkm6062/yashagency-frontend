@@ -1778,7 +1778,7 @@ function CheckoutPageComponent({ user, clearCart }) {
   const handleRazorpayPayment = async () => {
     let shippingAddress;
     if (selectedAddress) {
-      shippingAddress = addresses.find(addr => addr._id === selectedAddress);
+      shippingAddress = selectedAddress;
     } else if (newAddress.street && newAddress.city) {
       shippingAddress = newAddress;
     } else {
@@ -1846,9 +1846,9 @@ function CheckoutPageComponent({ user, clearCart }) {
   const placeOrder = async (paymentDetails = {}) => {
     let shippingAddress;
     
-    if (selectedAddress) {
+    if (selectedAddress) { // A saved address is selected
       shippingAddress = selectedAddress;
-    } else if (newAddress.street && newAddress.city) {
+    } else if (newAddress.street && newAddress.city) { // A new address is being used
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
