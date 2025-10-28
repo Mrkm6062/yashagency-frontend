@@ -614,7 +614,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                   )}
                 </button>
                 {showNotifications && (                  
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
+                  <div className="lg:hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
                     <div className="p-3 font-semibold border-b flex justify-between items-center">
                       <span>Notifications</span>
                       {unreadCount > 0 && (
