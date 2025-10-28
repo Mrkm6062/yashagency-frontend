@@ -584,21 +584,6 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 ADMIN
               </Link>
             )}
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <span className="text-gray-600 text-sm">Hi, {user.name}</span>
-                <button 
-                  onClick={logout} 
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors border"
-                >
-                  {t('LOGOUT')}
-                </button>
-              </div>
-            ) : (
-              <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                {t('LOGIN')}
-              </Link>
-            )}
           </nav>
 
           {/* Right side icons (visible on all screen sizes) */}
