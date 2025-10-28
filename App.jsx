@@ -252,7 +252,7 @@ function App() {
       await makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ cart: cartData })
