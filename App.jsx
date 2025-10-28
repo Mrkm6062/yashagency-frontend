@@ -1,4 +1,3 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
 import React, { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './src/i18n.js';
@@ -606,7 +605,6 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notification Icon (all screens) */}
             {user && (
-              <div className="relative">
               <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <FaBell className="h-5 w-5" />
