@@ -145,42 +145,38 @@ function App() {
 }, []);
 
   // Validate token and set user
-  const validateToken = async (token, userData) => {
-     try {
-       const response = await fetch(`${API_BASE}/api/profile`, {
-         headers: { 'Authorization': `Bearer ${token}` }
-       });
-       
-       if (response.ok) {
-         const profileData = await response.json();
-         const userObj = { 
-           id: profileData._id, 
-           name: profileData.name, 
-           email: profileData.email, 
-           phone: profileData.phone 
-         };
-         setUser(userObj); // Set the validated user object
-         Promise.all([
-           fetchWishlist(),
-           fetchCart(),
-           fetchUserNotifications(),
-           getCSRFToken()
-         ]).catch(console.error);
-        return true; // Token is valid
-       } else if (response.status === 401 || response.status === 403) {
-         // Token is explicitly invalid or expired, so log out.
-         return false;
-       } else {
-         // For other errors (like network issues), trust the stored user data for now.
-         console.warn('Token validation failed with status:', response.status);
-         return true;
-       }
-     } catch (error) {
-       console.error('Token validation error:', error);
-       // On network error, assume the token is still valid and trust the stored user data.
-       return true;
-     }
-  };
+const validateToken = async (token) => {
+  try {
+    const response = await fetch(`${API_BASE}/api/profile`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (response.ok) {
+      const profileData = await response.json();
+      const userObj = { 
+        id: profileData._id, 
+        name: profileData.name, 
+        email: profileData.email, 
+        phone: profileData.phone 
+      };
+      setUser(userObj);
+
+      // Fetch dependent data
+      Promise.all([
+        fetchWishlist(),
+        fetchUserNotifications(),
+        getCSRFToken(),
+      ]).catch(console.error);
+
+      return true;
+    } else {
+      return false; // 401/403 triggers logout
+    }
+  } catch (err) {
+    console.error('Token validation failed', err);
+    return true; // Trust local token on network errors
+  }
+};
 
   // Sync cart with server when cart changes for logged-in users
   useEffect(() => {
