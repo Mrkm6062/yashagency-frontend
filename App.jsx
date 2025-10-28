@@ -357,7 +357,6 @@ const validateToken = async (token) => {
       }
       return false;
     }
-  };
 
   // Logout function
 const logout = () => {
