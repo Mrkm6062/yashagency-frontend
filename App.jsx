@@ -338,22 +338,23 @@ const validateToken = async (token) => {
         localStorage.setItem('user', JSON.stringify(data.user)); 
         setToken(data.token);
         setUser(data.user);
-
-        // After successful login, fetch user data and CSRF token
-        // We await the cart sync to ensure it completes before navigation.
-        await Promise.all([
-          handleLoginCartSync(data.token),
-          fetchWishlist(),
-          fetchUserNotifications(),
-          getCSRFToken()
-        ]).catch(console.error);
-
-        subscribeUser(); // Subscribe user to push notifications
         
-        return true;
+        // After successful login, fetch user data and CSRF token.
+        // We await the cart sync to ensure it completes before navigation.
+        try {
+          await Promise.all([
+            handleLoginCartSync(data.token),
+            fetchWishlist(),
+            fetchUserNotifications(),
+            getCSRFToken()
+          ]);
+          subscribeUser(); // Subscribe user to push notifications
+          return true;
+        } catch (syncError) {
+          console.error("Error during post-login sync:", syncError);
+          return true; // Still consider login successful even if sync has issues
+        }
       }
-    } catch (error) {
-      console.error('Login error:', error);
       return false;
     }
   };
