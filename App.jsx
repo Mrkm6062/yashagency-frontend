@@ -1974,7 +1974,7 @@ function CheckoutPageComponent({ user, clearCart }) {
                         <p className="font-bold text-gray-900">{address.name}
                           <span className="ml-2 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full capitalize">{address.addressType}</span>
                         </p>
-                        <p className="font-medium text-gray-800">{address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
+                        <p className="font-medium text-gray-800">{address.mobileNumber}</p>
                         <p className="text-gray-600">{address.street}</p>
                         <p className="text-gray-600">{address.city}, {address.state} - {address.zipCode}</p>
                         <p className="text-gray-500 text-sm">{address.country}</p>
@@ -5085,15 +5085,6 @@ function AdminPanelComponent({ user }) {
                 </div>
               </div>
               } />
-
-              <Route path="delivery-area" element={
-                <DeliveryAreaManagement 
-                  deliveryAreas={deliveryAreas} 
-                  togglePincode={togglePincode}
-                  handleBulkToggle={handleBulkPincodeToggle}
-                />
-              } />
-
               <Route path="users" element={
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
@@ -6567,6 +6558,12 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
     </div>
   );
 }
+
+function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle }) {
+  // ... implementation of DeliveryAreaManagement component
+  return <div>Delivery Area Management Component</div>;
+}
+
 
 // Forgot Password Page Component
 function ForgotPasswordPageComponent() {
