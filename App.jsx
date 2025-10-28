@@ -556,7 +556,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             )}
             {/* Notification Icon  */}
             {user && (
-              <div className="relative" ref={notificationRef}>
+              <div className="hidden lg:block relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <FaBell className="h-5 w-5" />
                   {unreadCount > 0 && (
@@ -605,23 +605,18 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 <Link to="/login" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">{t('LOGIN')}</Link>
               )}
           </nav>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Cart & Notification Icon (Mobile only) */}
-            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-              <span>🛒</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
-              )}
-            </Link>
+          <div className="flex items-center space-x-2 lg:hidden">
+            {/* Mobile Icons */}
+            {user && (
               <div className="relative" ref={notificationRef}>
-                <button onClick={() => setShowNotifications(!showNotifications)} className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
                   <FaBell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
                   )}
                 </button>
-                {showNotifications && (                  
-                  <div className="lg:hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10">
                     <div className="p-3 font-semibold border-b flex justify-between items-center">
                       <span>Notifications</span>
                       {unreadCount > 0 && (
@@ -634,10 +629,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                           <Link
                             key={n._id}
                             to={n.link || '#'}
-                            onClick={(e) => {
-                              e.preventDefault(); // Prevent default Link navigation
-                              handleNotificationClick(n); // Handle marking as read and programmatic navigation
-                            }}
+                            onClick={(e) => { e.preventDefault(); handleNotificationClick(n); }}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
                           >
                             <p className="text-sm text-left">{n.message}</p>
@@ -651,6 +643,13 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                   </div>
                 )}
               </div>
+            )}
+            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+              <span>🛒</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
+              )}
+            </Link>
           </div>
         </div>
       </div>
