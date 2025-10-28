@@ -289,7 +289,7 @@ const validateToken = async (token) => {
     setLoading(false);
   };
 
- // Add item to cart
+// Add item to cart
 const addToCart = async (product) => {
   let newCart;
   const existingItem = cart.find(item => item._id === product._id);
@@ -304,17 +304,25 @@ const addToCart = async (product) => {
     newCart = [...cart, { ...product, quantity: 1 }];
   }
 
+  // Update state and localStorage
   setCart(newCart);
   localStorage.setItem('cart', JSON.stringify(newCart));
 
-  // If user is logged in, sync with backend
+  // Show notification
+  setNotification({ message: 'Added to cart', product: product.name });
+  setTimeout(() => setNotification(null), 3000);
+
+  // Sync with backend if user is logged in
   if (user) {
     try {
+      const csrfToken = await getCSRFToken(); // Make sure this returns the valid CSRF token
+
       await fetch(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${getToken()}`,
+          'CSRF-Token': csrfToken
         },
         body: JSON.stringify({ cart: newCart })
       });
@@ -322,10 +330,6 @@ const addToCart = async (product) => {
       console.error('Failed to sync cart with backend:', error);
     }
   }
-
-  // Show notification
-  setNotification({ message: 'Added to cart', product: product.name });
-  setTimeout(() => setNotification(null), 3000);
 };
 
 // Remove item from cart
@@ -336,11 +340,14 @@ const removeFromCart = async (productId) => {
 
   if (user) {
     try {
+      const csrfToken = await getCSRFToken();
+
       await fetch(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`
+          'Authorization': `Bearer ${getToken()}`,
+          'CSRF-Token': csrfToken
         },
         body: JSON.stringify({ cart: newCart })
       });
