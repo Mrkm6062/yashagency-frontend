@@ -3365,14 +3365,20 @@ function TrackOrderPageComponent({ user }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    document.title = `Track Order #${orderId.slice(-8)} - SamriddhiShop`;
+  useEffect(() => {    
+    if (user && orderId) {
+      document.title = `Track Order #${orderId.slice(-8)} - SamriddhiShop`;
+      fetchOrderDetails();
+    } else if (!orderId) {
+      // If no orderId is present in the URL, we can't track anything.
+      // Redirect the user to their main orders page.
+      navigate('/orders');
+    }
+
+    // Cleanup function to reset the title when the component unmounts
     return () => {
       document.title = 'SamriddhiShop';
     };
-    if (user && orderId) {
-      fetchOrderDetails();
-    }
   }, [user, orderId]);
 
   const fetchOrderDetails = async () => {
