@@ -5888,9 +5888,6 @@ function WishlistPageComponent({ user, wishlistProducts, fetchWishlist, addToCar
     try {
       const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
-        headers: { 
-          'Authorization': `Bearer ${getToken()}`
-        },
       });
       
       if (response.ok) {
