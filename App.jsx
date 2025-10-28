@@ -499,11 +499,11 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
         console.error("Failed to mark notification as read", error);
       }
     }
-    setShowNotifications(false);
     if (notification.link) {
       navigate(notification.link); // Explicitly navigate
     }
-    // Navigate to link if it exists
+    // Delay closing the dropdown slightly to allow navigation to initiate
+    setTimeout(() => setShowNotifications(false), 100);
   };
 
   const markAllAsRead = async () => {
@@ -511,6 +511,8 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
       await makeSecureRequest(`${API_BASE}/api/notifications/read-all`, { method: 'PATCH' });
       // Optimistically update the UI
       setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      // Delay closing the dropdown slightly
+      setTimeout(() => setShowNotifications(false), 100);
     } catch (error) {
       console.error("Failed to mark all notifications as read", error);
       // Optionally show an error to the user
@@ -574,18 +576,15 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map(n => (
-                          <Link
+                          <div
                             key={n._id}
-                            to={n.link || '#'}
-                            onClick={(e) => {
-                              e.preventDefault(); // Prevent default Link navigation
-                              handleNotificationClick(n); // Handle marking as read and programmatic navigation
-                            }}
+                            onClick={() => handleNotificationClick(n)}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                            style={{ cursor: 'pointer' }} // Indicate it's clickable
                           >
                             <p className="text-sm text-left">{n.message}</p>
                             <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
-                          </Link>
+                          </div>
                         ))
                       ) : (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
@@ -607,6 +606,12 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
           </nav>
           <div className="flex items-center space-x-2 lg:hidden">
             {/* Mobile Icons */}
+            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+              <span>🛒</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
+              )}
+            </Link>
             {user && (
               <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
@@ -626,15 +631,15 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map(n => (
-                          <Link
+                          <div
                             key={n._id}
-                            to={n.link || '#'}
-                            onClick={(e) => { e.preventDefault(); handleNotificationClick(n); }}
+                            onClick={() => handleNotificationClick(n)}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                            style={{ cursor: 'pointer' }}
                           >
                             <p className="text-sm text-left">{n.message}</p>
                             <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
-                          </Link>
+                          </div>
                         ))
                       ) : (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
@@ -644,12 +649,6 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 )}
               </div>
             )}
-            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-              <span>🛒</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
-              )}
-            </Link>
           </div>
         </div>
       </div>
