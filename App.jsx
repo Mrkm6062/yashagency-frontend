@@ -3687,78 +3687,73 @@ function TrackOrderPageComponent({ user }) {
   };
 
   const generateTrackingHistory = (orderData) => {
+    const history = [];
     const baseDate = new Date(orderData.createdAt);
     const shippedDate = orderData.courierDetails?.shippedAt ? new Date(orderData.courierDetails.shippedAt) : new Date(baseDate.getTime() + 24 * 60 * 60 * 1000);
     const expectedDelivery = orderData.courierDetails?.estimatedDelivery ? new Date(orderData.courierDetails.estimatedDelivery) : new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-    
-    const history = [
-      {
-        status: 'pending',
-        title: 'Order Placed',
-        description: 'Your order has been successfully placed and is being processed.',
-        date: baseDate,
-        completed: true
-      }
-    ];
+    const isCancelledOrRefunded = ['cancelled', 'refunded'].includes(orderData.status);
 
+    // 1. Order Placed (Always present)
+    history.push({
+      status: 'pending',
+      title: 'Order Placed',
+      description: 'Your order has been successfully placed and is being processed.',
+      date: baseDate,
+      completed: true
+    });
+
+    // If cancelled or refunded, add that step and stop.
+    if (isCancelledOrRefunded) {
+      history.push({
+        status: orderData.status,
+        title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
+        description: `This order has been ${orderData.status}.`,
+        date: new Date(orderData.updatedAt || orderData.createdAt),
+        completed: true,
+      });
+      setTrackingHistory(history);
+      return; // Stop processing the timeline
+    }
+
+    // 2. Order Confirmed
     if (['processing', 'shipped', 'delivered'].includes(orderData.status)) {
       history.push({
         status: 'processing',
         title: 'Order Confirmed',
         description: 'Your order has been confirmed and is being prepared for shipment.',
         date: new Date(baseDate.getTime() + 2 * 60 * 60 * 1000),
-        completed: true
+        completed: true,
       });
     }
 
+    // 3. Order Shipped
     if (['shipped', 'delivered'].includes(orderData.status)) {
       history.push({
         status: 'shipped',
         title: 'Order Shipped',
         description: 'Your order has been shipped and is on its way to you.',
         date: shippedDate,
-        completed: true
+        completed: true,
       });
     }
 
+    // 4. Delivered (or estimated delivery)
     if (orderData.status === 'delivered') {
       history.push({
         status: 'delivered',
         title: 'Order Delivered',
         description: 'Your order has been successfully delivered.',
         date: expectedDelivery,
-        completed: true
+        completed: true,
       });
     } else {
-      if (orderData.status === 'shipped') {
-        history.push({
-          status: 'out-for-delivery',
-          title: 'Out for Delivery',
-          description: 'Your order is out for delivery and will arrive soon.',
-          date: expectedDelivery,
-          completed: false,
-        estimated: true
-      });
-    }
-
-    if (orderData.status === 'cancelled' || orderData.status === 'refunded') {
-      history.push({
-        status: orderData.status,
-        title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
-        description: `This order has been ${orderData.status}.`,
-        date: new Date(orderData.updatedAt || orderData.createdAt), // Use updatedAt if available
-        completed: true,
-          estimated: true
-        });
-      }
-      
       history.push({
         status: 'delivered',
         title: 'Delivered',
         description: 'Your order will be delivered to your address.',
         date: expectedDelivery,
         completed: false,
-        estimated: true
+        estimated: true,
       });
     }
 
@@ -3766,7 +3761,7 @@ function TrackOrderPageComponent({ user }) {
   };
 
   const getStatusIcon = (status, completed) => {
-    if (completed) {
+    if (completed && status !== 'cancelled' && status !== 'refunded') {
       return '✅';
     }
     switch (status) {
