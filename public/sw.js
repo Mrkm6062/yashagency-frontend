@@ -12,48 +12,28 @@ self.addEventListener("push", e => {
     });
 });
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  event.stopImmediatePropagation(); // Prevent duplicate events
-
   const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        // Check if app window or tab is already open
-        let matchingClient = null;
-
-        for (const client of windowClients) {
-          const clientUrl = new URL(client.url);
-
-          // Match same origin (PWA or tab)
-          if (clientUrl.origin === self.location.origin) {
-            matchingClient = client;
-            break;
-          }
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then(function(windowClients) {
+      // Check if a window/tab for this origin is already open.
+      for (var i = 0; i < windowClients.length; i++) {
+        var client = windowClients[i];
+        // If so, focus it and navigate to the new URL.
+        // This ensures even if the URL is the same, the tab is focused and brought to the user's attention.
+        if ('focus' in client) {
+          return client.focus().then(client => client.navigate(urlToOpen));
         }
-
-        if (matchingClient) {
-          // ✅ Case 1: App/tab is already open
-          // Focus and navigate if needed
-          matchingClient.focus();
-          if (matchingClient.url !== urlToOpen && 'navigate' in matchingClient) {
-            try {
-              return matchingClient.navigate(urlToOpen);
-            } catch (err) {
-              console.warn('Navigate failed, opening new window instead:', err);
-              return clients.openWindow(urlToOpen);
-            }
-          }
-          return;
-        }
-
-        // ✅ Case 2: No window open — open in correct context
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      // If no existing window/tab is found, open a new one.
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
-
