@@ -3687,57 +3687,57 @@ function TrackOrderPageComponent({ user }) {
   };
 
   const generateTrackingHistory = (orderData) => {
-    const history = [];
-    const baseDate = new Date(orderData.createdAt);
-    const shippedDate = orderData.courierDetails?.shippedAt ? new Date(orderData.courierDetails.shippedAt) : new Date(baseDate.getTime() + 24 * 60 * 60 * 1000);
-    const expectedDelivery = orderData.courierDetails?.estimatedDelivery ? new Date(orderData.courierDetails.estimatedDelivery) : new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000);
-    const isCancelledOrRefunded = ['cancelled', 'refunded'].includes(orderData.status);
+    const timeline = [];
+    const statusHistory = orderData.statusHistory || [];
 
-    // 1. Order Placed (Always present)
-    history.push({
+    // 1. Order Placed - This is always the first step from the main order object.
+    timeline.push({
       status: 'pending',
       title: 'Order Placed',
       description: 'Your order has been successfully placed and is being processed.',
-      date: baseDate,
+      date: new Date(orderData.createdAt),
       completed: true
     });
 
-    // If cancelled or refunded, add that step and stop.
-    if (isCancelledOrRefunded) {
-      history.push({
-        status: orderData.status,
-        title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
-        description: `This order has been ${orderData.status}.`,
-        date: new Date(orderData.updatedAt || orderData.createdAt),
-        completed: true,
-      });
-      setTrackingHistory(history);
-      return; // Stop processing the timeline
-    }
+    // 2. Add steps from the status history
+    statusHistory.forEach(historyItem => {
+      let title = `Order ${historyItem.status.charAt(0).toUpperCase() + historyItem.status.slice(1)}`;
+      let description = `Your order is now ${historyItem.status}.`;
 
-    // 2. Order Confirmed
-    if (['processing', 'shipped', 'delivered'].includes(orderData.status)) {
-      history.push({
-        status: 'processing',
-        title: 'Order Confirmed',
-        description: 'Your order has been confirmed and is being prepared for shipment.',
-        date: new Date(baseDate.getTime() + 2 * 60 * 60 * 1000),
-        completed: true,
-      });
-    }
+      switch(historyItem.status) {
+        case 'processing':
+          title = 'Order Confirmed';
+          description = 'Your order has been confirmed and is being prepared for shipment.';
+          break;
+        case 'shipped':
+          title = 'Order Shipped';
+          description = 'Your order has been shipped and is on its way to you.';
+          break;
+        case 'delivered':
+          title = 'Order Delivered';
+          description = 'Your order has been successfully delivered.';
+          break;
+        case 'cancelled':
+          title = 'Order Cancelled';
+          description = 'This order has been cancelled.';
+          break;
+        case 'refunded':
+          title = 'Order Refunded';
+          description = 'This order has been refunded.';
+          break;
+      }
 
-    // 3. Order Shipped
-    if (['shipped', 'delivered'].includes(orderData.status)) {
-      history.push({
-        status: 'shipped',
-        title: 'Order Shipped',
-        description: 'Your order has been shipped and is on its way to you.',
-        date: shippedDate,
-        completed: true,
+      timeline.push({
+        status: historyItem.status,
+        title: title,
+        description: description,
+        date: new Date(historyItem.updatedAt),
+        completed: true
       });
-    }
+    });
 
-    // 4. Delivered (or estimated delivery)
+    // 3. If the order is not yet delivered or cancelled/refunded, add an estimated delivery step.
+    const terminalStatuses = ['delivered', 'cancelled', 'refunded'];
     if (orderData.status === 'delivered') {
       history.push({
         status: 'delivered',
@@ -3746,18 +3746,22 @@ function TrackOrderPageComponent({ user }) {
         date: expectedDelivery,
         completed: true,
       });
-    } else {
-      history.push({
+    } else if (!terminalStatuses.includes(orderData.status)) {
+      const expectedDelivery = orderData.courierDetails?.estimatedDelivery 
+        ? new Date(orderData.courierDetails.estimatedDelivery) 
+        : new Date(new Date(orderData.createdAt).getTime() + 5 * 24 * 60 * 60 * 1000); // Fallback to 5 days
+
+      timeline.push({
         status: 'delivered',
-        title: 'Delivered',
+        title: 'Expected Delivery',
         description: 'Your order will be delivered to your address.',
         date: expectedDelivery,
         completed: false,
-        estimated: true,
+        estimated: true
       });
     }
 
-    setTrackingHistory(history);
+    setTrackingHistory(timeline);
   };
 
   const getStatusIcon = (status, completed) => {
