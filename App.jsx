@@ -2901,6 +2901,20 @@ function OrderStatusPageComponent({ user }) {
     setLoading(false);
   };
 
+  const handleCancelOrder = async (orderId) => {
+    try { // The makeSecureRequest function is already async, just need to await it.
+      const response = await makeSecureRequest(`${API_BASE}/api/orders/${orderId}/cancel`, { 
+        method: 'PATCH',
+      });
+
+      if (response.ok) {
+        fetchOrders(); // Re-fetch orders to show the updated status.
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('An error occurred while trying to cancel the order.');
+    }
+  };
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -3029,16 +3043,18 @@ function OrderStatusPageComponent({ user }) {
                     {order.status === 'refunded' && (
                       <span className="text-gray-600 font-medium">💸 Refunded</span>
                     )}
-                    {order.status === 'cancelled' && (
-                      <span className="text-red-600 font-medium">❌ Cancelled</span>
-                    )}
-                    {order.status === 'refunded' && (
-                      <span className="text-gray-600 font-medium">💸 Refunded</span>
-                    )}
                   </div>
-                  <Link to={`/track/${order._id}`} className="text-blue-500 hover:text-blue-700 font-medium">
-                    Track Order
-                  </Link>
+                  <div className="flex items-center space-x-4">
+                    {['pending', 'processing'].includes(order.status) && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="text-red-500 hover:text-red-700 font-medium text-sm"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                    <Link to={`/track/${order._id}`} className="text-blue-500 hover:text-blue-700 font-medium">Track Order</Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3645,6 +3661,9 @@ function TrackOrderPageComponent({ user }) {
   const [order, setOrder] = useState(null);
   const [trackingHistory, setTrackingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundForm, setRefundForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [refundLoading, setRefundLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {    
@@ -3684,6 +3703,53 @@ function TrackOrderPageComponent({ user }) {
       navigate('/orders');
     }
     setLoading(false);
+  };
+
+  const handleOpenRefundModal = () => {
+    if (order) {
+      setRefundForm({
+        name: order.shippingAddress?.name || user?.name || '',
+        email: user?.email || '',
+        subject: `Refund Details for Order #${order.orderNumber || order._id.slice(-8)}`,
+        message: `Please provide the following details for your refund of ₹${order.total.toFixed(2)}:\n\n- Bank Name:\n- Account Holder Name:\n- Account Number:\n- IFSC Code:\n- UPI ID (Optional):`
+      });
+      setShowRefundModal(true);
+    }
+  };
+
+  const handleRefundFormSubmit = async (e) => {
+    e.preventDefault();
+    setRefundLoading(true);
+    try {
+      // We need to do two things: submit the contact form AND update the order status
+      const [contactResponse, orderUpdateResponse] = await Promise.all([
+        makeSecureRequest(`${API_BASE}/api/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(refundForm)
+        }),
+        makeSecureRequest(`${API_BASE}/api/orders/${orderId}/refund-details-submitted`, {
+          method: 'PATCH'
+        })
+      ]);
+
+      if (contactResponse.ok && orderUpdateResponse.ok) {
+        // Re-fetch order details to get the updated `refundDetailsSubmitted` flag
+        fetchOrderDetails();
+        setShowRefundModal(false);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to submit details. Please try again or contact support.');
+      }
+    } catch (error) {
+      console.error('Refund form submission error:', error);
+      alert('An error occurred. Please try again.');
+    }
+    setRefundLoading(false);
+  };
+
+  const handleRefundFormChange = (e) => {
+    setRefundForm({ ...refundForm, [e.target.name]: e.target.value });
   };
 
   const generateTrackingHistory = (orderData) => {
@@ -3845,9 +3911,11 @@ function TrackOrderPageComponent({ user }) {
           {order.shippingAddress && (
             <div>
               <h3 className="font-semibold text-gray-700 mb-2">Delivery Address</h3>
-              <p className="text-sm">
-                {order.shippingAddress.street}<br/>
-                {order.shippingAddress.city}, {order.shippingAddress.state}<br/>
+              <p className="text-sm font-medium text-gray-800">{order.shippingAddress.name}</p>
+              <p className="text-sm text-gray-700">{order.shippingAddress.mobileNumber} {order.shippingAddress.alternateMobileNumber && `(Alt: ${order.shippingAddress.alternateMobileNumber})`}</p>
+              <p className="text-sm text-gray-600">
+                {order.shippingAddress.street}<br />
+                {order.shippingAddress.city}, {order.shippingAddress.state}<br />
                 {order.shippingAddress.zipCode}, {order.shippingAddress.country}
               </p>
             </div>
@@ -4059,6 +4127,72 @@ function TrackOrderPageComponent({ user }) {
         </div>
       </div>
 
+      {/* Refund Section */}
+      {order.status === 'refunded' && (
+        <div className="mt-8 bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+          <h3 className="font-semibold text-yellow-800 mb-2">Refund Information</h3>
+          {order.paymentMethod === 'cod' ? (
+            order.refundDetailsSubmitted ? (
+              <p className="text-green-700 text-sm font-medium">
+                ✓ You have shared your bank account details. Your refund will be processed within 5-7 business days.
+              </p>
+            ) : (
+              <>
+                <p className="text-yellow-700 text-sm mb-3">
+                  Since this was a Cash on Delivery order, please provide your bank account details for us to process the refund.
+                </p>
+                <button
+                  onClick={handleOpenRefundModal}
+                  className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                >
+                  Enter Bank Account Details
+                </button>
+              </>
+            )
+            
+          ) : (
+            <p className="text-yellow-700 text-sm">
+              Your refund of <strong>₹{order.total.toFixed(2)}</strong> will be credited to your original payment method within 5-7 business days.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Refund Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div className="p-6 border-b">
+              <h3 className="text-xl font-bold text-gray-800">Submit Refund Details</h3>
+              <p className="text-sm text-gray-600">Please fill out your bank details carefully.</p>
+            </div>
+            <form onSubmit={handleRefundFormSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Subject</label>
+                <input type="text" name="subject" value={refundForm.subject} onChange={handleRefundFormChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" readOnly />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Bank Details</label>
+                <textarea name="message" value={refundForm.message} onChange={handleRefundFormChange} rows="6"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Please provide your bank details here." required />
+              </div>
+              <div className="p-4 border-t flex justify-end space-x-3">
+                <button type="button" onClick={() => setShowRefundModal(false)}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300">
+                  Cancel
+                </button>
+                <button type="submit" disabled={refundLoading}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50">
+                  {refundLoading ? 'Submitting...' : 'Submit Details'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Help Section */}
       <div className="mt-8 bg-blue-50 p-6 rounded-lg">
         <h3 className="font-semibold text-blue-800 mb-2">Need Help?</h3>
@@ -4066,12 +4200,9 @@ function TrackOrderPageComponent({ user }) {
           If you have any questions about your order or delivery, please contact our support team.
         </p>
         <div className="flex space-x-4">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600">
-            Contact Support
-          </button>
-          <button className="border border-blue-500 text-blue-500 px-4 py-2 rounded text-sm hover:bg-blue-50">
+          <Link to="/support/contact" className="border border-blue-500 text-blue-500 px-4 py-2 rounded text-sm hover:bg-blue-50">
             Report Issue
-          </button>
+          </Link>
         </div>
       </div>
     </div>
