@@ -574,12 +574,9 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   };
 
   const clearAllNotifications = async () => {
-    if (!window.confirm('Are you sure you want to clear all notifications? This cannot be undone.')) {
-      return;
-    }
     try {
       await makeSecureRequest(`${API_BASE}/api/notifications/clear-all`, { method: 'DELETE' });
-      setUserNotifications([]); // Optimistically update the UI
+      fetchUserNotifications(); // Re-fetch to get the empty list from the server
       setShowNotifications(false);
     } catch (error) {
       console.error("Failed to clear all notifications", error);
@@ -2910,6 +2907,8 @@ function OrderStatusPageComponent({ user }) {
       case 'processing': return 'bg-blue-100 text-blue-800';
       case 'shipped': return 'bg-purple-100 text-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'refunded': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -3023,6 +3022,18 @@ function OrderStatusPageComponent({ user }) {
                     )}
                     {order.status === 'pending' && (
                       <span className="text-yellow-600 font-medium">📋 Order Confirmed</span>
+                    )}
+                    {order.status === 'cancelled' && (
+                      <span className="text-red-600 font-medium">❌ Cancelled</span>
+                    )}
+                    {order.status === 'refunded' && (
+                      <span className="text-gray-600 font-medium">💸 Refunded</span>
+                    )}
+                    {order.status === 'cancelled' && (
+                      <span className="text-red-600 font-medium">❌ Cancelled</span>
+                    )}
+                    {order.status === 'refunded' && (
+                      <span className="text-gray-600 font-medium">💸 Refunded</span>
                     )}
                   </div>
                   <Link to={`/track/${order._id}`} className="text-blue-500 hover:text-blue-700 font-medium">
@@ -3726,6 +3737,17 @@ function TrackOrderPageComponent({ user }) {
           description: 'Your order is out for delivery and will arrive soon.',
           date: expectedDelivery,
           completed: false,
+        estimated: true
+      });
+    }
+
+    if (orderData.status === 'cancelled' || orderData.status === 'refunded') {
+      history.push({
+        status: orderData.status,
+        title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
+        description: `This order has been ${orderData.status}.`,
+        date: new Date(orderData.updatedAt || orderData.createdAt), // Use updatedAt if available
+        completed: true,
           estimated: true
         });
       }
@@ -3753,6 +3775,8 @@ function TrackOrderPageComponent({ user }) {
       case 'shipped': return '🚚';
       case 'out-for-delivery': return '🚛';
       case 'delivered': return '📦';
+      case 'cancelled': return '❌';
+      case 'refunded': '💸';
       default: return '⭕';
     }
   };
@@ -5364,6 +5388,8 @@ function AdminPanelComponent({ user }) {
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="refunded">Refunded</option>
                       </select>
                     </div>
                   </div>
@@ -5392,6 +5418,8 @@ function AdminPanelComponent({ user }) {
                             <option value="processing">Processing</option>
                             <option value="shipped">Shipped</option>
                             <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="refunded">Refunded</option>
                           </select>
                           <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ${
                             order.status === 'delivered' ? 'bg-green-100 text-green-800' :
@@ -5399,7 +5427,9 @@ function AdminPanelComponent({ user }) {
                             order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
-                            {order.status.toUpperCase()}
+                            {order.status === 'cancelled' ? 'CANCELLED' : 
+                             order.status === 'refunded' ? 'REFUNDED' : 
+                             order.status.toUpperCase()}
                           </span>
                           <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ml-2 ${
                             order.paymentMethod === 'cod' && order.paymentStatus === 'pending' ? 'bg-orange-100 text-orange-800' :
