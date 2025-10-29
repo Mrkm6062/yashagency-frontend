@@ -250,9 +250,7 @@ const validateToken = async (token) => {
       await makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+          'Content-Type': 'application/json'        },
         body: JSON.stringify({ cart: cartData })
       });
     } catch (error) {
@@ -314,21 +312,15 @@ const addToCart = async (product) => {
 
   // Sync with backend if user is logged in
   if (user) {
-    try {
-      const csrfToken = await getCSRFToken(); // Make sure this returns the valid CSRF token
-
-      await fetch(`${API_BASE}/api/cart`, {
+    makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-          'CSRF-Token': csrfToken
         },
         body: JSON.stringify({ cart: newCart })
+      }).catch(error => {
+        console.error('Failed to sync cart with backend:', error);
       });
-    } catch (error) {
-      console.error('Failed to sync cart with backend:', error);
-    }
   }
 };
 
@@ -339,21 +331,11 @@ const removeFromCart = async (productId) => {
   localStorage.setItem('cart', JSON.stringify(newCart));
 
   if (user) {
-    try {
-      const csrfToken = await getCSRFToken();
-
-      await fetch(`${API_BASE}/api/cart`, {
+    makeSecureRequest(`${API_BASE}/api/cart`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-          'CSRF-Token': csrfToken
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cart: newCart })
-      });
-    } catch (error) {
-      console.error('Failed to sync cart with backend:', error);
-    }
+      }).catch(error => console.error('Failed to sync cart with backend:', error));
   }
 };
 
@@ -361,6 +343,51 @@ const removeFromCart = async (productId) => {
   // Login function
   const login = async (email, password) => {
     try {
+      const handleLoginCartSync = async (loginToken) => {
+        const localCartRaw = localStorage.getItem('cart');
+        const localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
+    
+        try {
+          // 1. Fetch server cart
+          const response = await fetch(`${API_BASE}/api/cart`, {
+            headers: { 'Authorization': `Bearer ${loginToken}` }
+          });
+    
+          if (!response.ok) {
+            // If server cart fails to load, just push the local cart to the server.
+            if (localCart.length > 0) {
+              setCart(localCart); // Set state to trigger sync
+            }
+            return;
+          }
+    
+          const serverData = await response.json();
+          const serverCart = serverData.cart || [];
+    
+          // 2. Merge local and server carts. Server cart is the source of truth.
+          const mergedCartMap = new Map();
+    
+          // Add server items first
+          serverCart.forEach(item => mergedCartMap.set(item._id, item));
+    
+          // Add/update with local items. If item exists, add quantity. If not, add item.
+          localCart.forEach(localItem => {
+            if (mergedCartMap.has(localItem._id)) {
+              const existingItem = mergedCartMap.get(localItem._id);
+              // Make sure quantity is a number before adding
+              existingItem.quantity = (Number(existingItem.quantity) || 0) + (Number(localItem.quantity) || 0);
+            } else {
+              mergedCartMap.set(localItem._id, { ...localItem });
+            }
+          });
+    
+          const mergedCart = Array.from(mergedCartMap.values());
+          setCart(mergedCart); // This updates the UI and triggers the sync in useEffect
+          localStorage.setItem('cart', JSON.stringify(mergedCart)); // Also update localStorage
+        } catch (error) {
+          console.error('Error during cart sync on login:', error);
+        }
+      };
       const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -384,7 +411,7 @@ const removeFromCart = async (productId) => {
         // We await the cart sync to ensure it completes before navigation.
         try {
           await Promise.all([
-            handleLoginCartSync(data.token),
+            handleLoginCartSync(data.token), // Pass the new token directly
             fetchWishlist(),
             fetchUserNotifications(),
             getCSRFToken()
@@ -3144,12 +3171,13 @@ function ProfilePageComponent({ user, setUser }) {
   };
 
   const deleteAddress = async (addressId) => {
+    if (!window.confirm('Are you sure you want to delete this address?')) {
+      return;
+    }
     try {
       const response = await makeSecureRequest(`${API_BASE}/api/addresses/${addressId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${getToken()}` }
       });
-      
       const data = await response.json();
       
       if (response.ok) {
