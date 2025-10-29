@@ -13,27 +13,26 @@ self.addEventListener("push", e => {
 });
 
 self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
   const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
     clients.matchAll({
       type: 'window',
       includeUncontrolled: true
-    }).then(function(windowClients) {
-      // Check if a window/tab for this origin is already open.
-      for (var i = 0; i < windowClients.length; i++) {
-        var client = windowClients[i];
-        // If so, focus it and navigate to the new URL.
-        // This ensures even if the URL is the same, the tab is focused and brought to the user's attention.
+    }).then(function(clientList) {
+      // Close the notification first
+      event.notification.close();
+
+      // Check if a window/tab for this origin is already open
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
         if ('focus' in client) {
+          // If so, focus it and navigate to the new URL
           return client.focus().then(client => client.navigate(urlToOpen));
         }
       }
-      // If no existing window/tab is found, open a new one.
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
+      // If not, open a new window
+      return clients.openWindow(urlToOpen);
     })
   );
 });
