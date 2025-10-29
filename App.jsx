@@ -120,14 +120,11 @@ function App() {
 
       if (!isValid) {
         logout();
+        setIsInitialLoad(false); // Ensure loading state is finalized
       } else {
-        // Sync cart after token validation
-        if (savedCart) {
-          setCart(JSON.parse(savedCart));
-          syncCart(JSON.parse(savedCart)); // push to backend
-        } else {
-          fetchCart(); // get cart from backend if no localStorage
-        }
+        // The cart is now fetched inside validateToken to ensure
+        // it runs after CSRF token is ready.
+        // No action needed here.
       }
     } else if (savedCart) {
       setCart(JSON.parse(savedCart));
@@ -164,6 +161,7 @@ const validateToken = async (token) => {
       // Fetch dependent data
       Promise.all([
         fetchWishlist(),
+        fetchCart(), // Move fetchCart here
         fetchUserNotifications(),
         getCSRFToken(),
       ]).catch(console.error);
