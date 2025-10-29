@@ -52,8 +52,8 @@ const MetaPixelTracker = () => {
     n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    window.fbq('init', PIXEL_ID);
+    'https://connect.facebook.net/en_US/fbevents.js');    
+    window.fbq('init', PIXEL_ID, {}); // Pass an empty object for user data
     window.fbq('track', 'PageView');
   }, []);
 
