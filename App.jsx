@@ -309,19 +309,6 @@ const addToCart = async (product) => {
   // Show notification
   setNotification({ message: 'Added to cart', product: product.name });
   setTimeout(() => setNotification(null), 3000);
-
-  // Sync with backend if user is logged in
-  if (user) {
-    makeSecureRequest(`${API_BASE}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ cart: newCart })
-      }).catch(error => {
-        console.error('Failed to sync cart with backend:', error);
-      });
-  }
 };
 
 // Remove item from cart
@@ -329,14 +316,6 @@ const removeFromCart = async (productId) => {
   const newCart = cart.filter(item => item._id !== productId);
   setCart(newCart);
   localStorage.setItem('cart', JSON.stringify(newCart));
-
-  if (user) {
-    makeSecureRequest(`${API_BASE}/api/cart`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart: newCart })
-      }).catch(error => console.error('Failed to sync cart with backend:', error));
-  }
 };
 
 
@@ -434,6 +413,7 @@ const logout = () => {
   localStorage.removeItem('token');
   clearAuth();
   setUser(null);
+  localStorage.removeItem('cart'); // Clear guest cart on logout
   setCart([]); // state cleared, but localStorage cart can remain for guest
   setUserNotifications([]);
 };
