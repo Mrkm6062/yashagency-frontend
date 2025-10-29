@@ -3740,7 +3740,7 @@ function TrackOrderPageComponent({ user }) {
           status: orderData.status,
           title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`,
           description: `This order has been ${orderData.status}.`,
-          date: new Date(orderData.updatedAt), // Use the main order updatedAt for final status
+          date: new Date(statusHistory.length > 0 ? statusHistory[statusHistory.length - 1].updatedAt : orderData.createdAt),
           completed: true
         });
       }
