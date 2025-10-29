@@ -12,30 +12,37 @@ self.addEventListener("push", e => {
     });
 });
 
-self.addEventListener('notificationclick', function(event) {
-  // Get the URL to open from the notification's data payload
-  const urlToOpen = event.notification.data.url;
-  
-  // Close the notification
+self.addEventListener('notificationclick', event => {
   event.notification.close();
+  event.stopImmediatePropagation(); // optional but helps on desktop
+
+  const urlToOpen = event.notification.data?.url || '/';
 
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then(function(windowClients) {
-      // Check if a window/tab for this origin is already open.
-      for (var i = 0; i < windowClients.length; i++) {
-        var client = windowClients[i];
-        // If so, focus it and navigate to the new URL.
-        if ('focus' in client) {
-          return client.focus().then(client => client.navigate(urlToOpen));
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        for (const client of windowClients) {
+          const clientUrl = new URL(client.url);
+
+          if (clientUrl.origin === self.location.origin) {
+            client.focus();
+
+            if (clientUrl.href !== urlToOpen && 'navigate' in client) {
+              try {
+                return client.navigate(urlToOpen);
+              } catch (err) {
+                console.warn("Navigation failed, opening new window instead:", err);
+                return clients.openWindow(urlToOpen);
+              }
+            }
+
+            return;
+          }
         }
-      }
-      // If not, open a new window.
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
+
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
   );
 });
