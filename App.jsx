@@ -3985,18 +3985,12 @@ function TrackOrderPageComponent({ user }) {
                   
                   <div className="text-right">
                     <p className={`text-sm ${
-                      step.completed ? 'text-gray-600' : 'text-gray-400'
+                      step.completed ? 'text-gray-700 font-medium' : 'text-gray-500'
                     }`}>
-                      {step.estimated ? 'Expected: ' : ''}
-                      {step.date.toLocaleDateString('en-IN')}
-                    </p>
-                    <p className={`text-xs ${
-                      step.completed ? 'text-gray-500' : 'text-gray-400'
-                    }`}>
-                      {step.completed ? step.date.toLocaleTimeString('en-IN', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      }) : ''}
+                      {step.completed
+                        ? step.date.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                        : `Expected: ${step.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                      }
                     </p>
                   </div>
                 </div>
