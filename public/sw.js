@@ -5,7 +5,7 @@ self.addEventListener("push", e => {
     console.log("Push Recieved...");
     self.registration.showNotification(data.title, {
         body: data.body,
-        icon: "https://storage.googleapis.com/samriddhi-blog-images-123/Samriddhishop%20Logo%20Design.png", // Optional: Your logo
+        icon: "https://storage.googleapis.com/samriddhi-blog-images-123/bigsize.png", // Use the new logo URL
         data: {
             url: data.url // Pass the URL to open on click
         }
