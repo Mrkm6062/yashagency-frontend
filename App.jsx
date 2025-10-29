@@ -573,6 +573,20 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
     }
   };
 
+  const clearAllNotifications = async () => {
+    if (!window.confirm('Are you sure you want to clear all notifications? This cannot be undone.')) {
+      return;
+    }
+    try {
+      await makeSecureRequest(`${API_BASE}/api/notifications/clear-all`, { method: 'DELETE' });
+      setUserNotifications([]); // Optimistically update the UI
+      setShowNotifications(false);
+    } catch (error) {
+      console.error("Failed to clear all notifications", error);
+      alert('Could not clear notifications. Please try again.');
+    }
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -631,18 +645,23 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                         notifications.map(n => (
                           <div
                             key={n._id}
-                            onClick={() => handleNotificationClick(n)}
                             className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
-                            style={{ cursor: 'pointer' }} // Indicate it's clickable
                           >
-                            <p className="text-sm text-left">{n.message}</p>
-                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                            <div onClick={() => handleNotificationClick(n)} style={{ cursor: 'pointer' }}>
+                              <p className="text-sm text-left">{n.message}</p>
+                              <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                            </div>
                           </div>
                         ))
                       ) : (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
                       )}
                     </div>
+                    {notifications.length > 0 && (
+                      <div className="p-2 border-t text-center">
+                        <button onClick={clearAllNotifications} className="text-xs font-medium text-red-600 hover:underline">Clear All Notifications</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -685,19 +704,24 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                       {notifications.length > 0 ? (
                         notifications.map(n => (
                           <div
-                            key={n._id}
-                            onClick={() => handleNotificationClick(n)}
-                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
-                            style={{ cursor: 'pointer' }}
+                            key={n._id}                            
+                            className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}                            
                           >
-                            <p className="text-sm text-left">{n.message}</p>
-                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                            <div onClick={() => handleNotificationClick(n)} style={{ cursor: 'pointer' }}>
+                              <p className="text-sm text-left">{n.message}</p>
+                              <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                            </div>
                           </div>
                         ))
                       ) : (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
                       )}
                     </div>
+                    {notifications.length > 0 && (
+                      <div className="p-2 border-t text-center">
+                        <button onClick={clearAllNotifications} className="text-xs font-medium text-red-600 hover:underline">Clear All</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
