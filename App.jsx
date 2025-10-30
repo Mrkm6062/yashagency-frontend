@@ -39,7 +39,7 @@ ChartJS.register(
 // --- Meta Pixel Tracking ---
 const PIXEL_ID = '1096888672324564'; // Your Meta Pixel ID
 
-const MetaPixelTracker = () => {
+const MetaPixelTracker = ({ user }) => {
   const location = useLocation();
 
   useEffect(() => {
@@ -52,8 +52,15 @@ const MetaPixelTracker = () => {
     n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');    
-    window.fbq('init', PIXEL_ID, {}); // Pass an empty object for user data
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    // Initialize with user data if available, otherwise with an empty object.
+    const userData = user ? {
+      em: user.email, // Email
+      ph: user.phone, // Phone
+    } : {};
+    window.fbq('init', PIXEL_ID, userData);
+
     window.fbq('track', 'PageView');
   }, []);
 
@@ -62,7 +69,7 @@ const MetaPixelTracker = () => {
     if (window.fbq) {
       window.fbq('track', 'PageView');
     }
-  }, [location]);
+  }, [location, user]); // Re-run if user logs in/out to update context
 
   return null; // This component does not render anything
 };
@@ -446,7 +453,7 @@ const logout = () => {
     <Router>      
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
-        <MetaPixelTracker />
+        <MetaPixelTracker user={user} />
         <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Routes>            
@@ -534,8 +541,8 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   const NavLink = ({ to, children }) => {
     const isActive = location.pathname === to;
     return (
-      <Link to={to} className="relative group text-gray-700 transition-colors font-medium py-2">
-        <span className={isActive ? 'text-green-600' : 'group-hover:text-green-600'}>{children}</span>
+      <Link to={to} className="relative group text-gray-700 transition-colors font-medium py-2" aria-current={isActive ? 'page' : undefined}>
+        <span className={isActive ? 'text-green-700' : 'group-hover:text-green-600'}>{children}</span>
         <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-green-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out ${isActive ? 'scale-x-100' : ''}`}></span>
       </Link>
     );
@@ -565,7 +572,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
       // Optimistically update the UI
       setUserNotifications(prev => prev.map(n => ({ ...n, read: true })));
       // Delay closing the dropdown slightly
-      setTimeout(() => setShowNotifications(false), 100);
+      setTimeout(() => setShowNotifications(false), 500);
     } catch (error) {
       console.error("Failed to mark all notifications as read", error);
       // Optionally show an error to the user
@@ -788,7 +795,7 @@ function HomePage({ products, loading }) {
           {banners.desktop?.backgroundVideo ? (
             <video src={banners.desktop.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
           ) : banners.desktop?.backgroundImage ? (
-            <img src={banners.desktop.backgroundImage} alt="Desktop Banner" className="w-full h-auto rounded-lg" />
+            <img src={banners.desktop.backgroundImage} alt="Desktop Banner" className="w-full h-auto rounded-lg" fetchpriority="high" />
           ) : (
             <div className="w-full h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
           )}
@@ -807,7 +814,7 @@ function HomePage({ products, loading }) {
           {banners.mobile?.backgroundVideo ? (
             <video src={banners.mobile.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
           ) : banners.mobile?.backgroundImage ? (
-            <img src={banners.mobile.backgroundImage} alt="Mobile Banner" className="w-full h-auto rounded-lg" />
+            <img src={banners.mobile.backgroundImage} alt="Mobile Banner" className="w-full h-auto rounded-lg" fetchpriority="high" />
           ) : (
             <div className="w-full h-64 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
           )}
@@ -2810,7 +2817,7 @@ const ProductCard = React.memo(function ProductCard({ product }) {
         <img 
           src={images[currentImageIndex]} 
           alt={product.name}
-          className="w-full h-full object-contain transition-all duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
           loading="lazy"
           width="300"
           height="384"
@@ -2819,7 +2826,7 @@ const ProductCard = React.memo(function ProductCard({ product }) {
         />
         {!imageLoaded && <div className="absolute inset-0 bg-gray-300 animate-pulse w-full h-full" />}
         {hasDiscount && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+          <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
             {product.discountPercentage}% OFF
           </div>
         )}
@@ -6575,10 +6582,10 @@ const Footer = React.memo(function Footer() {
           <div>
             <h4 className="font-semibold mb-3">Connect</h4>
             <div className="flex space-x-4">
-              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl"><FaInstagram /></a>}
-              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl"><FaFacebook /></a>}
-              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl"><FaEnvelope /></a>}
-              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl"><FaPhone /></a>}
+              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl" aria-label="Follow us on Instagram"><FaInstagram /></a>}
+              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl" aria-label="Follow us on Facebook"><FaFacebook /></a>}
+              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl" aria-label="Email us"><FaEnvelope /></a>}
+              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl" aria-label="Call us"><FaPhone /></a>}
             </div>
           </div>
         </div>
