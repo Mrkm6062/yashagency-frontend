@@ -22,7 +22,10 @@ const ForgotPasswordPage = lazy(() => Promise.resolve({ default: ForgotPasswordP
 const ResetPasswordPage = lazy(() => Promise.resolve({ default: ResetPasswordPageComponent }));
 
 // API Base URL
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const backendPort = 3001;
+const backendHost = import.meta.env.VITE_API_URL || `http://${import.meta.env.VITE_SERVER_HOST || 'localhost'}:${backendPort}`;
+const API_BASE = backendHost.replace(/\/$/, '');
+
 
 // --- Logo Configuration ---
 const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/bigsize.png"; // <-- CHANGE YOUR LOGO URL HERE
@@ -4336,10 +4339,13 @@ function AdminPanelComponent({ user }) {
         fetch(`${API_BASE}/api/banner`),
         fetch(`${API_BASE}/api/admin/delivery-areas`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
-      
-      setProducts(await productsRes.json());
-      setOrders(await ordersRes.json()); // This line is correct, the issue was in the logic. Let's fix it.
-      setCoupons(await couponsRes.json());
+
+      const productsData = await productsRes.json();
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      const ordersData = await ordersRes.json();
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      const couponsData = await couponsRes.json();
+      setCoupons(Array.isArray(couponsData) ? couponsData : []);
       const userData = await usersRes.json();
       setUsers(userData);
       setFilteredUsers(userData);
@@ -6752,36 +6758,63 @@ function DeliveryAreaManagement({ deliveryAreas, togglePincode, handleBulkToggle
         </div>
       )}
 
-      <div className="overflow-x-auto bg-white border rounded-lg">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Pincode</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Office Name</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">District</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">State</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {pincodes.map(pincode => (
-              <tr key={pincode._id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-medium">{pincode.pincode}</td>
-                <td className="px-4 py-3 text-sm">{pincode.officeName}</td>
-                <td className="px-4 py-3 text-sm">{pincode.districtName}</td>
-                <td className="px-4 py-3 text-sm">{pincode.stateName}</td>
-                <td className="px-4 py-3 text-sm">
-                  <button
-                    onClick={() => togglePincode(pincode.pincode, pincode.deliverable)}
-                    className={`px-3 py-1 rounded text-xs ${pincode.deliverable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                  >
-                    {pincode.deliverable ? 'Enabled' : 'Disabled'}
-                  </button>
-                </td>
+      {/* Responsive Pincode List */}
+      <div>
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {pincodes.map(pincode => (
+            <div key={pincode._id} className="bg-white p-4 rounded-lg shadow border">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-lg">{pincode.pincode}</p>
+                  <p className="text-sm text-gray-600 truncate">{pincode.officeName}</p>
+                </div>
+                <button
+                  onClick={() => togglePincode(pincode.pincode, pincode.deliverable)}
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${pincode.deliverable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                >
+                  {pincode.deliverable ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+              <div className="mt-3 pt-3 border-t text-sm text-gray-500">
+                {pincode.districtName}, {pincode.stateName}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto bg-white border rounded-lg">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Pincode</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Office Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">District</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">State</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {pincodes.map(pincode => (
+                <tr key={pincode._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm font-medium">{pincode.pincode}</td>
+                  <td className="px-4 py-3 text-sm">{pincode.officeName}</td>
+                  <td className="px-4 py-3 text-sm">{pincode.districtName}</td>
+                  <td className="px-4 py-3 text-sm">{pincode.stateName}</td>
+                  <td className="px-4 py-3 text-sm">
+                    <button
+                      onClick={() => togglePincode(pincode.pincode, pincode.deliverable)}
+                      className={`px-3 py-1 rounded text-xs ${pincode.deliverable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                    >
+                      {pincode.deliverable ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {loading && <p className="p-4 text-center text-gray-600">Loading...</p>}
         {!loading && searched && pincodes.length === 0 && (
           <p className="p-4 text-center text-gray-600">No pincodes found for this filter.</p>

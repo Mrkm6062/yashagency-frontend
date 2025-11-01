@@ -1,0 +1,303 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { makeSecureRequest } from '../csrf.js';
+import { getToken } from '../storage.js';
+import OrderHistory from '../OrderHistory.jsx';
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+
+function ProfilePage({ user, setUser }) {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [profile, setProfile] = useState({ name: '', email: '', phone: '' });
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+  const [addresses, setAddresses] = useState([]);
+  const [newAddress, setNewAddress] = useState({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: '👤' },
+    { id: 'orders', label: 'Orders', icon: '📦' },
+    { id: 'password', label: 'Security', icon: '🔒' },
+    { id: 'addresses', label: 'Addresses', icon: '📍' }
+  ];
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+    const currentTab = tabs.find(tab => tab.id === activeTab);
+    document.title = `${currentTab?.label || 'Profile'} - SamriddhiShop`;
+    return () => { document.title = 'SamriddhiShop'; };
+  }, [user, activeTab]);
+
+  const fetchProfile = async () => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setProfile({ name: data.name, email: data.email, phone: data.phone || '' });
+      setAddresses(data.addresses || []);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const updateProfile = async () => {
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        alert('Profile updated successfully!');
+      } else {
+        alert(data.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      alert('Failed to update profile');
+    }
+    setLoading(false);
+  };
+
+  const changePassword = async () => {
+    if (passwords.new !== passwords.confirm) {
+      alert('New passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/change-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('Password changed successfully!');
+        setPasswords({ current: '', new: '', confirm: '' });
+      } else {
+        alert(data.error || 'Failed to change password');
+      }
+    } catch (error) {
+      alert('Failed to change password');
+    }
+    setLoading(false);
+  };
+
+  const addAddress = async () => {
+    if (!newAddress.street || !newAddress.city) {
+      alert('Please fill in required fields');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/addresses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAddress)
+      });
+      if (response.ok) {
+        await fetchProfile();
+        setNewAddress({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
+        alert('Address added successfully!');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to add address');
+      }
+    } catch (error) {
+      alert('Failed to add address');
+    }
+    setLoading(false);
+  };
+
+  const deleteAddress = async (addressId) => {
+    if (!window.confirm('Are you sure you want to delete this address?')) return;
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/addresses/${addressId}`, { method: 'DELETE' });
+      if (response.ok) {
+        await fetchProfile();
+        alert('Address deleted successfully!');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to delete address');
+      }
+    } catch (error) {
+      alert('Failed to delete address');
+    }
+  };
+
+  const openEditModal = (address) => {
+    setEditingAddress(address);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateAddress = async () => {
+    if (!editingAddress) return;
+    setLoading(true);
+    try {
+        const response = await makeSecureRequest(`${API_BASE}/api/addresses/${editingAddress._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(editingAddress)
+        });
+        if (response.ok) {
+            await fetchProfile();
+            setIsEditModalOpen(false);
+            setEditingAddress(null);
+            alert('Address updated successfully!');
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to update address');
+        }
+    } catch (error) {
+        alert('Failed to update address');
+    }
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"><span className="text-2xl">🔐</span></div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-6">Please login to access your profile</p>
+          <Link to="/login" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl">Login to Continue</Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><span className="text-3xl text-white">👤</span></div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">My Profile</h1>
+          <p className="text-gray-600">Manage your account settings and preferences</p>
+        </div>
+        
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+            <nav className="flex overflow-x-auto">
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex-grow ${activeTab === tab.id ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`}>
+                  <span className="text-lg">{tab.icon}</span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+          
+          <div className="p-8">
+            {activeTab === 'profile' && (
+              <div className="space-y-8">
+                <div className="bg-gray-50 p-6 rounded-xl">
+                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><span>✏️</span><span>Update Profile Information</span></h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label><input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
+                    <div><label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label><input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
+                    <div className="md:col-span-2"><label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label><input type="tel" value={profile.phone} onChange={(e) => setProfile({...profile, phone: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
+                  </div>
+                  <button onClick={updateProfile} disabled={loading} className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold">{loading ? 'Updating...' : 'Save Changes'}</button>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'orders' && (
+              <div>
+                <div className="flex items-center space-x-3 mb-6"><span className="text-2xl">📦</span><h2 className="text-2xl font-bold text-gray-800">Order History</h2></div>
+                <OrderHistory user={user} />
+              </div>
+            )}
+            
+            {activeTab === 'password' && (
+              <div className="max-w-md mx-auto">
+                <div className="bg-gray-50 p-6 rounded-xl space-y-6">
+                  <div><label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label><input type="password" value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
+                  <div><label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label><input type="password" value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
+                  <div><label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label><input type="password" value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
+                  <button onClick={changePassword} disabled={loading} className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold">{loading ? 'Updating...' : 'Update Password'}</button>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'addresses' && (
+              <div className="space-y-8">
+                <div className="flex items-center space-x-3"><span className="text-2xl">📍</span><h2 className="text-2xl font-bold text-gray-800">Delivery Addresses</h2></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {addresses.map(address => (
+                    <div key={address._id} className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 relative group">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-3"><span className="text-lg">{address.addressType === 'home' ? '🏠' : '🏢'}</span><span className="font-semibold text-blue-800">{address.name} ({address.addressType})</span></div>
+                          <p className="font-medium text-gray-800 mb-1">{address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
+                          <p className="font-medium text-gray-800 mb-1">{address.street}</p>
+                          <p className="text-gray-600 mb-1">{address.city}, {address.state}</p>
+                          <p className="text-gray-600">{address.zipCode}, {address.country}</p>
+                        </div>
+                        <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEditModal(address)} className="text-blue-500 hover:text-blue-700 p-2 rounded-lg" title="Edit address">✏️</button>
+                          <button onClick={() => deleteAddress(address._id)} className="text-red-500 hover:text-red-700 p-2 rounded-lg" title="Delete address">🗑️</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-gray-50 p-6 rounded-xl">
+                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><span>➕</span><span>Add New Address</span></h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="text" placeholder="Full Name *" value={newAddress.name || ''} onChange={(e) => setNewAddress({...newAddress, name: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="tel" placeholder="Mobile Number *" value={newAddress.mobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="tel" placeholder="Alternate Mobile (Optional)" value={newAddress.alternateMobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, alternateMobileNumber: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                    <div className="flex items-center space-x-4"><label><input type="radio" name="addressType" value="home" checked={newAddress.addressType === 'home'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Home</label><label><input type="radio" name="addressType" value="work" checked={newAddress.addressType === 'work'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Work</label></div>
+                  </div>
+                  <button onClick={addAddress} disabled={loading} className="mt-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold">{loading ? 'Adding...' : 'Add Address'}</button>
+                </div>
+              </div>
+            )}
+
+            {isEditModalOpen && editingAddress && (
+              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full">
+                  <div className="p-6 border-b"><h3 className="text-xl font-bold text-gray-800">Edit Address</h3></div>
+                  <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <input type="text" placeholder="Full Name *" value={editingAddress.name || ''} onChange={(e) => setEditingAddress({ ...editingAddress, name: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="tel" placeholder="Mobile Number *" value={editingAddress.mobileNumber || ''} onChange={(e) => setEditingAddress({ ...editingAddress, mobileNumber: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="tel" placeholder="Alternate Mobile (Optional)" value={editingAddress.alternateMobileNumber || ''} onChange={(e) => setEditingAddress({ ...editingAddress, alternateMobileNumber: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="Street Address *" value={editingAddress.street || ''} onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="City *" value={editingAddress.city || ''} onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="State" value={editingAddress.state || ''} onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="ZIP Code" value={editingAddress.zipCode || ''} onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <div className="flex items-center space-x-4"><label><input type="radio" name="editAddressType" value="home" checked={editingAddress.addressType === 'home'} onChange={(e) => setEditingAddress({ ...editingAddress, addressType: e.target.value })} className="mr-1" /> Home</label><label><input type="radio" name="editAddressType" value="work" checked={editingAddress.addressType === 'work'} onChange={(e) => setEditingAddress({ ...editingAddress, addressType: e.target.value })} className="mr-1" /> Work</label></div>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t flex justify-end space-x-4">
+                    <button onClick={() => setIsEditModalOpen(false)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-xl font-semibold">Cancel</button>
+                    <button onClick={handleUpdateAddress} disabled={loading} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-xl font-semibold">{loading ? 'Saving...' : 'Save Changes'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ProfilePage;
