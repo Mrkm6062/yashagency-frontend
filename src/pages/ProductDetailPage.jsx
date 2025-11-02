@@ -268,7 +268,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                 <h3 className="font-semibold text-gray-900 mb-4">📋 Specifications</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {product.specifications.map((spec, index) => (
-                    <div key={index} className="flex justify-between py-2 border-b border-gray-200 last:border-b-0"><span className="font-medium text-gray-700">{spec.key}:</span><span className="text-gray-600">{spec.value}</span></div>
+                    <div key={index} className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200 last:border-b-0">
+                      <span className="font-medium text-gray-700">{spec.key}:</span>
+                      <span className="text-gray-600 sm:text-right">{spec.value}</span>
+                    </div>
                   ))}
                 </div>
               </div>
