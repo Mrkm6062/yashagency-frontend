@@ -418,8 +418,8 @@ const logout = () => {
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<HomePage products={products} loading={loading} />} />
-              <Route path="/products" element={<ProductListPage products={products} loading={loading} API_BASE={API_BASE} />} />
-              <Route path="/product/:id" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} API_BASE={API_BASE} />} />
+              <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
+              <Route path="/product/:slug" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} API_BASE={API_BASE} />} />
               <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} API_BASE={API_BASE} />} />
               <Route path="/login" element={<LoginPage login={login} user={user} setNotification={setNotification} API_BASE={API_BASE} />} />
 

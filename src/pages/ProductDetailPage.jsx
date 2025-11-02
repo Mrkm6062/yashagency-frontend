@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FaArrowRight } from 'react-icons/fa';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
+import { FaArrowRight, FaShareAlt } from 'react-icons/fa';
 import { makeSecureRequest } from '../csrf.js';
 import { getToken } from '../storage.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
@@ -10,8 +10,9 @@ import { getOptimizedImageUrl } from '../imageUtils.js';
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, setNotification }) {
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -23,6 +24,8 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: '50%', y: '50%' });
   
   useEffect(() => {
     if (product) {
@@ -37,10 +40,13 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     const token = getToken();
     setCanReview(!!token);
 
+    // Get product ID from state passed by Link component, or find it from slug
+    const productId = location.state?.productId;
+
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE}/api/products/${id}`);
+        const response = await fetch(`${API_BASE}/api/products/${productId}`);
         if (response.ok) {
           const data = await response.json();
           setProduct(data);
@@ -51,8 +57,19 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
       setLoading(false);
     };
 
-    fetchProduct();
-  }, [id]);
+    if (productId) {
+      fetchProduct();
+    } else {
+      // Fallback if the page is loaded directly without state (e.g., refresh)
+      // We find the product by its slug from the all products list.
+      const productFromSlug = products.find(p => p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') === slug);
+      if (productFromSlug) {
+        setProduct(productFromSlug);
+        setLoading(false);
+      }
+      // If not found, you might want to redirect to a 404 page or fetch by slug from API if supported
+    }
+  }, [slug, location.state, products]);
   
   const submitReview = async () => {
     const token = getToken();
@@ -62,7 +79,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     }
     
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/products/${id}/rating`, {
+      const response = await makeSecureRequest(`${API_BASE}/api/products/${product._id}/rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating, review })
@@ -100,6 +117,31 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     for (let i = 0; i < quantity; i++) {
       addToCart(productWithVariant);
     }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: product.name,
+          text: `Check out this amazing product: ${product.description}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error sharing product:', error);
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      navigator.clipboard.writeText(window.location.href);
+      alert('Product link copied to clipboard!');
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.pageX - left) / width) * 100;
+    const y = ((e.pageY - top) / height) * 100;
+    setZoomPosition({ x: `${x}%`, y: `${y}%` });
   };
 
   const checkPincode = async () => {
@@ -143,7 +185,12 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="lg:sticky lg:top-8 lg:h-fit space-y-4">
-            <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden relative">
+            <div
+              className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden relative cursor-zoom-in"
+              onMouseEnter={() => setIsZooming(true)}
+              onMouseLeave={() => setIsZooming(false)}
+              onMouseMove={handleMouseMove}
+            >
               <picture>
                 <source
                   srcSet={`${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 800 })} 800w, ${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 1200 })} 1200w`}
@@ -155,8 +202,12 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   srcSet={`${getOptimizedImageUrl(images[selectedImage], { width: 400 })} 400w, ${getOptimizedImageUrl(images[selectedImage], { width: 800 })} 800w, ${getOptimizedImageUrl(images[selectedImage], { width: 1200 })} 1200w`}
                   sizes="(max-width: 1023px) 90vw, 45vw"
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300"
                   loading="lazy"
+                  style={{
+                    transform: isZooming ? 'scale(2)' : 'scale(1)',
+                    transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
+                  }}
                 />
               </picture>
               {product.originalPrice && product.discountPercentage > 0 && (
@@ -164,6 +215,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   {product.discountPercentage}% OFF
                 </div>
               )}
+              <button
+                onClick={handleShare} aria-label="Share this product"
+                className="absolute top-4 right-4 w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500">
+                <FaShareAlt className="w-5 h-5" />
+              </button>
               <button
                 onClick={async () => {
                   const token = getToken();

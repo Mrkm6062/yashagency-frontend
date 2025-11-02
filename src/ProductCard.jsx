@@ -17,8 +17,11 @@ const ProductCard = React.memo(function ProductCard({ product }) {
     }
   }, [images.length]);
   
+  // Create a URL-friendly slug from the product name
+  const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
   return (    
-    <Link to={`/product/${product._id}`} className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group block">
+    <Link to={`/product/${slug}`} state={{ productId: product._id }} className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group block">
       <div className="relative overflow-hidden rounded-t-lg aspect-[4/3]">
         <picture>
           <source 
