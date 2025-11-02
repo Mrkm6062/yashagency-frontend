@@ -26,7 +26,7 @@ function CheckoutPage({ user, clearCart }) {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login', { state: { from: location } });
+      navigate('/login', { state: { from: location.pathname } });
       return;
     }
     if (!items || items.length === 0) {

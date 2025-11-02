@@ -6,16 +6,16 @@ import { subscribeUser } from './pushNotifications.js';
 import { getToken, setToken, getUser, setUser, clearAuth } from './storage.js';
 import { useOutsideClick } from './useOutsideClick.js';
 
-// Import shared components directly (these are always part of the main bundle)
-import Header from './Header.jsx'; // Corrected path
-import Footer from './Footer.jsx';
-import BottomNavBar from './BottomNavBar.jsx';
+// Import only the most critical, lightweight components directly
 import LoadingSpinner from './LoadingSpinner.jsx';
-import MetaPixelTracker from './MetaPixelTracker.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
-import BackToTopButton from './BackToTopButton.jsx';
 
-// Lazy load heavy components
+// Lazy load all page components AND heavier layout components
+const Header = lazy(() => import('./Header.jsx'));
+const Footer = lazy(() => import('./Footer.jsx'));
+const BottomNavBar = lazy(() => import('./BottomNavBar.jsx'));
+const MetaPixelTracker = lazy(() => import('./MetaPixelTracker.jsx'));
+const BackToTopButton = lazy(() => import('./BackToTopButton.jsx'));
 const HomePage = lazy(() => import('./pages/HomePage.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));
@@ -64,6 +64,7 @@ function App() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [userNotifications, setUserNotifications] = useState([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem('cookie_consent'));
 
     // Load user from localStorage on app start
  useEffect(() => {
@@ -406,8 +407,8 @@ const logout = () => {
     <Router>      
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
-        <MetaPixelTracker user={user} />
-        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications}>
+        {cookieConsent === 'true' && <MetaPixelTracker user={user} />}
+        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
@@ -431,6 +432,20 @@ const logout = () => {
         </main>
         </ConditionalLayout>        
         
+        {/* Cookie Consent Banner - Keep this in the main app body */}
+        {!cookieConsent && (
+          <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 shadow-lg z-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-center sm:text-left">
+              We use cookies for analytics and to improve your experience. By continuing to use our site, you agree to our use of cookies. 
+              <Link to="/support/privacy" className="underline hover:text-blue-300 ml-1">Learn More</Link>
+            </p>
+            <div className="flex-shrink-0 flex gap-3">
+              <button onClick={() => { setCookieConsent('false'); localStorage.setItem('cookie_consent', 'false'); }} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Decline</button>
+              <button onClick={() => { setCookieConsent('true'); localStorage.setItem('cookie_consent', 'true'); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Accept</button>
+            </div>
+          </div>
+        )}
+
         {/* Notification */}
         {notification && (
           <div className={`fixed top-4 right-4 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 ${
@@ -459,7 +474,9 @@ const logout = () => {
           </div>
         )}
 
-        {showBackToTop && <BackToTopButton />}
+        <Suspense fallback={null}>
+          {showBackToTop && <BackToTopButton />}
+        </Suspense>
       </div>
     </Router>
   );
@@ -471,13 +488,16 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
   const hideNavAndFooter = false; // This can be made dynamic if needed
 
   return (
-    <>
-      {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
-      {children}
-      {/* The bottom nav and footer are now part of the main layout flow */}
-      {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />}
-      {!hideNavAndFooter && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
-    </>
+    <div className="pb-16 lg:pb-0">
+      <Suspense fallback={<div className="h-[85px] bg-white border-b"></div>}>
+        {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
+      </Suspense>
+      <div className="flex-grow">{children}</div>
+      <Suspense fallback={null}>
+        {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />}
+        {!hideNavAndFooter && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
+      </Suspense>
+    </div>
   );
 };
 export default App;

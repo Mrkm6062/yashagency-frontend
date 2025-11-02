@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getOptimizedImageUrl } from './imageUtils.js';
 
 const ProductCard = React.memo(function ProductCard({ product }) {
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
@@ -16,22 +17,29 @@ const ProductCard = React.memo(function ProductCard({ product }) {
     }
   }, [images.length]);
   
-  return (
+  return (    
     <Link to={`/product/${product._id}`} className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group block">
       <div className="relative overflow-hidden rounded-t-lg aspect-[4/3]">
-        <img 
-          src={images[currentImageIndex]} 
-          alt={product.name}
-          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-          loading="lazy"
-          width="300"
-          height="384"
-          onLoad={() => setImageLoaded(true)}
-          style={{ opacity: imageLoaded ? 1 : 0 }}
-        />
-        {!imageLoaded && <div className="absolute inset-0 bg-gray-300 animate-pulse w-full h-full" />}
+        <picture>
+          <source 
+            srcSet={`${getOptimizedImageUrl(images[currentImageIndex], { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(images[currentImageIndex], { format: 'webp', width: 800 })} 800w`}
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            type="image/webp"
+          />
+          <img 
+            src={images[currentImageIndex]} 
+            srcSet={`${images[currentImageIndex]} 800w`}
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            alt={product.name}
+            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
+          />
+        </picture>
+        {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
         {hasDiscount && (
-          <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+          <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold z-10">
             {product.discountPercentage}% OFF
           </div>
         )}

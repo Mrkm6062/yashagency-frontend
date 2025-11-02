@@ -5,6 +5,7 @@ import { makeSecureRequest } from '../csrf.js';
 import { getToken } from '../storage.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import SuggestedProducts from '../SuggestedProducts.jsx';
+import { getOptimizedImageUrl } from '../imageUtils.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -143,9 +144,23 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="lg:sticky lg:top-8 lg:h-fit space-y-4">
             <div className="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden relative">
-              <img src={images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+              <picture>
+                <source
+                  srcSet={`${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 800 })} 800w, ${getOptimizedImageUrl(images[selectedImage], { format: 'webp', width: 1200 })} 1200w`}
+                  sizes="(max-width: 1023px) 90vw, 45vw"
+                  type="image/webp"
+                />
+                <img
+                  src={images[selectedImage]}
+                  srcSet={`${getOptimizedImageUrl(images[selectedImage], { width: 400 })} 400w, ${getOptimizedImageUrl(images[selectedImage], { width: 800 })} 800w, ${getOptimizedImageUrl(images[selectedImage], { width: 1200 })} 1200w`}
+                  sizes="(max-width: 1023px) 90vw, 45vw"
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </picture>
               {product.originalPrice && product.discountPercentage > 0 && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                   {product.discountPercentage}% OFF
                 </div>
               )}
@@ -165,7 +180,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                       alert(data.error || `Failed to update wishlist`);
                     }
                   } catch (error) { alert(`Failed to update wishlist`); }
-                }}
+                }} aria-label={wishlistItems?.includes(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
                 className={`absolute bottom-4 right-4 w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center ${wishlistItems?.includes(product._id) ? 'bg-red-500 text-white' : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500'}`}>
                 <svg className="w-6 h-6" fill={wishlistItems?.includes(product._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />

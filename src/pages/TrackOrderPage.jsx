@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 
@@ -12,6 +12,7 @@ function TrackOrderPage({ user, API_BASE }) {
   const [refundForm, setRefundForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [refundLoading, setRefundLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {    
     if (user && orderId) {
@@ -19,7 +20,7 @@ function TrackOrderPage({ user, API_BASE }) {
       fetchOrderDetails();
     } else if (!user && orderId) {
         // If user is not logged in, we can't fetch order details. Redirect to login.
-        navigate('/login', { state: { from: location } });
+        navigate('/login', { state: { from: location.pathname } });
     } else if (!orderId) {
       // If no orderId is present in the URL, we can't track anything.
       navigate('/orders');

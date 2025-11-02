@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import { useOutsideClick } from './useOutsideClick.js';
+import { getOptimizedImageUrl } from './imageUtils.js';
 
 const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount, notifications, setUserNotifications, API_BASE, LOGO_URL, t, makeSecureRequest }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,7 +39,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
     if (notification.link) {
       navigate(notification.link);
     }
-    setTimeout(() => setShowNotifications(false), 100);
+    setShowNotifications(false); // Close dropdown immediately on navigation
   };
 
   const markAllAsRead = async () => {
@@ -66,10 +67,13 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+      <div className="w-full mx-0 px-1 px-4">
         <div className="flex justify-between items-center py-4">
           <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={LOGO_URL} alt="SamriddhiShop" className="h-14" />
+            <picture>
+              <source srcSet={getOptimizedImageUrl(LOGO_URL, { format: 'webp' })} type="image/webp" />
+              <img src={LOGO_URL} alt="SamriddhiShop" className="h-14 w-auto max-w-full" />
+            </picture>
           </Link>
 
           <nav className="hidden lg:flex items-center space-x-8">
@@ -100,14 +104,14 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             )}
             {user && (
               <div className="hidden lg:block relative" ref={notificationRef}>
-                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700" aria-label="View notifications">
                   <FaBell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
                   )}
                 </button>
                 {showNotifications && (                  
-                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-10 transform-gpu sm:transform-none">
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border z-20 transform-gpu sm:transform-none">
                     <div className="p-3 font-semibold border-b flex justify-between items-center">
                       <span>Notifications</span>
                       {unreadCount > 0 && (
@@ -117,22 +121,21 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map(n => (
-                          <div key={n._id} className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}>
-                            <div onClick={() => handleNotificationClick(n)} style={{ cursor: 'pointer' }}>
-                              <p className="text-sm text-left">{n.message}</p>
-                              <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
-                            </div>
-                          </div>
+                          <Link
+                            key={n._id}
+                            to={n.link || '#'}
+                            onMouseDown={() => handleNotificationClick(n)}
+                            className={`block p-3 hover:bg-gray-50 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                          >
+                            <p className="text-sm text-left">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                          </Link>
                         ))
                       ) : (
                         <p className="p-4 text-sm text-gray-500">No new notifications.</p>
                       )}
                     </div>
-                    {notifications.length > 0 && (
-                      <div className="p-2 border-t text-center">
-                        <button onClick={clearAllNotifications} className="text-xs font-medium text-red-600 hover:underline">Clear All Notifications</button>
-                      </div>
-                    )}
+                    {notifications.length > 0 && (<div className="p-2 border-t text-center"><div role="button" tabIndex="0" onClick={clearAllNotifications} onKeyDown={(e) => e.key === 'Enter' && clearAllNotifications()} className="text-xs font-medium text-red-600 hover:underline cursor-pointer">Clear All</div></div>)}
                   </div>
                 )}
               </div>
@@ -156,7 +159,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             </Link>
             {user && (
               <div className="relative" ref={notificationRef}>
-                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700" aria-label="View notifications">
                   <FaBell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount}</span>
@@ -173,16 +176,19 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map(n => (
-                          <div key={n._id} className={`block p-3 hover:bg-gray-100 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}>
-                            <div onClick={() => handleNotificationClick(n)} style={{ cursor: 'pointer' }}>
-                              <p className="text-sm text-left">{n.message}</p>
-                              <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
-                            </div>
-                          </div>
+                          <Link
+                            key={n._id}
+                            to={n.link || '#'}
+                            onMouseDown={() => handleNotificationClick(n)}
+                            className={`block p-3 hover:bg-gray-50 border-b last:border-b-0 ${!n.read ? 'bg-blue-50' : ''}`}
+                          >
+                            <p className="text-sm text-left">{n.message}</p>
+                            <p className="text-xs text-gray-500 mt-1 text-left">{new Date(n.createdAt).toLocaleString()}</p>
+                          </Link>
                         ))
                       ) : (<p className="p-4 text-sm text-gray-500">No new notifications.</p>)}
                     </div>
-                    {notifications.length > 0 && (<div className="p-2 border-t text-center"><button onClick={clearAllNotifications} className="text-xs font-medium text-red-600 hover:underline">Clear All</button></div>)}
+                    {notifications.length > 0 && (<div className="p-2 border-t text-center"><div role="button" tabIndex="0" onClick={clearAllNotifications} onKeyDown={(e) => e.key === 'Enter' && clearAllNotifications()} className="text-xs font-medium text-red-600 hover:underline cursor-pointer">Clear All</div></div>)}
                   </div>
                 )}
               </div>

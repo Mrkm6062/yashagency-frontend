@@ -78,7 +78,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
         
         <button 
           onClick={handleCheckout}
-          className="w-full bg-green-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg"
+          className="w-full bg-green-700 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-800 transition-colors shadow-lg"
         >
           {user ? '🛒 Proceed to Checkout' : 'Login to Checkout'}
         </button>

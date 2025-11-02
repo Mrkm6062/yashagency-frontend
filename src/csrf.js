@@ -32,13 +32,15 @@ export const makeSecureRequest = async (url, options = {}) => {
   
   // Fetch the CSRF token if it's not already cached
   const token = csrfToken || await getCSRFToken();
+  const authToken = localStorage.getItem('token');
   
   return fetch(url, {
     ...options,
     headers: {
       ...options.headers,
       'X-CSRF-Token': token,
-      'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined
+      // Ensure the Authorization header is present for the backend to validate the CSRF token
+      'Authorization': authToken ? `Bearer ${authToken}` : undefined
     }
   });
 };

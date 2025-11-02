@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const images = [item.imageUrl, ...(item.images || [])].filter(Boolean);
   
   useEffect(() => {
@@ -17,14 +18,18 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
   return (
     <div className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
       <Link to={`/product/${item._id}`}>
-        <div className="relative overflow-hidden rounded-t-lg">
+        <div className="relative overflow-hidden rounded-t-lg aspect-[4/3]">
           <img 
             src={images[currentImageIndex]} 
             alt={item.name}
-            className="w-full h-48 object-cover transition-all duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />
+          {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
           {hasDiscount && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
+            <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold z-10">
               {item.discountPercentage}% OFF
             </div>
           )}
@@ -44,7 +49,7 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
       </Link>
       <div className="p-4">
         <Link to={`/product/${item._id}`}>
-          <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer">{item.name}</h3>
+          <h2 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer">{item.name}</h2>
         </Link>
         {item.selectedVariant && (
           <p className="text-blue-600 text-sm mb-1">{item.selectedVariant.size} - {item.selectedVariant.color}</p>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
+import { getOptimizedImageUrl } from '../imageUtils.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -52,15 +53,32 @@ function HomePage({ products, loading }) {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
-      <Link to="/products" className="block">
-        <div className="hidden md:block relative mb-8 cursor-pointer">
+    <div className="w-full mx-0 px-0 overflow-x-hidden">
+      {/* 🔹 Full-width Banner Section */}
+      <Link to="/products" className="block w-full">
+        {/* Desktop Banner */}
+        <div className="hidden md:block relative mb-8 cursor-pointer w-full">
           {banners.desktop?.backgroundVideo ? (
-            <video src={banners.desktop.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
+            <video
+              src={banners.desktop.backgroundVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto rounded-none"
+            />
           ) : banners.desktop?.backgroundImage ? (
-            <img src={banners.desktop.backgroundImage} alt="Desktop Banner" className="w-full h-auto rounded-lg" fetchpriority="high" />
+            <picture>
+              <source srcSet={getOptimizedImageUrl(banners.desktop.backgroundImage, { format: 'webp' })} type="image/webp" />
+              <img
+                src={banners.desktop.backgroundImage}
+                alt="Desktop Banner"
+                className="w-full h-auto object-cover rounded-none"
+                fetchpriority="high"
+              />
+            </picture>
           ) : (
-            <div className="w-full h-96 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
+            <div className="w-full h-96 bg-gradient-to-r from-blue-500 to-purple-600"></div>
           )}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-12">
             <div className="relative z-10 max-w-3xl">
@@ -69,13 +87,30 @@ function HomePage({ products, loading }) {
             </div>
           </div>
         </div>
-        <div className="md:hidden block relative mb-8 cursor-pointer">
+
+        {/* Mobile Banner */}
+        <div className="md:hidden block relative mb-8 cursor-pointer w-full">
           {banners.mobile?.backgroundVideo ? (
-            <video src={banners.mobile.backgroundVideo} autoPlay loop muted playsInline className="w-full h-auto rounded-lg" />
+            <video
+              src={banners.mobile.backgroundVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-auto rounded-none"
+            />
           ) : banners.mobile?.backgroundImage ? (
-            <img src={banners.mobile.backgroundImage} alt="Mobile Banner" className="w-full h-auto rounded-lg" fetchpriority="high" />
+            <picture>
+              <source srcSet={getOptimizedImageUrl(banners.mobile.backgroundImage, { format: 'webp' })} type="image/webp" />
+              <img
+                src={banners.mobile.backgroundImage}
+                alt="Mobile Banner"
+                className="w-full h-auto object-cover rounded-none"
+                fetchpriority="high"
+              />
+            </picture>
           ) : (
-            <div className="w-full h-64 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"></div>
+            <div className="w-full h-64 bg-gradient-to-r from-blue-500 to-purple-600"></div>
           )}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-8">
             <div className="relative z-10">
@@ -85,24 +120,28 @@ function HomePage({ products, loading }) {
           </div>
         </div>
       </Link>
-      {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
-        <section key={category} className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold capitalize">{category}</h2>
-            <Link
-              to={`/products?category=${encodeURIComponent(category)}`}
-              className="text-blue-600 hover:text-blue-800 font-medium"
-            >
-              View All →
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {categoryProducts.slice(0, 4).map(product => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        </section>
-      ))}
+
+      {/* 🔹 Centered Product Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
+          <section key={category} className="mb-12">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold capitalize">{category}</h2>
+              <Link
+                to={`/products?category=${encodeURIComponent(category)}`}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                View All →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+              {categoryProducts.slice(0, 4).map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
