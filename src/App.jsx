@@ -64,7 +64,12 @@ function App() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [userNotifications, setUserNotifications] = useState([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [cookieConsent, setCookieConsent] = useState(() => localStorage.getItem('cookie_consent'));
+  const [cookieConsent, setCookieConsent] = useState(null); // Initialize as null
+
+  // Handle cookie consent after mount to avoid hydration issues
+  useEffect(() => {
+    setCookieConsent(localStorage.getItem('cookie_consent'));
+  }, []);
 
     // Load user from localStorage on app start
  useEffect(() => {
@@ -433,14 +438,13 @@ const logout = () => {
         </ConditionalLayout>        
         
         {/* Cookie Consent Banner - Keep this in the main app body */}
-        {!cookieConsent && (
+        {cookieConsent === null || cookieConsent === 'false' ? (
           <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white p-4 shadow-lg z-50 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-center sm:text-left">
               We use cookies for analytics and to improve your experience. By continuing to use our site, you agree to our use of cookies. 
               <Link to="/support/privacy" className="underline hover:text-blue-300 ml-1">Learn More</Link>
             </p>
             <div className="flex-shrink-0 flex gap-3">
-              <button onClick={() => { setCookieConsent('false'); localStorage.setItem('cookie_consent', 'false'); }} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Decline</button>
               <button onClick={() => { setCookieConsent('true'); localStorage.setItem('cookie_consent', 'true'); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Accept</button>
             </div>
           </div>
