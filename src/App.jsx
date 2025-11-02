@@ -448,7 +448,7 @@ const logout = () => {
               <button onClick={() => { setCookieConsent('true'); localStorage.setItem('cookie_consent', 'true'); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Accept</button>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Notification */}
         {notification && (
