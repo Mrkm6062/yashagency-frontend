@@ -29,6 +29,8 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage.jsx'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'));
 const CustomerServicePage = lazy(() => import('./pages/CustomerServicePage.jsx'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
+const BlogPage = lazy(() => import('./pages/BlogPage.jsx'));
+const BlogPostDetailPage = lazy(() => import('./pages/BlogPostDetailPage.jsx'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'));
 
 // API Base URL
@@ -430,6 +432,8 @@ const logout = () => {
               <Route path="/checkout" element={<CheckoutPage user={user} clearCart={clearCart} API_BASE={API_BASE} />} />
               <Route path="/admin/*" element={<AdminPanel user={user} API_BASE={API_BASE} />} />
               <Route path="/support/*" element={<CustomerServicePage API_BASE={API_BASE} />} />
+              <Route path="/blogs" element={<BlogPage />} />
+              <Route path="/blogs/:slug" element={<BlogPostDetailPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage API_BASE={API_BASE} />} />
               <Route path="/reset-password/:token" element={<ResetPasswordPage API_BASE={API_BASE} />} />
             </Routes>
