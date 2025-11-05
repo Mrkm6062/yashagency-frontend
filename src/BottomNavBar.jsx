@@ -7,6 +7,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
     { to: '/products', icon: '🛍️', label: 'Shop' },
+    { to: '/blogs', icon: '📝', label: 'Blogs' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
     { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
     { to: '/profile', icon: '👤', label: 'Profile', requiresUser: true },
