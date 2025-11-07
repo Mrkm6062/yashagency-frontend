@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 
-function OrderStatusPage({ user, API_BASE }) {
+function OrderStatusPage({ user, API_BASE, addToCart }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,6 +51,16 @@ function OrderStatusPage({ user, API_BASE }) {
     }
   };
 
+  const handleBuyAgain = (e, orderItems) => {
+    e.stopPropagation(); // Prevent click from bubbling up to parent Link elements
+    orderItems.forEach(item => {
+      const productToAdd = { ...item.productId, selectedVariant: item.selectedVariant };
+      for (let i = 0; i < item.quantity; i++) {
+        addToCart(productToAdd);
+      }
+    });
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -90,8 +100,9 @@ function OrderStatusPage({ user, API_BASE }) {
       ) : (
         <div className="space-y-6">
           {orders.map(order => (
-            <div key={order._id} className="bg-white p-6 rounded-lg shadow border">
+            <div key={order._id} className="bg-white p-4 rounded-lg shadow-md">
               <div className="flex justify-between items-start mb-4">
+                
                 <div>
                   <h3 className="text-lg font-semibold">Order #{order.orderNumber || order._id.slice(-8)}</h3>
                   <p className="text-gray-600">Placed on {new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
@@ -100,21 +111,22 @@ function OrderStatusPage({ user, API_BASE }) {
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
-                  <p className="text-xl font-bold text-green-600 mt-2">₹{order.total.toFixed(2)}</p>
+                  <p className="text-sm font-bold text-green-600 mt-2">₹{order.total.toFixed(2)}</p>
                 </div>
               </div>
               
               <div className="border-t pt-4">
-                <h4 className="font-medium mb-3">Order Items:</h4>
+                <h4 className="font-medium mb-3 text-gray-700">Items in this order:</h4>
                 <div className="space-y-2">
                   {order.items.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                      <div>
-                        <span className="font-medium">{item.name}</span>
-                        {item.selectedVariant && (<span className="text-blue-600 text-sm ml-2">({item.selectedVariant.size} - {item.selectedVariant.color})</span>)}
-                        <span className="text-gray-600 ml-2">x{item.quantity}</span>
+                    <div key={index} className="flex items-center space-x-4">
+                      <img src={item.productId.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{item.name}</p>
+                        {item.selectedVariant && (<p className="text-sm text-blue-600">{item.selectedVariant.size} - {item.selectedVariant.color}</p>)}
+                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                       </div>
-                      <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
+                      <p className="font-semibold text-gray-800">₹{(item.price * item.quantity).toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
@@ -124,7 +136,7 @@ function OrderStatusPage({ user, API_BASE }) {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center space-x-4">
                     {['pending', 'processing'].includes(order.status) && (
-                      <button onClick={() => handleCancelOrder(order._id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Cancel Order</button>
+                      <button onClick={() => handleCancelOrder(order._id)} className="px-10 text-red-500 hover:text-red-700 font-medium text-sm">Cancel Order</button>
                     )}
                     <Link to={`/track/${order._id}`} className="text-blue-500 hover:text-blue-700 font-medium">Track Order</Link>
                   </div>

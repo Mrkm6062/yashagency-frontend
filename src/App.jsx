@@ -492,8 +492,26 @@ const logout = () => {
 
 const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, notifications, setUserNotifications }) => {
   const location = useLocation();
-  // No pages will hide the header and footer now.
-  const hideNavAndFooter = false; // This can be made dynamic if needed
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Hide footer on specific pages only on mobile to reduce distractions
+  const shouldHideOnMobile =
+    location.pathname === '/checkout' ||
+    location.pathname.startsWith('/track/') ||
+    location.pathname === '/orders' ||
+    location.pathname === '/cart' ||
+    location.pathname === '/wishlist' ||
+    location.pathname === '/products' ||
+    location.pathname === '/profile';
+  const hideFooter = isMobile && shouldHideOnMobile;
+  
+  const hideNavAndFooter = false; // This can be made dynamic if needed for other pages
 
   return (
     <div className="pb-16 lg:pb-0">
@@ -503,7 +521,7 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
       <div className="flex-grow">{children}</div>
       <Suspense fallback={null}>
         {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />}
-        {!hideNavAndFooter && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
+        {!hideFooter && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
       </Suspense>
     </div>
   );

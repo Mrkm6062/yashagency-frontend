@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
@@ -10,13 +10,15 @@ function CheckoutPage({ user, clearCart }) {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [newAddress, setNewAddress] = useState({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponId, setCouponId] = useState(null);
+  const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
   const [shippingCost, setShippingCost] = useState(0);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
@@ -65,11 +67,41 @@ function CheckoutPage({ user, clearCart }) {
       });
       const data = await response.json();
       setAddresses(data.addresses || []);
+      if (data.addresses && data.addresses.length > 0) {
+        // Automatically select the home address or the first one if home is not found
+        const defaultSelected = data.addresses.find(addr => addr.addressType === 'home') || data.addresses[0];
+        setSelectedAddress(defaultSelected);
+      }
     } catch (error) {
       console.error('Error fetching addresses:', error);
     }
   };
 
+  const handleAddAddress = async () => {
+    if (!newAddress.street || !newAddress.city || !newAddress.name || !newAddress.mobileNumber) {
+      alert('Please fill in all required fields for the new address.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/addresses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAddress)
+      });
+      if (response.ok) {
+        const savedAddress = await response.json();
+        await fetchAddresses(); // Refresh address list
+        setSelectedAddress(savedAddress); // Auto-select the new address
+        setShowNewAddressForm(false); // Hide the form
+        setNewAddress({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to add address');
+      }
+    } catch (error) { alert('Failed to add address'); }
+    setLoading(false);
+  };
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     try {
@@ -227,6 +259,13 @@ function CheckoutPage({ user, clearCart }) {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="mb-6 flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors font-medium"
+        >
+          <span>&larr;</span>
+          <span>Go Back</span>
+        </button>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
           <p className="text-gray-600 mt-2">{buyNow ? 'Complete your purchase' : 'Review your order and complete payment'}</p>
@@ -234,14 +273,14 @@ function CheckoutPage({ user, clearCart }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">🏠 Delivery Address</h2>
+            <div className="">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4"> Select Delivery Address </h2>
               {addresses.length > 0 && (
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-700">Saved Addresses</h3>
                   {addresses.map(address => (
-                    <label key={address._id} className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer">
-                      <input type="radio" name="address" onChange={() => setSelectedAddress(address)} className="mt-1 text-blue-500" />
+                    <label key={address._id} className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer ${selectedAddress?._id === address._id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
+                      <input type="radio" name="address" onChange={() => { setSelectedAddress(address); setShowNewAddressForm(false); }} className="mt-1 text-blue-500" />
                       <div className="flex-1">
                         <p className="font-bold text-gray-900">{address.name}<span className="ml-2 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full capitalize">{address.addressType}</span></p>
                         <p className="font-medium text-gray-800">{address.mobileNumber}</p>
@@ -252,29 +291,41 @@ function CheckoutPage({ user, clearCart }) {
                 </div>
               )}
               <div className="border-t pt-6">
-                <label className="flex items-center space-x-3 mb-4"><input type="radio" name="address" onChange={() => setSelectedAddress(null)} className="text-blue-500" /><span className="font-medium text-gray-900">Add New Address</span></label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Full Name *" value={newAddress.name || ''} onChange={(e) => setNewAddress({...newAddress, name: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                  <input type="tel" placeholder="Mobile Number *" value={newAddress.mobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                  <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                  <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                  <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                  <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                </div>
-                <div className="md:col-span-2"><label className="flex items-center space-x-2 mt-2"><input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} className="rounded text-blue-500" /><span className="text-sm text-gray-700">Save this address</span></label></div>
+                {!showNewAddressForm ? (
+                  <button onClick={() => { setShowNewAddressForm(true); setSelectedAddress(null); }} className="w-full text-blue-600 border-2 border-dashed border-blue-300 hover:bg-blue-50 py-3 rounded-lg transition-colors">
+                    + Add another address
+                  </button>
+                ) : (
+                  <div>
+                    <h3 className="font-medium text-gray-900 mb-4">Add New Address</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input type="text" placeholder="Full Name *" value={newAddress.name || ''} onChange={(e) => setNewAddress({...newAddress, name: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="tel" placeholder="Mobile Number *" value={newAddress.mobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                    </div>
+                    <div className="mt-4">
+                      <button onClick={handleAddAddress} disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                        {loading ? 'Saving...' : 'Save Address'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">💳 Payment Method</h2>
+            <div className="">
+              <h2 className="text-xl font-bold text-gray-900 mb-4"> Payment Method</h2>
               <div className="space-y-3">
                 <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer"><input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)} className="text-blue-500" /><div className="flex items-center space-x-3"><span className="text-2xl">💵</span><div><p className="font-medium">Cash on Delivery</p><p className="text-gray-600 text-sm">Pay on delivery</p></div></div></label>
                 <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer"><input type="radio" name="payment" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={(e) => setPaymentMethod(e.target.value)} className="text-blue-500" /><div className="flex items-center space-x-3"><span className="text-2xl">💳</span><div><p className="font-medium">Credit/Debit Card, UPI</p><p className="text-gray-600 text-sm">Pay with Razorpay</p></div></div></label>
               </div>
             </div>
           </div>
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-xl shadow-sm border sticky top-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">📋 Order Summary</h2>
+            <div className="lg:col-span-1 lg:sticky lg:top-24 lg:self-start lg:h-fit">
+              <div className="">
+              <h2 className="text-xl font-bold text-gray-900 mb-4"> Order Summary</h2>
               <div className="space-y-4 mb-6">
                 {items.map((item, index) => (<div key={index} className="flex items-center space-x-3"><img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover rounded-lg" /><div className="flex-1"><h3 className="font-medium text-sm">{item.name}</h3>{item.selectedVariant && (<p className="text-gray-500 text-xs">{item.selectedVariant.size} - {item.selectedVariant.color}</p>)}<p className="text-gray-600 text-sm">Qty: {item.quantity}</p></div><p className="font-semibold">₹{(item.price * item.quantity).toLocaleString()}</p></div>))}
               </div>
@@ -285,7 +336,24 @@ function CheckoutPage({ user, clearCart }) {
                 {discount > 0 && (<div className="flex justify-between text-green-600"><span>Discount ({couponCode})</span><span>-₹{discount.toLocaleString()}</span></div>)}
                 <div className="border-t pt-2 flex justify-between text-lg font-bold text-gray-900"><span>Total</span><span>₹{finalTotal.toLocaleString()}</span></div>
               </div>
-              <button onClick={processOrder} disabled={loading} className="w-full mt-6 bg-green-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-700 disabled:opacity-50">{loading ? '⏳ Processing...' : '🛒 Place Order'}</button>
+              <div className="mt-4">
+                <label className="flex items-start space-x-2">
+                  <input 
+                    type="checkbox" 
+                    checked={termsAccepted} 
+                    onChange={(e) => setTermsAccepted(e.target.checked)} 
+                    className="mt-1 rounded text-blue-500 focus:ring-blue-500" 
+                  />
+                  <span className="text-sm text-gray-600">
+                    I have read and agree to the{' '}
+                    <Link to="/support/terms" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>,{' '}
+                    <Link to="/support/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>, and{' '}
+                    <Link to="/support/returns" target="_blank" className="text-blue-600 hover:underline">Refund Policy</Link>.
+                  </span>
+                </label>
+              </div>
+              
+              <button onClick={processOrder} disabled={loading || !termsAccepted} className="w-full mt-6 bg-green-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? '⏳ Processing...' : '🛒 Place Order'}</button>
               <div className="mt-4 text-center"><p className="text-gray-500 text-sm">🔒 Your payment information is secure</p></div>
             </div>
           </div>

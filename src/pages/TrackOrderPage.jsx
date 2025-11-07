@@ -175,22 +175,22 @@ function TrackOrderPage({ user, API_BASE }) {
         <h1 className="text-3xl font-bold">Track Order #{order.orderNumber || order._id.slice(-8)}</h1>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow mb-8">
+      <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2">Order Details</h3>
+            <h3 className="font-bold text-gray-700 mb-2">Order Details</h3>
             <p><strong>Order ID:</strong> #{order.orderNumber || order._id.slice(-8)}</p>
             <p><strong>Order Date:</strong> {new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
             <p><strong>Total Amount:</strong> ₹{order.total.toFixed(2)}</p>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2">Current Status</h3>
+            <h3 className="font-bold text-gray-700 mb-2">Current Status</h3>
             <div className="flex items-center space-x-2"><span className="text-2xl">{getStatusIcon(order.status, true)}</span><span className="font-medium capitalize text-lg">{order.status}</span></div>
             <p className="text-sm text-gray-600 mt-1">Last updated: {new Date(order.createdAt).toLocaleString('en-IN')}</p>
           </div>
           {order.shippingAddress && (
             <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Delivery Address</h3>
+              <h3 className="font-bold text-gray-700 mb-2">Delivery Address</h3>
               <p className="text-sm font-medium text-gray-800">{order.shippingAddress.name}</p>
               <p className="text-sm text-gray-700">{order.shippingAddress.mobileNumber} {order.shippingAddress.alternateMobileNumber && `(Alt: ${order.shippingAddress.alternateMobileNumber})`}</p>
               <p className="text-sm text-gray-600">{order.shippingAddress.street}<br />{order.shippingAddress.city}, {order.shippingAddress.state}<br />{order.shippingAddress.zipCode}, {order.shippingAddress.country}</p>
@@ -211,7 +211,7 @@ function TrackOrderPage({ user, API_BASE }) {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow mb-8">
+      <div className="p-6">
         <h2 className="text-xl font-semibold mb-6">Tracking Timeline</h2>
         <div className="space-y-6">
           {trackingHistory.map((step, index) => (
@@ -228,7 +228,7 @@ function TrackOrderPage({ user, API_BASE }) {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="p-6">
         <h2 className="text-xl font-semibold mb-4">Order Items</h2>
         <div className="space-y-4">
           {order.items.map((item, index) => (

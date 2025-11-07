@@ -29,6 +29,8 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isZooming, setIsZooming] = useState(false);
+  const [showSizeSelector, setShowSizeSelector] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const [zoomPosition, setZoomPosition] = useState({ x: '50%', y: '50%' });
   
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(5);
@@ -142,23 +144,41 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   };
 
   const handleBuyNow = () => {
+    const performBuyNow = () => {
+      const buyNowItem = { ...product, quantity, selectedVariant };
+      navigate('/checkout', { state: { items: [buyNowItem], total: product.price * quantity, buyNow: true } });
+    };
+
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Please select a size and color');
+      if (window.innerWidth < 1024) { // On mobile, show the selector
+        setPendingAction(() => performBuyNow);
+        setShowSizeSelector(true);
+      } else {
+        alert('Please select a size and color');
+      }
       return;
     }
-    const buyNowItem = { ...product, quantity, selectedVariant };
-    navigate('/checkout', { state: { items: [buyNowItem], total: product.price * quantity, buyNow: true } });
+    performBuyNow();
   };
 
   const handleAddToCart = () => {
+    const performAddToCart = () => {
+      const productWithVariant = { ...product, selectedVariant };
+      for (let i = 0; i < quantity; i++) {
+        addToCart(productWithVariant);
+      }
+    };
+
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Please select a size and color');
+      if (window.innerWidth < 1024) { // On mobile, show the selector
+        setPendingAction(() => performAddToCart);
+        setShowSizeSelector(true);
+      } else {
+        alert('Please select a size and color');
+      }
       return;
     }
-    const productWithVariant = { ...product, selectedVariant };
-    for (let i = 0; i < quantity; i++) {
-      addToCart(productWithVariant);
-    }
+    performAddToCart();
   };
 
   const handleShare = async () => {
@@ -303,7 +323,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 pb-48 lg:pb-0">
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{product.category}</span>
@@ -522,6 +542,50 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
         <div className="mt-12">
           <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
         </div>
+
+        {/* Mobile Size Selector Popup */}
+        {showSizeSelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setShowSizeSelector(false)}>
+            <div
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 pb-24 shadow-lg transform transition-transform duration-300 animate-slide-up"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Select a Size</h3>
+                <button onClick={() => setShowSizeSelector(false)} className="text-gray-500 text-2xl">&times;</button>
+              </div>
+              <div className="flex flex-wrap gap-3 mb-6">
+                {sizes.map((size, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setSelectedSize(size);
+                      const colorsForThisSize = product.variants.filter(v => v.size === size).map(v => ({ color: v.color, stock: v.stock }));
+                      if (colorsForThisSize.length === 1) {
+                        setSelectedColor(colorsForThisSize[0].color);
+                      } else {
+                        setSelectedColor(null); // This case shouldn't happen if the popup is only for size
+                      }
+                    }}
+                    className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedSize === size ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  if (pendingAction) pendingAction();
+                  setShowSizeSelector(false);
+                }}
+                disabled={!selectedVariant}
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
