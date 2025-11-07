@@ -340,7 +340,16 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                         key={index}
                         onClick={() => {
                           setSelectedSize(size);
-                          setSelectedColor(null);
+                          // Automatically select color if only one is available for this size
+                          const colorsForThisSize = product.variants
+                            .filter(v => v.size === size)
+                            .map(v => ({ color: v.color, stock: v.stock }));
+
+                          if (colorsForThisSize.length === 1) {
+                            setSelectedColor(colorsForThisSize[0].color);
+                          } else {
+                            setSelectedColor(null); // Reset if multiple or none, forcing user choice
+                          }
                         }}
                         className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedSize === size ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
                       >
@@ -350,7 +359,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   </div>
                 </div>
 
-                {selectedSize && colorsForSelectedSize.length > 1 && (
+                {selectedSize && colorsForSelectedSize.length > 1 && ( // Only show color selection if there's more than one color
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">Select Color</h3>
                     <div className="flex flex-wrap gap-3">
