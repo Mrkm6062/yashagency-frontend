@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { FaArrowRight, FaShareAlt } from 'react-icons/fa';
+import { FaArrowRight, FaShareAlt, FaArrowDown, FaCheckCircle } from 'react-icons/fa';
 import { makeSecureRequest } from '../csrf.js';
-import { getToken } from '../storage.js';
+import { getToken, getUser } from '../storage.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import SuggestedProducts from '../SuggestedProducts.jsx';
 import { getOptimizedImageUrl } from '../imageUtils.js';
@@ -15,18 +15,23 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const location = useLocation();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [canReview, setCanReview] = useState(false);
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState('');
   const [pincode, setPincode] = useState('');
   const [pincodeStatus, setPincodeStatus] = useState(null);
+  const [userAddress, setUserAddress] = useState(null);
+  const [showManualPincode, setShowManualPincode] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: '50%', y: '50%' });
   
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(5);
   useEffect(() => {
     if (product) {
       document.title = `${product.name} - SamriddhiShop`;
@@ -71,6 +76,43 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     }
   }, [slug, location.state, products]);
   
+  useEffect(() => {
+    const fetchUserAddress = async () => {
+      const user = getUser();
+      const token = getToken();
+      if (user && token) {
+        try {
+          const response = await fetch(`${API_BASE}/api/profile`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.addresses && data.addresses.length > 0) {
+              const homeAddress = data.addresses.find(addr => addr.addressType === 'home') || data.addresses[0];
+              setUserAddress(homeAddress);
+              if (homeAddress.zipCode) {
+                checkPincode(homeAddress.zipCode);
+              }
+            }
+          }
+        } catch (error) { console.error('Failed to fetch user address:', error); }
+      }
+    };
+    fetchUserAddress();
+  }, []);
+
+  useEffect(() => {
+    // When both size and color are selected, find the matching variant
+    if (selectedSize && selectedColor && product && product.variants) {
+      const variant = product.variants.find(
+        v => v.size === selectedSize && v.color === selectedColor
+      );
+      setSelectedVariant(variant || null);
+    } else {
+      setSelectedVariant(null);
+    }
+  }, [selectedSize, selectedColor, product]);
+
   const submitReview = async () => {
     const token = getToken();
     if (!token) {
@@ -101,7 +143,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
   const handleBuyNow = () => {
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Please select size and color');
+      alert('Please select a size and color');
       return;
     }
     const buyNowItem = { ...product, quantity, selectedVariant };
@@ -110,7 +152,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
   const handleAddToCart = () => {
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      alert('Please select size and color');
+      alert('Please select a size and color');
       return;
     }
     const productWithVariant = { ...product, selectedVariant };
@@ -144,19 +186,20 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     setZoomPosition({ x: `${x}%`, y: `${y}%` });
   };
 
-  const checkPincode = async () => {
-    if (!pincode || pincode.length !== 6) {
+  const checkPincode = async (pincodeToCheck) => {
+    const code = pincodeToCheck || pincode;
+    if (!code || code.length !== 6) {
       setPincodeStatus({ available: false, message: 'Please enter a valid 6-digit pincode.' });
       return;
     }
     setPincodeStatus({ loading: true });
     try {
-      const response = await fetch(`${API_BASE}/api/check-pincode/${pincode}`);
+      const response = await fetch(`${API_BASE}/api/check-pincode/${code}`);
       const data = await response.json();
       if (response.ok && data.deliverable) {
-        setPincodeStatus({ available: true, message: `Yes! Delivery is available to ${pincode}.` });
+        setPincodeStatus({ available: true, message: `Yes! Delivery is available to ${code}.` });
       } else {
-        setPincodeStatus({ available: false, message: data.message || `Sorry, delivery is not available to ${pincode} yet.` });
+        setPincodeStatus({ available: false, message: data.message || `Sorry, delivery is not available to ${code} yet.` });
       }
     } catch (error) {
       console.error('Pincode check error:', error);
@@ -169,11 +212,19 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   }
 
   const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
+  const sizes = product.variants ? [...new Set(product.variants.map(v => v.size))] : [];
+  const colorsForSelectedSize = selectedSize
+    ? product.variants
+        .filter(v => v.size === selectedSize)
+        .map(v => ({ color: v.color, stock: v.stock }))
+    : [];
+  const isVariantOutOfStock = selectedVariant && selectedVariant.stock <= 0;
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <nav className="mb-8">
+        <nav className="mb-8 hidden sm:block">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Link to="/" className="hover:text-blue-600">Home</Link>
             <span>/</span>
@@ -210,15 +261,15 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   }}
                 />
               </picture>
-              {product.originalPrice && product.discountPercentage > 0 && (
-                <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              {/* {product.originalPrice && product.discountPercentage > 0 && (
+                <div className="absolute top-1 left-1 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                   {product.discountPercentage}% OFF
                 </div>
-              )}
+              )} */}
               <button
                 onClick={handleShare} aria-label="Share this product"
-                className="absolute top-4 right-4 w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500">
-                <FaShareAlt className="w-5 h-5" />
+                className="absolute top-2 right-1 w-6 h-6 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-500">
+                <FaShareAlt className="w-4 h-4" />
               </button>
               <button
                 onClick={async () => {
@@ -237,8 +288,8 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                     }
                   } catch (error) { alert(`Failed to update wishlist`); }
                 }} aria-label={wishlistItems?.includes(product._id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                className={`absolute bottom-4 right-4 w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center ${wishlistItems?.includes(product._id) ? 'bg-red-500 text-white' : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500'}`}>
-                <svg className="w-6 h-6" fill={wishlistItems?.includes(product._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                className={`absolute top-10 right-1 w-6 h-6 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center ${wishlistItems?.includes(product._id) ? 'bg-red-500 text-white' : 'bg-white text-gray-600 hover:bg-red-50 hover:text-red-500'}`}>
+                <svg className="w-5 h-5" fill={wishlistItems?.includes(product._id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </button>
@@ -261,82 +312,126 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   <span className="text-gray-600 text-sm ml-2">({product.averageRating || 0}) {product.totalRatings || 0} reviews</span>
                 </div>
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
-              <p className="text-gray-600 text-lg leading-relaxed">{product.description}</p>
+              <h3 className="text-3xl lg:text-4x1 font-bold text-gray-900 mb-4">{product.name}</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <div className="flex items-baseline space-x-3">
+            <div className="">
+              <div className="flex items-center space-x-3">
                 <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
                 {product.originalPrice && product.discountPercentage > 0 && (
                   <>
                     <span className="text-lg text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                    <span className="bg-red-100 text-red-800 text-sm px-2 py-1 rounded">{product.discountPercentage}% OFF</span>
+                    <span className="text-green-800 text-lg font-bold px-2 py-1 rounded flex items-center">
+                      <FaArrowDown className="mr-1" /> {product.discountPercentage}% OFF
+                    </span>
                   </>
                 )}
               </div>
             </div>
             
             {product.variants && product.variants.length > 0 && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border">
-                <h3 className="font-semibold text-gray-900 mb-3">Select Size & Color</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {product.variants.map((variant, index) => (
-                    <button key={index} onClick={() => setSelectedVariant(variant)} className={`p-3 border rounded-lg text-sm font-medium transition-colors ${selectedVariant === variant ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'} ${variant.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`} disabled={variant.stock <= 0}>
-                      <div>{variant.size} - {variant.color}</div>
-                    </button>
-                  ))}
+              <div className="">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">Select Size</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {sizes.map((size, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSelectedSize(size);
+                          setSelectedColor(null);
+                        }}
+                        className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedSize === size ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {selectedSize && colorsForSelectedSize.length > 1 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Select Color</h3>
+                    <div className="flex flex-wrap gap-3">
+                      {colorsForSelectedSize.map((item, index) => (
+                        <button key={index} onClick={() => setSelectedColor(item.color)} className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedColor === item.color ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'} ${item.stock <= 0 ? 'opacity-50 cursor-not-allowed line-through' : ''}`} disabled={item.stock <= 0}>
+                          {item.color}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {isVariantOutOfStock && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                    <p className="text-red-700 font-semibold">This combination is currently out of stock.</p>
+                  </div>
+                )}
               </div>
             )}
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h3 className="font-semibold text-gray-900 mb-3">Quantity</h3>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
-                  <span className="px-4 py-2 border-x border-gray-300 min-w-[60px] text-center">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+            <div className="">
+              <h3 className="font-semibold text-gray-900 mb-3">Delivery Details</h3>
+              {userAddress && !showManualPincode ? (
+                <div>
+                  <p className="text-sm text-gray-700 mb-2 bg-gray-100 p-2 rounded-md">
+                    Deliver to Your Home : <strong>{userAddress.name}</strong> - {userAddress.street}, {userAddress.city}, {userAddress.state} - {userAddress.zipCode}
+                    <br />
+                    {pincodeStatus && (
+                    <div className={`text-sm font-medium mb-2 ${pincodeStatus.loading ? 'text-gray-500' : pincodeStatus.available ? 'text-green-600' : 'text-red-600'}`}>
+                      {pincodeStatus.loading ? `Checking for your address...` : pincodeStatus.message}
+                    </div>
+                  )}
+                  </p>
+                  <button onClick={() => setShowManualPincode(true)} className="text-blue-600 text-sm hover:underline">Check another pincode</button>
                 </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm border">
-              <h3 className="font-semibold text-gray-900 mb-3">Check Delivery Availability</h3>
-              <div className="flex space-x-2">
-                <input type="number" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value)} className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button onClick={checkPincode} className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"><FaArrowRight className="h-5 w-5" /></button>
-              </div>
-              {pincodeStatus && (
-                <div className={`mt-3 text-sm font-medium ${pincodeStatus.loading ? 'text-gray-500' : pincodeStatus.available ? 'text-green-600' : 'text-red-600'}`}>
-                  {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
+              ) : (
+                <div>
+                  <div className="flex space-x-2">
+                    <input type="number" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value)} className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button onClick={() => checkPincode()} className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"><FaArrowRight className="h-5 w-5" /></button>
+                  </div>
+                  {pincodeStatus && showManualPincode && (
+                    <div className={`mt-3 text-sm font-medium ${pincodeStatus.loading ? 'text-gray-500' : pincodeStatus.available ? 'text-green-600' : 'text-red-600'}`}>
+                      {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-
-            <div className="space-y-4">
-              <button onClick={handleBuyNow} className="w-full bg-orange-500 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg">
-                🛒 Buy Now  ₹{(product.price * quantity).toLocaleString()}
-              </button>
-              <button onClick={handleAddToCart} className="w-full bg-blue-600 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:bg-blue-700 transition-colors border-2 border-blue-600">
-                Add to Cart
+            
+            <div className="space-y-4 fixed bottom-16 left-0 right-0 bg-white p-4 border-t shadow-lg z-10 lg:static lg:p-0 lg:border-none lg:shadow-none">
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="flex items-center border border-gray-300 rounded-lg">
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+                    <span className="px-4 py-3 border-x border-gray-300 min-w-[60px] text-center">{quantity}</span>
+                    <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                  </div>
+                </div>
+                <button onClick={handleAddToCart} disabled={isVariantOutOfStock} className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed">
+                  Add to Cart
+                </button>
+              </div>
+              <button onClick={handleBuyNow} disabled={isVariantOutOfStock} className="w-full bg-orange-500 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:bg-green-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
+                 Buy Now at ₹{(product.price * quantity).toLocaleString()}
               </button>
             </div>
 
             {product.showHighlights && product.highlights?.length > 0 && (
-              <div className="bg-blue-50 p-6 rounded-xl">
-                <h3 className="font-semibold text-blue-900 mb-4">✨ Product Highlights</h3>
+              <div className="">
+                <h3 className="font-bold text-black-900 mb-4">Product Highlights</h3>
                 <div className="space-y-3">
                   {product.highlights.map((highlight, index) => (
-                    <div key={index} className="flex items-center space-x-3"><span className="text-blue-500">✓</span><span className="text-blue-800">{highlight}</span></div>
+                    <div key={index} className="flex items-center space-x-3"><span className="text-green-500">✓</span><span className="text-blue-800">{highlight}</span></div>
                   ))}
                 </div>
               </div>
             )}
             
             {product.showSpecifications && product.specifications?.length > 0 && (
-              <div className="bg-gray-50 p-6 rounded-xl">
-                <h3 className="font-semibold text-gray-900 mb-4">📋 Specifications</h3>
+              <div className="">
+                <h3 className="font-bold text-gray-900 mb-4">📋 Specifications</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {product.specifications.map((spec, index) => (
                     <div key={index} className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200 last:border-b-0">
@@ -356,11 +451,9 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             )}
             
             {canReview && (
-              <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                <h3 className="font-semibold text-blue-800 mb-3">⭐ Rate this Product</h3>
-                <p className="text-blue-700 text-sm mb-4">Share your thoughts about this product.</p>
+              <div className="text-center lg:text-left">
                 {!showReviewForm ? (
-                  <button onClick={() => setShowReviewForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Write a Review</button>
+                  <button onClick={() => setShowReviewForm(true)} className="bg-blue-600 text-white px-16 py-3 rounded-lg hover:bg-blue-700 transition-colors lg:w-full lg:py-4 lg:text-lg lg:font-semibold lg:rounded-xl">Write Rate and Review</button>
                 ) : (
                   <div className="space-y-4">
                     <div>
@@ -383,19 +476,36 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             )}
             
             {product.ratings && product.ratings.length > 0 && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border">
-                <h3 className="font-semibold text-gray-900 mb-4">Customer Reviews</h3>
+              <div className="">
+                <h2 className="text-1xl font-semibold text-gray-900 mb-4">Customer Reviews & Ratings</h2>
+                <h4 className="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                  {product.averageRating} <span className="text-green-400 ml-1">★</span>
+                </h4>
+                <p className="text-gray-600 text-sm mb-4 flex items-center">
+                  based on {product.ratings.length} ratings by&nbsp;
+                  <FaCheckCircle className="mr-1.5 text-blue-500" /> Verified Buyers
+                </p>
                 <div className="space-y-4">
-                  {product.ratings.map((rating, index) => (
+                  {product.ratings.slice(0, visibleReviewsCount).map((rating, index) => (
                     <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2"><span className="font-medium text-gray-900">{rating.userId?.name || 'Anonymous'}</span><div className="flex text-yellow-400">{'★'.repeat(rating.rating)}{'☆'.repeat(5 - rating.rating)}</div></div>
+                      <div className="flex items-center font-bold text-gray-800 mb-2">
+                        {rating.rating} <span className="text-green-400 ml-1">★</span>
+                      </div>
+                      {rating.review && <p className="text-lg font-bold text-gray-800 mb-2">{rating.review}</p>}
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span>by {rating.userId?.name || 'Anonymous'}</span>
                         <span className="text-sm text-gray-500">{new Date(rating.createdAt).toLocaleDateString('en-IN')}</span>
                       </div>
-                      {rating.review && <p className="text-gray-700">{rating.review}</p>}
                     </div>
                   ))}
                 </div>
+                {product.ratings.length > visibleReviewsCount && (
+                  <div className="mt-6 text-center">
+                    <button onClick={() => setVisibleReviewsCount(prevCount => prevCount + 5)} className="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                      Load More Reviews
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
