@@ -513,10 +513,13 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
   
   const hideNavAndFooter = false; // This can be made dynamic if needed for other pages
 
+  // Hide header on profile page in mobile view
+  const hideHeader = isMobile && location.pathname === '/profile';
+
   return (
     <div className="pb-16 lg:pb-0">
       <Suspense fallback={<div className="h-[85px] bg-white border-b"></div>}>
-        {!hideNavAndFooter && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
+        {!hideNavAndFooter && !hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
       </Suspense>
       <div className="flex-grow">{children}</div>
       <Suspense fallback={null}>

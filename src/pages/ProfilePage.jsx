@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
 import { getToken } from '../storage.js';
 import OrderHistory from '../OrderHistory.jsx';
@@ -15,6 +15,7 @@ function ProfilePage({ user, setUser }) {
   const [editingAddress, setEditingAddress] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: '👤' },
@@ -178,15 +179,16 @@ function ProfilePage({ user, setUser }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><span className="text-3xl text-white">👤</span></div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">My Profile</h1>
-          <p className="text-gray-600">Manage your account settings and preferences</p>
-        </div>
-        
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="py-1">
+      <div className="w-full mx-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="my-4 flex w-full items-center justify-center space-x-2 rounded-lg bg-white p-3 text-lg font-bold text-gray-800 shadow-md transition-colors hover:bg-gray-50 lg:hidden"
+        >
+          <span>&larr;</span>
+          <span>My Profile</span>
+        </button>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-4">
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
             <nav className="flex overflow-x-auto">
               {tabs.map(tab => (
