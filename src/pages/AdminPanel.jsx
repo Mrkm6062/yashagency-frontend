@@ -472,7 +472,7 @@ function AdminPanel({ user, API_BASE }) {
                     <div className="bg-orange-50 p-3 rounded-lg"><h4 className="text-orange-800 font-semibold text-xs">Total Refunded</h4><p className="text-lg font-bold text-orange-600">₹{(analytics.totalRefunded || 0).toLocaleString()}</p></div>
                     <div className="bg-gray-50 p-3 rounded-lg"><h4 className="text-gray-800 font-semibold text-xs">Total Revenue</h4><p className="text-lg font-bold text-gray-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p></div>
                   </div>
-                  {analytics.weeklySales?.length > 0 && <div className="bg-white p-1 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>}
+                  {analytics.weeklySales?.length > 0 && <div className="bg-white rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>}
                   <div className="mt-6">
                       <h4 className="font-semibold mb-4">Order Status Distribution</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
