@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { makeSecureRequest, clearAuth } from '../csrf.js';
 import { getToken } from '../storage.js';
 import OrderHistory from '../OrderHistory.jsx';
 
@@ -14,14 +14,15 @@ function ProfilePage({ user, setUser }) {
   const [newAddress, setNewAddress] = useState({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
   const [editingAddress, setEditingAddress] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: '👤' },
-    { id: 'orders', label: 'Orders', icon: '📦' },
+    { id: 'addresses', label: 'Addresses', icon: '📍' },
     { id: 'password', label: 'Security', icon: '🔒' },
-    { id: 'addresses', label: 'Addresses', icon: '📍' }
+    { id: 'logout', label: 'Logout', icon: '🚪', isAction: true },
   ];
 
   useEffect(() => {
@@ -94,6 +95,16 @@ function ProfilePage({ user, setUser }) {
     setLoading(false);
   };
 
+  const handleLogout = () => {
+    // Perform logout actions
+    clearAuth(); // Clears token and user from cache and localStorage
+    setUser(null); // Update user state in App.jsx
+    localStorage.removeItem('cart'); // Clear guest cart on logout
+    
+    // Redirect to home page
+    navigate('/');
+  };
+
   const addAddress = async () => {
     if (!newAddress.street || !newAddress.city) {
       alert('Please fill in required fields');
@@ -108,6 +119,7 @@ function ProfilePage({ user, setUser }) {
       });
       if (response.ok) {
         await fetchProfile();
+        setIsAddModalOpen(false); // Close modal on success
         setNewAddress({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
         alert('Address added successfully!');
       } else {
@@ -191,83 +203,94 @@ function ProfilePage({ user, setUser }) {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-4">
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
             <nav className="flex overflow-x-auto">
-              {tabs.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex-grow ${activeTab === tab.id ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`}>
-                  <span className="text-lg">{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+              {tabs.map(tab => {
+                if (tab.isAction) {
+                  return (
+                    <button key={tab.id} onClick={handleLogout} className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex-grow text-red-500 hover:bg-red-50`}>
+                      <span className="text-lg">{tab.icon}</span>
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                }
+                return (
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex-grow ${activeTab === tab.id ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`}>
+                    <span className="text-lg">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
           
           <div className="p-8">
             {activeTab === 'profile' && (
               <div className="space-y-8">
-                <div className="bg-gray-50 p-6 rounded-xl">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><span>✏️</span><span>Update Profile Information</span></h3>
+                <div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label><input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
                     <div><label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label><input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
-                    <div className="md:col-span-2"><label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label><input type="tel" value={profile.phone} onChange={(e) => setProfile({...profile, phone: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                        <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r">+91</span>
+                        <input type="tel" value={profile.phone?.replace(/^\+91/, '') || ''} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setProfile({ ...profile, phone: `+91${digits}` }); } }} className="w-full px-4 py-3 border-none focus:ring-0" placeholder="9876543210" maxLength="10" />
+                      </div>
+                    </div>
                   </div>
-                  <button onClick={updateProfile} disabled={loading} className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold">{loading ? 'Updating...' : 'Save Changes'}</button>
+                  <div className="mt-9 text-center">
+                    <button onClick={updateProfile} disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-16 py-3 rounded-xl font-semibold">{loading ? 'Updating...' : 'Save Changes'}</button>
+                  </div>
                 </div>
               </div>
             )}
             
             {activeTab === 'orders' && (
               <div>
-                <div className="flex items-center space-x-3 mb-6"><span className="text-2xl">📦</span><h2 className="text-2xl font-bold text-gray-800">Order History</h2></div>
                 <OrderHistory user={user} />
               </div>
             )}
             
             {activeTab === 'password' && (
-              <div className="max-w-md mx-auto">
-                <div className="bg-gray-50 p-6 rounded-xl space-y-6">
+              <div className="max-w-md mx-0">
+                <div className="space-y-6">
                   <div><label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label><input type="password" value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
                   <div><label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label><input type="password" value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
                   <div><label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label><input type="password" value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} className="w-full px-4 py-3 border rounded-xl" /></div>
                   <button onClick={changePassword} disabled={loading} className="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold">{loading ? 'Updating...' : 'Update Password'}</button>
+                  <div className="border-t pt-6 text-center">
+                    <button onClick={() => navigate('/support/contact')} className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Contact Us & Policy</button>
+                  </div>
                 </div>
+                
               </div>
             )}
             
             {activeTab === 'addresses' && (
               <div className="space-y-8">
-                <div className="flex items-center space-x-3"><span className="text-2xl">📍</span><h2 className="text-2xl font-bold text-gray-800">Delivery Addresses</h2></div>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-1xl font-bold text-gray-800">Saved Addresses</h2>
+                  <button onClick={() => setIsAddModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm">
+                    + Add Address
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {addresses.map(address => (
-                    <div key={address._id} className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 relative group">
+                    <div key={address._id} className="">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-3"><span className="text-lg">{address.addressType === 'home' ? '🏠' : '🏢'}</span><span className="font-semibold text-blue-800">{address.name} ({address.addressType})</span></div>
-                          <p className="font-medium text-gray-800 mb-1">{address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
                           <p className="font-medium text-gray-800 mb-1">{address.street}</p>
-                          <p className="text-gray-600 mb-1">{address.city}, {address.state}</p>
+                          <p className="text-gray-600">{address.city}, {address.state}</p>
                           <p className="text-gray-600">{address.zipCode}, {address.country}</p>
+                          <p className="font-small text-gray-800"> {address.mobileNumber}{address.alternateMobileNumber && `, ${address.alternateMobileNumber}`}</p>
                         </div>
-                        <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(address)} className="text-blue-500 hover:text-blue-700 p-2 rounded-lg" title="Edit address">✏️</button>
-                          <button onClick={() => deleteAddress(address._id)} className="text-red-500 hover:text-red-700 p-2 rounded-lg" title="Delete address">🗑️</button>
+                        <div className="flex flex-col space-y-2  transition-opacity">
+                          <button onClick={() => openEditModal(address)} className="text-blue-500 hover:text-blue-700 p-2 rounded-lg" title="Edit address">Edit</button>
+                          <button onClick={() => deleteAddress(address._id)} className="text-red-500 hover:text-red-700 p-2 rounded-lg" title="Delete address">Delete</button>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
-                <div className="bg-gray-50 p-6 rounded-xl">
-                  <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><span>➕</span><span>Add New Address</span></h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="text" placeholder="Full Name *" value={newAddress.name || ''} onChange={(e) => setNewAddress({...newAddress, name: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="tel" placeholder="Mobile Number *" value={newAddress.mobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, mobileNumber: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="tel" placeholder="Alternate Mobile (Optional)" value={newAddress.alternateMobileNumber || ''} onChange={(e) => setNewAddress({...newAddress, alternateMobileNumber: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-xl" />
-                    <div className="flex items-center space-x-4"><label><input type="radio" name="addressType" value="home" checked={newAddress.addressType === 'home'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Home</label><label><input type="radio" name="addressType" value="work" checked={newAddress.addressType === 'work'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Work</label></div>
-                  </div>
-                  <button onClick={addAddress} disabled={loading} className="mt-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-xl font-semibold">{loading ? 'Adding...' : 'Add Address'}</button>
                 </div>
               </div>
             )}
@@ -279,8 +302,14 @@ function ProfilePage({ user, setUser }) {
                   <div className="p-6 max-h-[70vh] overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <input type="text" placeholder="Full Name *" value={editingAddress.name || ''} onChange={(e) => setEditingAddress({ ...editingAddress, name: e.target.value })} className="px-4 py-3 border rounded-xl" />
-                      <input type="tel" placeholder="Mobile Number *" value={editingAddress.mobileNumber || ''} onChange={(e) => setEditingAddress({ ...editingAddress, mobileNumber: e.target.value })} className="px-4 py-3 border rounded-xl" />
-                      <input type="tel" placeholder="Alternate Mobile (Optional)" value={editingAddress.alternateMobileNumber || ''} onChange={(e) => setEditingAddress({ ...editingAddress, alternateMobileNumber: e.target.value })} className="px-4 py-3 border rounded-xl" />
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                        <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r">+91</span>
+                        <input type="tel" placeholder="Mobile Number *" value={editingAddress.mobileNumber?.replace(/^\+91/, '') || ''} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setEditingAddress({ ...editingAddress, mobileNumber: `+91${digits}` }); } }} className="w-full px-4 py-3 border-none focus:ring-0" maxLength="10" />
+                      </div>
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                        <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r">+91</span>
+                        <input type="tel" placeholder="Alternate Mobile (Optional)" value={editingAddress.alternateMobileNumber?.replace(/^\+91/, '') || ''} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setEditingAddress({ ...editingAddress, alternateMobileNumber: `+91${digits}` }); } }} className="w-full px-4 py-3 border-none focus:ring-0" maxLength="10" />
+                      </div>
                       <input type="text" placeholder="Street Address *" value={editingAddress.street || ''} onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })} className="px-4 py-3 border rounded-xl" />
                       <input type="text" placeholder="City *" value={editingAddress.city || ''} onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })} className="px-4 py-3 border rounded-xl" />
                       <input type="text" placeholder="State" value={editingAddress.state || ''} onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })} className="px-4 py-3 border rounded-xl" />
@@ -291,6 +320,36 @@ function ProfilePage({ user, setUser }) {
                   <div className="p-6 border-t flex justify-end space-x-4">
                     <button onClick={() => setIsEditModalOpen(false)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-xl font-semibold">Cancel</button>
                     <button onClick={handleUpdateAddress} disabled={loading} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-xl font-semibold">{loading ? 'Saving...' : 'Save Changes'}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isAddModalOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full">
+                  <div className="p-6 border-b"><h3 className="text-xl font-bold text-gray-800">Add New Address</h3></div>
+                  <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <input type="text" placeholder="Full Name *" value={newAddress.name || ''} onChange={(e) => setNewAddress({...newAddress, name: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                        <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r">+91</span>
+                        <input type="tel" placeholder="Mobile Number *" value={newAddress.mobileNumber?.replace(/^\+91/, '') || ''} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setNewAddress({ ...newAddress, mobileNumber: `+91${digits}` }); } }} className="w-full px-4 py-3 border-none focus:ring-0" maxLength="10" />
+                      </div>
+                      <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                        <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r">+91</span>
+                        <input type="tel" placeholder="Alternate Mobile (Optional)" value={newAddress.alternateMobileNumber?.replace(/^\+91/, '') || ''} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setNewAddress({ ...newAddress, alternateMobileNumber: `+91${digits}` }); } }} className="w-full px-4 py-3 border-none focus:ring-0" maxLength="10" />
+                      </div>
+                      <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                      <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-xl" />
+                      <div className="flex items-center space-x-4"><label><input type="radio" name="addressType" value="home" checked={newAddress.addressType === 'home'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Home</label><label><input type="radio" name="addressType" value="work" checked={newAddress.addressType === 'work'} onChange={(e) => setNewAddress({...newAddress, addressType: e.target.value})} className="mr-1" /> Work</label></div>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t flex justify-end space-x-4">
+                    <button onClick={() => setIsAddModalOpen(false)} className="bg-gray-200 text-gray-700 px-6 py-2 rounded-xl font-semibold">Cancel</button>
+                    <button onClick={addAddress} disabled={loading} className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-xl font-semibold">{loading ? 'Adding...' : 'Add Address'}</button>
                   </div>
                 </div>
               </div>

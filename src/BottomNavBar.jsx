@@ -33,9 +33,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
             </Link>
           );
         })}
-        {user ? (
-          <button onClick={logout} className="flex flex-col items-center justify-center w-full h-full text-gray-600 hover:text-blue-600"><span className="text-2xl">🚪</span><span className="text-xs font-medium">Logout</span></button>
-        ) : (
+        {!user && (
           <Link to="/login" className={`flex flex-col items-center justify-center w-full h-full relative transition-colors ${location.pathname === '/login' ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'}`}>
             <span className="text-2xl">🔑</span>
             <span className={`text-xs font-medium ${location.pathname === '/login' ? 'font-bold' : ''}`}>Login</span>

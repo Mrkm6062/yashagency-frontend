@@ -1,5 +1,6 @@
 // CSRF Token Management
 let csrfToken = null;
+import { clearAuth as clearStorage } from './storage.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -43,4 +44,9 @@ export const makeSecureRequest = async (url, options = {}) => {
       'Authorization': authToken ? `Bearer ${authToken}` : undefined
     }
   });
+};
+
+export const clearAuth = () => {
+  csrfToken = null;
+  clearStorage();
 };

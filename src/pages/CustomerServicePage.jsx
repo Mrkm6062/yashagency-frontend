@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
 
 function CustomerServicePage({ API_BASE }) {
@@ -7,14 +7,15 @@ function CustomerServicePage({ API_BASE }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const tabs = [
     { id: 'contact', label: 'Contact Us', icon: '📞' },
-    { id: 'faq', label: 'FAQ', icon: '❓' },
     { id: 'returns', label: 'Returns', icon: '↩️' },
     { id: 'shipping', label: 'Shipping', icon: '🚚' },
     { id: 'terms', label: 'Terms', icon: '📜' },
-    { id: 'privacy', label: 'Privacy', icon: '🛡️' }
+    { id: 'privacy', label: 'Privacy', icon: '🛡️' },
+    { id: 'faq', label: 'FAQ', icon: '❓' },
   ];
 
   useEffect(() => {
@@ -75,21 +76,21 @@ function CustomerServicePage({ API_BASE }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 mb-4 transition-colors"><span>←</span><span>Back to Home</span></Link>
-          <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><span className="text-3xl text-white">🎧</span></div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Customer Service</h1>
-          <p className="text-gray-600">We're here to help you with any questions or concerns</p>
-        </div>
-
+    <div className="py-4 lg:py-8">
+      <div className="w-full mx-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 flex w-full items-center justify-center space-x-2 rounded-lg bg-white p-3 text-lg font-bold text-gray-800 shadow-md transition-colors hover:bg-gray-50 lg:hidden"
+        >
+          <span>&larr;</span>
+          <span>Support & All Policy</span>
+        </button>
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
             <nav className="flex overflow-x-auto">
               {tabs.map(tab => (
                 <Link key={tab.id} to={`/support/${tab.id}`} className={`flex flex-col items-center justify-center space-y-0.5 px-3 py-2 font-medium whitespace-nowrap transition-all flex-grow ${location.pathname.endsWith(tab.id) ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`}>
-                  <span className="text-base">{tab.icon}</span><span className="text-xs">{tab.label}</span>
+                  <span className="text-sm">{tab.icon}</span><span className="text-xs">{tab.label}</span>
                 </Link>
               ))}
             </nav>
@@ -99,7 +100,7 @@ function CustomerServicePage({ API_BASE }) {
             <Routes>
               <Route path="contact" element={
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl">
+                  <div className="">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2"><span>📝</span><span className="font-bold">Send us a Message</span></h2>
                     <div className="space-y-4">
                       <div><input type="text" name="name" placeholder="Your Name" value={contactForm.name} onChange={handleInputChange} className={`w-full px-4 py-3 border rounded-xl ${errors.name ? 'border-red-500' : 'border-gray-300'}`} />{errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}</div>
@@ -128,7 +129,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="returns" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Return Policy</h2>
-                  <p>Last updated: December 1, 2025</p>
+                  <p>Last updated: December 1, 2025</p><br></br>
                   <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). We aim to ensure a smooth and transparent shopping experience for every customer. This Return & Refund Policy applies to all purchases made on samriddhishop.in.</p>
 
                   <h3 className="font-bold">1. Eligibility for Refunds</h3>
@@ -175,7 +176,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="shipping" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">🚚 Shipping & Delivery Policy</h2>
-                  <p>Last updated: December 1, 2025</p>
+                  <p>Last updated: December 1, 2025</p><br></br>
                   <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). This Shipping & Delivery Policy explains how we process and deliver orders placed on samriddhishop.in.</p>
 
                   <h3 className="font-bold">1. Delivery Coverage</h3>
@@ -210,7 +211,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="terms" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Terms of Service</h2>
-                  <p>Last updated: December 1, 2025</p>
+                  <p>Last updated: December 1, 2025</p><br></br>
                   <p>Welcome to SamriddhiShop (“we”, “our”, “us”). These Terms & Conditions (“Terms”) govern your use of our website samriddhishop.in (“Website”) and the purchase of products or services offered on it. By accessing or using our Website, you agree to these Terms. If you do not agree, please do not use our Website.</p>
 
                   <h3 className="font-bold">1. General</h3>
@@ -265,7 +266,7 @@ function CustomerServicePage({ API_BASE }) {
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Privacy Policy</h2>
                   <p>Last updated: December 1, 2025</p>
-
+                  <br></br>
                   <h3 className="font-bold">1. Introduction</h3>
                   <p>Welcome to SamriddhiShop (“we”, “our”, “us”). We operate the eCommerce website samriddhishop.in, where we sell products and services online.</p>
                   <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, store, and protect your personal data in accordance with the Digital Personal Data Protection Act, 2023 (DPDP Act) and other applicable laws in India.</p>
