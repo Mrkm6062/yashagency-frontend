@@ -511,21 +511,22 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
     location.pathname === '/profile' ||
     location.pathname.startsWith('/support');
   const hideFooter = isMobile && shouldHideOnMobile;
-  
-  const hideNavAndFooter = location.pathname.startsWith('/admin');
 
-  // Hide header on profile page in mobile view
-  const hideHeader = isMobile && (location.pathname === '/profile' || location.pathname.startsWith('/support'));
+  // Determine if we are on an admin page
+  const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Hide header on profile, support, and admin pages
+  const hideHeader = isAdminPage || (isMobile && (location.pathname === '/profile' || location.pathname.startsWith('/support')));
 
   return (
     <div className="pb-16 lg:pb-0">
       <Suspense fallback={<div className="h-[85px] bg-white border-b"></div>}>
-        {!hideNavAndFooter && !hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
+        {!hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
       </Suspense>
       <div className="flex-grow">{children}</div>
       <Suspense fallback={null}>
-        {!hideNavAndFooter && <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />}
-        {!hideFooter && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
+        <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />
+        {!hideFooter && !isAdminPage && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
       </Suspense>
     </div>
   );
