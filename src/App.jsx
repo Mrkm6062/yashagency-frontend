@@ -512,7 +512,7 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
     location.pathname.startsWith('/support');
   const hideFooter = isMobile && shouldHideOnMobile;
   
-  const hideNavAndFooter = false; // This can be made dynamic if needed for other pages
+  const hideNavAndFooter = location.pathname.startsWith('/admin');
 
   // Hide header on profile page in mobile view
   const hideHeader = isMobile && (location.pathname === '/profile' || location.pathname.startsWith('/support'));

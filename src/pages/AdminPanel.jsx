@@ -454,23 +454,25 @@ function AdminPanel({ user, API_BASE }) {
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-3 md:p-4">
+          <div className="">
             <Routes>
               <Route path="dashboard" element={
-                <div className="space-y-6">
+                <div className="w-full space-y-6">
+                  <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold">Dashboard Overview</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg"><h4 className="text-blue-800 font-semibold text-sm">Today's Orders</h4><p className="text-xl font-bold text-blue-600">{analytics.today?.totalOrders || 0}</p></div>
-                    <div className="bg-green-50 p-4 rounded-lg"><h4 className="text-green-800 font-semibold text-sm">Today's Revenue</h4><p className="text-xl font-bold text-green-600">₹{(analytics.today?.totalRevenue || 0).toLocaleString()}</p></div>
-                    <div className="bg-purple-50 p-4 rounded-lg"><h4 className="text-purple-800 font-semibold text-sm">Today's COD Orders</h4><p className="text-xl font-bold text-purple-600">{analytics.today?.codOrders || 0}</p></div>
-                    <div className="bg-yellow-50 p-4 rounded-lg"><h4 className="text-yellow-800 font-semibold text-sm">Today's COD Revenue</h4><p className="text-xl font-bold text-yellow-600">₹{(analytics.today?.codRevenue || 0).toLocaleString()}</p></div>
-                    <div className="bg-red-50 p-4 rounded-lg"><h4 className="text-red-800 font-semibold text-sm">Today's Prepaid Orders</h4><p className="text-xl font-bold text-red-600">{analytics.today?.prepaidOrders || 0}</p></div>
-                    <div className="bg-indigo-50 p-4 rounded-lg"><h4 className="text-indigo-800 font-semibold text-sm">Today's Prepaid Revenue</h4><p className="text-xl font-bold text-indigo-600">₹{(analytics.today?.prepaidRevenue || 0).toLocaleString()}</p></div>
-                    <div className="bg-pink-50 p-4 rounded-lg"><h4 className="text-pink-800 font-semibold text-sm">Total Cancelled</h4><p className="text-xl font-bold text-pink-600">₹{(analytics.totalCancelled || 0).toLocaleString()}</p></div>
-                    <div className="bg-orange-50 p-4 rounded-lg"><h4 className="text-orange-800 font-semibold text-sm">Total Refunded</h4><p className="text-xl font-bold text-orange-600">₹{(analytics.totalRefunded || 0).toLocaleString()}</p></div>
-                    <div className="bg-gray-50 p-4 rounded-lg"><h4 className="text-gray-800 font-semibold text-sm">Total Revenue</h4><p className="text-xl font-bold text-gray-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p></div>
                   </div>
-                  {analytics.weeklySales?.length > 0 && <div className="bg-white p-6 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>}
+                  <div className="flex justify-between items-center mb-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <div className="bg-blue-50 p-3 rounded-lg"><h4 className="text-blue-800 font-semibold text-xs">Today's Orders</h4><p className="text-lg font-bold text-blue-600">{analytics.today?.totalOrders || 0}</p></div>
+                    <div className="bg-green-50 p-3 rounded-lg"><h4 className="text-green-800 font-semibold text-xs">Today's Revenue</h4><p className="text-lg font-bold text-green-600">₹{(analytics.today?.totalRevenue || 0).toLocaleString()}</p></div>
+                    <div className="bg-purple-50 p-3 rounded-lg"><h4 className="text-purple-800 font-semibold text-xs">Today's COD Orders</h4><p className="text-lg font-bold text-purple-600">{analytics.today?.codOrders || 0}</p></div>
+                    <div className="bg-yellow-50 p-3 rounded-lg"><h4 className="text-yellow-800 font-semibold text-xs">Today's COD Revenue</h4><p className="text-lg font-bold text-yellow-600">₹{(analytics.today?.codRevenue || 0).toLocaleString()}</p></div>
+                    <div className="bg-red-50 p-3 rounded-lg"><h4 className="text-red-800 font-semibold text-xs">Today's Prepaid Orders</h4><p className="text-lg font-bold text-red-600">{analytics.today?.prepaidOrders || 0}</p></div>
+                    <div className="bg-indigo-50 p-3 rounded-lg"><h4 className="text-indigo-800 font-semibold text-xs">Today's Prepaid Revenue</h4><p className="text-lg font-bold text-indigo-600">₹{(analytics.today?.prepaidRevenue || 0).toLocaleString()}</p></div>
+                    <div className="bg-pink-50 p-3 rounded-lg"><h4 className="text-pink-800 font-semibold text-xs">Total Cancelled</h4><p className="text-lg font-bold text-pink-600">₹{(analytics.totalCancelled || 0).toLocaleString()}</p></div>
+                    <div className="bg-orange-50 p-3 rounded-lg"><h4 className="text-orange-800 font-semibold text-xs">Total Refunded</h4><p className="text-lg font-bold text-orange-600">₹{(analytics.totalRefunded || 0).toLocaleString()}</p></div>
+                    <div className="bg-gray-50 p-3 rounded-lg"><h4 className="text-gray-800 font-semibold text-xs">Total Revenue</h4><p className="text-lg font-bold text-gray-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p></div>
+                  </div>
+                  {analytics.weeklySales?.length > 0 && <div className="bg-white p-2 rounded-lg shadow-sm border mt-6"><SalesChart salesData={analytics.weeklySales} /></div>}
                   <div className="mt-6">
                       <h4 className="font-semibold mb-4">Order Status Distribution</h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
