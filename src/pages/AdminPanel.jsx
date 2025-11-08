@@ -736,20 +736,6 @@ function AdminPanel({ user, API_BASE }) {
                 <div className="space-y-6">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-3 md:space-y-0">
                   <h3 className="text-lg font-semibold">Order Management</h3>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <button
-                      onClick={fetchOrdersByDate}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
-                    >
-                      Apply Filters
-                    </button>
-                    <button
-                      onClick={handlePrintFilteredOrders}
-                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
-                    >
-                      🖨️ Print Filtered Orders
-                    </button>
-                  </div>
                 </div>
                 
                 {/* Date Filters */}
@@ -795,6 +781,20 @@ function AdminPanel({ user, API_BASE }) {
                         <option value="refunded">Refunded</option>
                       </select>
                     </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={fetchOrdersByDate}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
+                    >
+                      Apply Filters
+                    </button>
+                    <button
+                      onClick={handlePrintFilteredOrders}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full sm:w-auto"
+                    >
+                      🖨️ Print Filtered Orders
+                    </button>
+                  </div>
                   </div>
                 </div>
                 
