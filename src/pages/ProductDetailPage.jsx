@@ -537,10 +537,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                 )}
               </div>
             )}
+               <div className="mt-6">
+                <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
+               </div>
           </div>
-        </div>
-        <div className="mt-12">
-          <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
         </div>
 
         {/* Mobile Size Selector Popup */}
