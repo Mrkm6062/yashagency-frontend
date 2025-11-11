@@ -430,21 +430,21 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             </div>
             
             <div className="space-y-4 fixed bottom-16 left-0 right-0 bg-white p-4 border-t shadow-lg z-10 lg:static lg:p-0 lg:border-none lg:shadow-none">
-              <div className="flex items-center gap-4">
+              <div className="flex items-stretch gap-2 sm:gap-4">
                 <div>
                   <div className="flex items-center border border-gray-300 rounded-lg">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
-                    <span className="px-4 py-3 border-x border-gray-300 min-w-[60px] text-center">{quantity}</span>
-                    <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+                    <span className="px-3 sm:px-4 py-3 border-x border-gray-300 min-w-[10px] sm:min-w-[10px] text-center">{quantity}</span>
+                    <button onClick={() => setQuantity(quantity + 1)} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
                   </div>
                 </div>
-                <button onClick={handleAddToCart} disabled={isVariantOutOfStock} className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed">
+                <button onClick={handleAddToCart} disabled={isVariantOutOfStock} className="flex-1 bg-blue-600 text-white py-1 px-1 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
                   Add to Cart
                 </button>
+                <button onClick={handleBuyNow} disabled={isVariantOutOfStock} className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-xl text-base font-bold hover:bg-green-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
+                  Buy Now
+                </button>
               </div>
-              <button onClick={handleBuyNow} disabled={isVariantOutOfStock} className="w-full bg-orange-500 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:bg-green-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
-                 Buy Now at ₹{(product.price * quantity).toLocaleString()}
-              </button>
             </div>
 
             {product.showHighlights && product.highlights?.length > 0 && (
@@ -537,10 +537,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                 )}
               </div>
             )}
-               <div className="mt-6">
-                <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
-               </div>
           </div>
+        </div>
+        <div className="mt-6">
+          <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
         </div>
 
         {/* Mobile Size Selector Popup */}

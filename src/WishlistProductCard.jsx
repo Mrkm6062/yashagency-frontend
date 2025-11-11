@@ -5,6 +5,7 @@ import { t } from './i18n.js';
 function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotification }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
+  const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
   
   useEffect(() => {
     if (images.length > 1) {
@@ -16,7 +17,7 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
   }, [images.length]);
   
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group relative">
+    <div className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
       <Link to={`/product/${product._id}`}>
         <div className="relative overflow-hidden rounded-t-lg">
           <img 
@@ -24,11 +25,6 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
             alt={product.name}
             className="w-full h-48 object-cover transition-all duration-300 group-hover:scale-105"
           />
-          {product.originalPrice && product.discountPercentage > 0 && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-              {product.discountPercentage}% OFF
-            </div>
-          )}
           {images.length > 1 && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
               {images.map((_, index) => (
@@ -39,10 +35,10 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
         </div>
       </Link>
       
-      <div className="p-4">
+      <div className="p-1">
         <Link to={`/product/${product._id}`}>
-          <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors">{product.name}</h3>
-          <p className="text-gray-600 text-sm mb-2">{product.description.substring(0, 100)}...</p>
+          <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors">{product.name}</h5>
+          <p className="text-gray-600 text-sm mb-2">{product.description.substring(0, 10)}...</p>
         </Link>
       
         <div className="flex items-center mb-2">
@@ -52,10 +48,13 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
           <span className="text-gray-500 text-xs ml-1">({product.totalRatings || 0})</span>
         </div>
         
-        <div className="flex items-center space-x-2 mb-4">
-          <span className="text-xl font-bold text-green-600">₹{product.price.toLocaleString()}</span>
-          {product.originalPrice && product.discountPercentage > 0 && (
-            <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+        <div className="flex items-baseline space-x-2 mb-4">
+          <span className="text-lg font-bold text-green-600">₹{product.price.toLocaleString()}</span>
+          {hasDiscount && (
+            <>
+              <span className="px-1 text-xs text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+              <span className="text-red-600 bg-red-100 text-red text-xs px-1.5 py-0.5 rounded-md font-semibold">{product.discountPercentage}% OFF</span>
+            </>
           )}
         </div>
         

@@ -28,11 +28,6 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
             style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />
           {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
-          {hasDiscount && (
-            <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold z-10">
-              {item.discountPercentage}% OFF
-            </div>
-          )}
           {images.length > 1 && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
               {images.map((_, index) => (
@@ -47,14 +42,14 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
           )}
         </div>
       </Link>
-      <div className="p-4">
+      <div className="p-1">
         <Link to={`/product/${item._id}`}>
-          <h2 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer">{item.name}</h2>
+          <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer">{item.name}</h5>
         </Link>
         {item.selectedVariant && (
           <p className="text-blue-600 text-sm mb-1">{item.selectedVariant.size} - {item.selectedVariant.color}</p>
         )}
-        <p className="text-gray-600 text-sm mb-2">{item.description?.substring(0, 100)}...</p>
+        <p className="text-gray-600 text-sm mb-2">{item.description?.substring(0, 15)}...</p>
         
         <div className="flex items-center mb-2">
           <div className="flex text-yellow-400 text-sm">
@@ -64,11 +59,11 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
         </div>
         
         <div className="flex items-center space-x-2 mb-3">
-          <span className="text-xl font-bold text-green-600">₹{item.price.toLocaleString()}</span>
+          <span className="text-lg font-bold text-green-600">₹{item.price.toLocaleString()}</span>
           {hasDiscount && (
             <>
-              <span className="text-sm text-gray-500 line-through">₹{item.originalPrice.toLocaleString()}</span>
-              <span className="bg-red-100 text-red-800 text-xs px-1 py-0.5 rounded">{item.discountPercentage}% OFF</span>
+              <span className="text-xs text-gray-500 line-through">₹{item.originalPrice.toLocaleString()}</span>
+              <span className="bg-red-100 text-red-800 text-sm px-1.5 py-0.5 rounded">{item.discountPercentage}% OFF</span>
             </>
           )}
         </div>

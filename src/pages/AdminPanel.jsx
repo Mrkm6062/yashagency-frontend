@@ -399,6 +399,7 @@ function AdminPanel({ user, API_BASE }) {
           <nav className="p-4">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+              { id: 'products', label: 'Products', icon: '📦' },
               { id: 'orders', label: 'Orders', icon: '🛒' },
               { id: 'users', label: 'Users', icon: '👥' },
               { id: 'messages', label: 'Messages', icon: '💬' },

@@ -15,7 +15,6 @@ const Header = lazy(() => import('./Header.jsx'));
 const Footer = lazy(() => import('./Footer.jsx'));
 const BottomNavBar = lazy(() => import('./BottomNavBar.jsx'));
 const MetaPixelTracker = lazy(() => import('./MetaPixelTracker.jsx'));
-const BackToTopButton = lazy(() => import('./BackToTopButton.jsx'));
 const HomePage = lazy(() => import('./pages/HomePage.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));
@@ -65,7 +64,6 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [userNotifications, setUserNotifications] = useState([]);
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const [cookieConsent, setCookieConsent] = useState(null); // Initialize as null
 
   // Handle cookie consent after mount to avoid hydration issues
@@ -104,9 +102,6 @@ function App() {
 
   restoreSession();
 
-  const handleScroll = () => setShowBackToTop(window.scrollY > 300);
-  window.addEventListener('scroll', handleScroll);
-  return () => window.removeEventListener('scroll', handleScroll);
 }, []);
 
   // Validate token and set user
@@ -419,7 +414,7 @@ const logout = () => {
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              <Route path="/" element={<HomePage products={products} loading={loading} />} />
+              <Route path="/" element={<HomePage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/products" element={<ProductListPage products={products} loading={loading} />} />
               <Route path="/product/:slug" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} API_BASE={API_BASE} />} />
               <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} API_BASE={API_BASE} />} />
@@ -481,10 +476,6 @@ const logout = () => {
             </Link>
           </div>
         )}
-
-        <Suspense fallback={null}>
-          {showBackToTop && <BackToTopButton />}
-        </Suspense>
       </div>
     </Router>
   );

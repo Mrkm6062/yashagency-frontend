@@ -21,7 +21,7 @@ const ProductCard = React.memo(function ProductCard({ product }) {
   const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   return (    
-    <Link to={`/product/${slug}`} state={{ productId: product._id }} className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group block">
+    <Link to={`/product/${slug}`} state={{ productId: product._id }} className=" rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group block">
       <div className="relative overflow-hidden rounded-t-lg aspect-[4/3]">
         <picture>
           <source 
@@ -41,11 +41,6 @@ const ProductCard = React.memo(function ProductCard({ product }) {
           />
         </picture>
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
-        {hasDiscount && (
-          <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold z-10">
-            {product.discountPercentage}% OFF
-          </div>
-        )}
         {images.length > 1 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
             {images.map((_, index) => (
@@ -59,11 +54,11 @@ const ProductCard = React.memo(function ProductCard({ product }) {
           </div>
         )}
       </div>
-      <div className="px-3 pb-3">
-        <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">{product.name}</h3>
+      <div className="px-1 pb-1">
+        <h7 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">{product.name}</h7>
         <p className="text-gray-600 text-sm mb-2">
-          <span className="md:hidden">{product.description.substring(0, 25)}...</span>
-          <span className="hidden md:inline">{product.description.substring(0, 100)}...</span>
+          <span className="md:hidden">{product.description.substring(0, 10)}...</span>
+          <span className="hidden md:inline">{product.description.substring(0, 30)}...</span>
         </p>
         <div className="flex items-center mb-2">
           <div className="flex text-yellow-400 text-sm">
@@ -71,9 +66,14 @@ const ProductCard = React.memo(function ProductCard({ product }) {
           </div>
           <span className="text-gray-500 text-xs ml-1">({product.totalRatings || 0})</span>
         </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-green-600">₹{product.price.toLocaleString()}</span>
-          {hasDiscount && (<span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>)}
+        <div className="flex items-baseline space-x-2">
+          <span className="text-lg font-bold text-green-600">₹{product.price.toLocaleString()}</span>
+          {hasDiscount && (
+            <>
+              <span className="text-xs text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+              <span className="bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-md font-semibold">{product.discountPercentage}% OFF</span>
+            </>
+          )}
         </div>
       </div>
     </Link>
