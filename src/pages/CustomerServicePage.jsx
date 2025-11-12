@@ -129,7 +129,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="returns" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Return Policy</h2>
-                  <p>Last updated: December 1, 2025</p><br></br>
+                  <p>Last updated: November 1, 2025</p><br></br>
                   <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). We aim to ensure a smooth and transparent shopping experience for every customer. This Return & Refund Policy applies to all purchases made on samriddhishop.in.</p>
 
                   <h3 className="font-bold">1. Eligibility for Refunds</h3>
@@ -176,7 +176,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="shipping" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">🚚 Shipping & Delivery Policy</h2>
-                  <p>Last updated: December 1, 2025</p><br></br>
+                  <p>Last updated: November 1, 2025</p><br></br>
                   <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). This Shipping & Delivery Policy explains how we process and deliver orders placed on samriddhishop.in.</p>
 
                   <h3 className="font-bold">1. Delivery Coverage</h3>
@@ -211,7 +211,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="terms" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Terms of Service</h2>
-                  <p>Last updated: December 1, 2025</p><br></br>
+                  <p>Last updated: November 1, 2025</p><br></br>
                   <p>Welcome to SamriddhiShop (“we”, “our”, “us”). These Terms & Conditions (“Terms”) govern your use of our website samriddhishop.in (“Website”) and the purchase of products or services offered on it. By accessing or using our Website, you agree to these Terms. If you do not agree, please do not use our Website.</p>
 
                   <h3 className="font-bold">1. General</h3>
@@ -265,7 +265,7 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="privacy" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Privacy Policy</h2>
-                  <p>Last updated: December 1, 2025</p>
+                  <p>Last updated: November 1, 2025</p>
                   <br></br>
                   <h3 className="font-bold">1. Introduction</h3>
                   <p>Welcome to SamriddhiShop (“we”, “our”, “us”). We operate the eCommerce website samriddhishop.in, where we sell products and services online.</p>
