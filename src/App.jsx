@@ -78,6 +78,18 @@ function App() {
     });
   };
 
+  // Effect to automatically hide notifications after 5 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000); // Disappear after 5 seconds
+
+      // Cleanup the timer if the component unmounts or notification changes
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
     // Load user from localStorage on app start
  useEffect(() => {
   const token = localStorage.getItem('token');
@@ -124,7 +136,8 @@ const validateToken = async (token) => {
         id: profileData._id, 
         name: profileData.name, 
         email: profileData.email, 
-        phone: profileData.phone 
+        phone: profileData.phone,
+        isEmailVerified: profileData.isEmailVerified // Include new field
       };
       setUser(userObj);
 
@@ -149,7 +162,11 @@ const validateToken = async (token) => {
   // Sync cart with server when cart changes for logged-in users
   useEffect(() => {
     if (user && !isInitialLoad && cart.length >= 0) {
-      syncCart(cart);
+      // Ensure CSRF token is available before syncing.
+      // getCSRFToken will fetch it if it's not already cached.
+      getCSRFToken().then(token => {
+        if (token) syncCart(cart);
+      });
     }
     // Set up notification polling for logged-in users
     if (user && !isInitialLoad) {
@@ -276,7 +293,6 @@ const addToCart = async (product) => {
 
   // Show notification
   setNotification({ message: 'Added to cart', product: product.name });
-  setTimeout(() => setNotification(null), 3000);
 };
 
 // Remove item from cart
@@ -459,28 +475,32 @@ const logout = () => {
         {/* Notification */}
         {notification && (
           <div className={`fixed top-4 right-4 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-3 ${
-            notification.type === 'wishlist' ? 'bg-pink-500' : 
-            notification.type === 'success' ? 'bg-blue-500' : 'bg-green-500'
+            notification.type === 'wishlist' ? 'bg-pink-500' :
+            notification.type === 'success' ? 'bg-blue-500' :
+            notification.type === 'info' ? 'bg-gray-700' : 'bg-green-500'
           }`}>
             <div>
               <p className="font-semibold">{notification.message}</p>
               <p className="text-sm opacity-90">{notification.product}</p>
             </div>
-            <Link 
-              to={
-                notification.type === 'wishlist' ? '/wishlist' :
-                notification.type === 'success' ? '/products' : '/cart'
-              }
-              className={`bg-white px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 ${
-                notification.type === 'wishlist' ? 'text-pink-500' :
-                notification.type === 'success' ? 'text-blue-500' : 'text-green-500'
-              }`}
-              onClick={() => setNotification(null)}
-            >
-              {notification.type === 'wishlist' ? 'Go to Wishlist' :
-               notification.type === 'success' ? 'Start Shopping' : 'Go to Cart'
-              }
-            </Link>
+            {/* Only show a button for certain notification types */}
+            {notification.type !== 'info' && (
+              <Link 
+                to={
+                  notification.type === 'wishlist' ? '/wishlist' :
+                  notification.type === 'success' ? '/products' : '/cart'
+                }
+                className={`bg-white px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 ${
+                  notification.type === 'wishlist' ? 'text-pink-500' :
+                  notification.type === 'success' ? 'text-blue-500' : 'text-green-500'
+                }`}
+                onClick={() => setNotification(null)}
+              >
+                {notification.type === 'wishlist' ? 'Go to Wishlist' :
+                 notification.type === 'success' ? 'Start Shopping' : 'Go to Cart'
+                }
+              </Link>
+            )}
           </div>
         )}
       </div>

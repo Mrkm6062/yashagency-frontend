@@ -50,3 +50,7 @@ export const clearAuth = () => {
   csrfToken = null;
   clearStorage();
 };
+
+export const clearCSRFToken = () => {
+  csrfToken = null;
+};

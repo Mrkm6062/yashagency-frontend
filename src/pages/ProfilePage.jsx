@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { makeSecureRequest, clearAuth } from '../csrf.js';
-import { getToken } from '../storage.js';
+import { makeSecureRequest, clearCSRFToken } from '../csrf.js';
+import { getToken, setToken, clearAuth } from '../storage.js';
 import OrderHistory from '../OrderHistory.jsx';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
@@ -16,6 +16,10 @@ function ProfilePage({ user, setUser }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showEmailChangeForm, setShowEmailChangeForm] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailChangeOtp, setEmailChangeOtp] = useState('');
+  const [emailChangeStep, setEmailChangeStep] = useState('initial'); // 'initial', 'otp_sent', 'verifying'
   const navigate = useNavigate();
 
   const tabs = [
@@ -41,7 +45,7 @@ function ProfilePage({ user, setUser }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-      setProfile({ name: data.name, email: data.email, phone: data.phone || '' });
+      setProfile({ name: data.name, email: data.email, phone: data.phone || '', isEmailVerified: data.isEmailVerified });
       setAddresses(data.addresses || []);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -60,7 +64,7 @@ function ProfilePage({ user, setUser }) {
       if (response.ok) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
-        alert('Profile updated successfully!');
+        alert('Profile updated successfully!'); // Note: Email is not updated via this route anymore if it's changed.
       } else {
         alert(data.error || 'Failed to update profile');
       }
@@ -177,6 +181,70 @@ function ProfilePage({ user, setUser }) {
     setLoading(false);
   };
 
+  const handleRequestEmailChange = async () => {
+    if (!newEmail || !/\S+@\S+\.\S+/.test(newEmail)) {
+      alert('Please enter a valid new email address.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/request-email-change`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEmail })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.message);
+        setEmailChangeStep('otp_sent');
+      } else {
+        alert(data.error || 'Failed to send OTP for email change.');
+      }
+    } catch (error) {
+      console.error('Request email change error:', error);
+      alert('An error occurred while requesting email change.');
+    }
+    setLoading(false);
+  };
+
+  const handleVerifyEmailChange = async () => {
+    if (!newEmail || !emailChangeOtp) {
+      alert('Please enter the new email and OTP.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/verify-email-change`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newEmail, otp: emailChangeOtp })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(data.message);
+        // Update global user state and local storage with new email and token
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.token); // Update token
+        clearCSRFToken(); // Clear the old CSRF token
+        setToken(data.token); // Update token in csrf.js
+
+        // Reset form and re-fetch profile to ensure UI is updated
+        setShowEmailChangeForm(false);
+        setNewEmail('');
+        setEmailChangeOtp('');
+        setEmailChangeStep('initial');
+        fetchProfile();
+      } else {
+        alert(data.error || 'Failed to verify email change.');
+      }
+    } catch (error) {
+      console.error('Verify email change error:', error);
+      alert('An error occurred while verifying email change.');
+    }
+    setLoading(false);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -228,7 +296,74 @@ function ProfilePage({ user, setUser }) {
                 <div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div><label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label><input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
-                    <div><label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label><input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl" /></div>
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                      <div className="flex items-center">
+                        <input type="email" value={profile.email} className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50" readOnly />
+                        {profile.isEmailVerified ? (
+                          <span className="ml-2 text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="ml-2 text-xs font-medium text-red-700 bg-red-100 px-2 py-1 rounded-full flex items-center">
+                            Unverified
+                          </span>
+                        )}
+                      </div>
+                      {!showEmailChangeForm && (
+                        <button onClick={() => setShowEmailChangeForm(true)} className="mt-2 text-blue-600 hover:underline text-sm">
+                          Change Email
+                        </button>
+                      )}
+                    </div>
+                    {showEmailChangeForm && (
+                      <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 className="font-semibold text-gray-800 mb-3">Change Email Address</h4>
+                        {emailChangeStep === 'initial' && (
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                              type="email"
+                              placeholder="Enter new email address"
+                              value={newEmail}
+                              onChange={(e) => setNewEmail(e.target.value)}
+                              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl"
+                            />
+                            <button onClick={handleRequestEmailChange} disabled={loading} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50">
+                              {loading ? 'Sending OTP...' : 'Request OTP'}
+                            </button>
+                          </div>
+                        )}
+                        {emailChangeStep === 'otp_sent' && (
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                              type="text"
+                              placeholder="Enter OTP"
+                              value={emailChangeOtp}
+                              onChange={(e) => setEmailChangeOtp(e.target.value)}
+                              className="flex-1 px-4 py-3 border border-gray-300 rounded-xl"
+                            />
+                            <button onClick={handleVerifyEmailChange} disabled={loading} className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold disabled:opacity-50">
+                              {loading ? 'Verifying...' : 'Verify Email'}
+                            </button>
+                          </div>
+                        )}
+                        <button onClick={() => setShowEmailChangeForm(false)} className="mt-2 text-red-600 hover:underline text-sm">
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                    {/* Original email display, now with verification status */}
+                    {/* <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-semibold text-gray-700">Email Address</label>
+                        <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-1 rounded-full flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                          Verified
+                        </span>
+                      </div>
+                      <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50" readOnly />
+                    </div> */}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                       <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">

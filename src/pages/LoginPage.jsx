@@ -12,7 +12,10 @@ function LoginPage({ login, user, setNotification }) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState('details'); // 'details' or 'otp'
+  const [otp, setOtp] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,6 +34,19 @@ function LoginPage({ login, user, setNotification }) {
     }
   }, [user, navigate, location]);
 
+  // Countdown timer effect for resending OTP
+  useEffect(() => {
+    let timerId;
+    if (registrationStep === 'otp' && resendTimer > 0) {
+      timerId = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      clearInterval(timerId);
+    }
+    return () => clearInterval(timerId);
+  }, [registrationStep, resendTimer]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -45,44 +61,95 @@ function LoginPage({ login, user, setNotification }) {
         setLoading(false);
       }
     } else {
-      // Register logic
-      try {
-        const response = await fetch(`${API_BASE}/api/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password, phone })
-        });
-        
-        if (response.status === 429) {
-          alert('Too many registration attempts. Please wait 15 minutes and try again.');
-          setLoading(false);
-          return;
-        }
-        
-        if (response.ok) {
-          setNotification({
-            message: 'Account created successfully!',
-            product: 'Welcome to SamriddhiShop!',
-            type: 'success'
+      if (registrationStep === 'details') {
+        // Step 1: Send OTP for email verification
+        try {
+          const response = await fetch(`${API_BASE}/api/send-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, phone, type: 'register' })
           });
-          // Automatically log the user in
-          const success = await login(email, password);
-          if (!success) {
-            // If auto-login fails, switch to login form for manual attempt
-            setIsLogin(true);
+          const data = await response.json();
+          if (response.ok) {
+            setNotification({ message: data.message || 'OTP sent to your email!', product: 'Please check your Email inbox.', type: 'info' });
+            setResendTimer(30); // Start a 30-second timer
+            setRegistrationStep('otp');
+          } else {
+            alert(data.error || 'Failed to send OTP. The email might already be registered.');
           }
-        } else {
-          const data = await response.json().catch(() => ({ error: 'Registration failed' }));
-          alert(data.error || 'Registration failed. Please try again.');
+        } catch (error) {
+          console.error('Send OTP error:', error);
+          alert('An error occurred while sending the OTP.');
         }
-      } catch (error) {
-        console.error('Registration error:', error);
-        alert('Registration failed. Please try again.');
+      } else {
+        // Step 2: Verify OTP and register
+        try {
+          const response = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password, phone, otp })
+          });
+          
+          if (response.status === 429) {
+            alert('Too many registration attempts. Please wait 15 minutes and try again.');
+            setLoading(false);
+            return;
+          }
+          
+          if (response.ok) {
+            setNotification({
+              message: 'Account created successfully!',
+              product: 'Welcome to SamriddhiShop!',
+              type: 'success'
+            });
+            // Automatically log the user in
+            const success = await login(email, password);
+            if (!success) {
+              // If auto-login fails, switch to login form for manual attempt
+              setIsLogin(true);
+              setRegistrationStep('details');
+            }
+          } else {
+            const data = await response.json().catch(() => ({ error: 'Registration failed' }));
+            alert(data.error || 'Registration failed. Please try again.');
+            if (data.error && data.error.toLowerCase().includes('otp')) {
+              // Don't go back if OTP is wrong, let user retry
+            } else {
+              setRegistrationStep('details'); // Go back to details form on other errors
+            }
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          alert('Registration failed. Please try again.');
+        }
       }
     }
     setLoading(false);
   };
 
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return; // Prevent resending if timer is active
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, phone, type: 'register' })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNotification({ message: 'A new OTP has been sent!', product: 'Please check your inbox.', type: 'info' });
+        setResendTimer(30); // Restart the timer
+      } else {
+        alert(data.error || 'Failed to resend OTP.');
+      }
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      alert('An error occurred while resending the OTP.');
+    }
+    setLoading(false);
+  };
   return (
     <div className="relative min-h-[80vh] flex items-center justify-center py-6 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
       <div className="relative z-10 max-w-md w-full space-y-6">
@@ -93,35 +160,66 @@ function LoginPage({ login, user, setNotification }) {
         </div>
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-100">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {!isLogin && (
+              {!isLogin && registrationStep === 'details' && (
                 <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Full Name</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
-                  <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your phone number" required={!isLogin} />
+                  <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 bg-gray-50 focus-within:bg-white">
+                    <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r border-gray-300">+91</span>
+                    <input type="tel" value={phone.replace(/^\+91/, '')} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setPhone(`+91${digits}`); } }} className="w-full px-4 py-3 border-none focus:ring-0 bg-transparent" placeholder="Enter your 10-digit number" required={!isLogin} maxLength="10" />
+                  </div>
                 </div>
                 </>              
               )}
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">🔒 Password</label>
-                <div className="relative">
-                  <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder={isLogin ? 'Enter your password' : 'Create a strong password'} required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
+              {isLogin && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
                 </div>
-              </div>
+              )}
+              
+              { (isLogin || registrationStep === 'details') && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">🔒 Password</label>
+                  <div className="relative">
+                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder={isLogin ? 'Enter your password' : 'Create a strong password'} required />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-              {!isLogin && (
+              {!isLogin && registrationStep === 'otp' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">✉️ Verification Code</label>
+                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter OTP from your email" required maxLength="6" />
+                  <div className="flex justify-between items-center mt-2">
+                    <button type="button" onClick={() => setRegistrationStep('details')} className="text-sm text-blue-600 hover:underline">
+                      &larr; Back to details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={resendTimer > 0}
+                      className="text-sm text-blue-600 hover:underline disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                      {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!isLogin && registrationStep === 'details' && (
                 <div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500" />
@@ -141,16 +239,16 @@ function LoginPage({ login, user, setNotification }) {
                 </div>
               )}
               
-              <button type="submit" disabled={loading || (!isLogin && !termsAccepted)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <button type="submit" disabled={loading || (!isLogin && registrationStep === 'details' && !termsAccepted)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 {loading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin">⏳</span>
-                    <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                    <span>{isLogin ? 'Signing In...' : (registrationStep === 'details' ? 'Sending OTP...' : 'Creating Account...')}</span>
                   </span>
                 ) : (
                   <span className="flex items-center justify-center space-x-2">
                     <span>{isLogin ? '🚀' : '✨'}</span>
-                    <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                    <span>{isLogin ? 'Sign In' : (registrationStep === 'details' ? 'Get OTP' : 'Create Account')}</span>
                   </span>
                 )}
               </button>
@@ -163,7 +261,7 @@ function LoginPage({ login, user, setNotification }) {
               </div>
               
               <p className="mt-4 text-gray-600">{isLogin ? "Don't have an account?" : "Already have an account?"}</p>
-              <button onClick={() => { setIsLogin(!isLogin); setPassword(''); }} className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline">
+              <button onClick={() => { setIsLogin(!isLogin); setPassword(''); setRegistrationStep('details'); }} className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline">
                 {isLogin ? '🎯 Create New Account' : '🔑 Sign In Instead'}
               </button>
             </div>
