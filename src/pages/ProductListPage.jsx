@@ -176,11 +176,72 @@ function ProductListPage({ products, loading }) {
                 <h3 className="text-lg font-semibold">Filters</h3>
                 <button onClick={() => setShowFilters(false)} className="text-gray-500 hover:text-gray-700">✕</button>
               </div>
-              <div className="space-y-4">
-                {/* Form fields for mobile filters */}
+              <div className="space-y-6">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={filters.category}
+                  onChange={(e) => setFilters({...filters, category: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder="Min Price"
+                  value={filters.minPrice}
+                  onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Price"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  value={filters.minRating}
+                  onChange={(e) => setFilters({...filters, minRating: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Any Rating</option>
+                  <option value="4">4+ Stars</option>
+                  <option value="3">3+ Stars</option>
+                  <option value="2">2+ Stars</option>
+                  <option value="1">1+ Stars</option>
+                </select>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
+                </select>
               </div>
               <div className="mt-6 space-y-3">
-                <button onClick={() => { /* Clear filters */ }} className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg">Clear Filters</button>
+                <button
+                  onClick={() => {
+                    setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
+                    setSearchTerm('');
+                    // No need to call applyFilters here, as closing the modal will trigger useEffect
+                    // which will then apply the filters based on the updated state.
+                  }}
+                  className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Clear Filters
+                </button>
                 <button onClick={() => setShowFilters(false)} className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg">Apply Filters</button>
               </div>
             </div>

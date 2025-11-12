@@ -7,6 +7,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
     { to: '/products', icon: '🛍️', label: 'Shop' },
+    { to: '/cart', icon: '🛒', label: 'Cart', count: cartCount, badgeColor: 'bg-blue-600' },
     { to: '/blogs', icon: '📝', label: 'Blogs' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },
     { to: '/orders', icon: '📦', label: 'Orders', requiresUser: true },
@@ -26,7 +27,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
               <span className="text-2xl mb-0.5">{item.icon}</span>
               <span className={`text-xs font-medium ${isActive ? 'font-bold' : ''}`}>{item.label}</span>
               {item.count > 0 && (
-                <span className={`absolute top-1 right-[28%] transform translate-x-1/2 bg-pink-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center p-1`}>
+                <span className={`absolute top-1 right-[28%] transform translate-x-1/2 ${item.badgeColor || 'bg-pink-500'} text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center p-1`}>
                   {item.count}
                 </span>
               )}

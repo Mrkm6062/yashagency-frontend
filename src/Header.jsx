@@ -69,10 +69,16 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
     <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="w-full mx-0 px-1 px-4">
         <div className="flex justify-between items-center py-4">
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <picture>
+          <Link to="/" className="flex items-center h-14 hover:opacity-80 transition-opacity">
+            {/* Desktop Logo */}
+            <picture className="hidden md:block h-full">
               <source srcSet={getOptimizedImageUrl(LOGO_URL, { format: 'webp' })} type="image/webp" />
-              <img src={LOGO_URL} alt="SamriddhiShop" className="h-14 w-auto max-w-full" />
+              <img src={LOGO_URL} alt="SamriddhiShop" className="h-full w-auto" />
+            </picture>
+            {/* Mobile Logo */}
+            <picture className="md:hidden h-full">
+              <source srcSet={getOptimizedImageUrl("https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.png", { format: 'webp' })} type="image/webp" />
+              <img src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.png" alt="SamriddhiShop" className="h-full w-auto" />
             </picture>
           </Link>
 
@@ -152,12 +158,6 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
           </nav>
           <div className="flex items-center space-x-2 lg:hidden">
             {/* Mobile Icons */}
-            <Link to="/cart" className="lg:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700">
-              <span>🛒</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>
-              )}
-            </Link>
             {user && (
               <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700" aria-label="View notifications">
