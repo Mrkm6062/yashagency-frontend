@@ -19,11 +19,15 @@ const MetaPixelTracker = ({ user }) => {
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
 
-      const userData = user ? {
-        em: user.email,
-        ph: user.phone,
-      } : {};
-      window.fbq('init', PIXEL_ID, userData);
+      if (user && user.email) {
+        // The new recommended way to initialize with user data (Advanced Matching)
+        window.fbq('init', PIXEL_ID, {
+          em: user.email, // Email
+          ph: user.phone, // Phone Number
+        });
+      } else {
+        window.fbq('init', PIXEL_ID);
+      }
       window.fbq('track', 'PageView');
     }, 3000); // Delay by 3 seconds
 
