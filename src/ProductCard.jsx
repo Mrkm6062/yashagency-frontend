@@ -55,7 +55,7 @@ const ProductCard = React.memo(function ProductCard({ product }) {
         )}
       </div>
       <div className="px-1 pb-1">
-        <h7 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">{product.name}</h7>
+        <h6 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">{product.name}</h6>
         <p className="text-gray-600 text-sm mb-2">
           <span className="md:hidden">{product.description.substring(0, 10)}...</span>
           <span className="hidden md:inline">{product.description.substring(0, 30)}...</span>

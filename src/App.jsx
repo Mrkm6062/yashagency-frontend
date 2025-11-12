@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense, useRef } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useRef, startTransition } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './i18n.js';
 import { makeSecureRequest, getCSRFToken } from './csrf.js';
@@ -70,6 +70,13 @@ function App() {
   useEffect(() => {
     setCookieConsent(localStorage.getItem('cookie_consent'));
   }, []);
+
+  const handleAcceptCookies = () => {
+    localStorage.setItem('cookie_consent', 'true');
+    startTransition(() => {
+      setCookieConsent('true');
+    });
+  };
 
     // Load user from localStorage on app start
  useEffect(() => {
@@ -444,7 +451,7 @@ const logout = () => {
               <Link to="/support/privacy" className="underline hover:text-blue-300 ml-1">Learn More</Link>
             </p>
             <div className="flex-shrink-0 flex gap-3">
-              <button onClick={() => { setCookieConsent('true'); localStorage.setItem('cookie_consent', 'true'); }} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Accept</button>
+              <button onClick={handleAcceptCookies} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">Accept</button>
             </div>
           </div>
         ) : null}
