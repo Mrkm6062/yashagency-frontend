@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 
@@ -15,6 +15,10 @@ function ProductListPage({ products, loading }) {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
+  const observer = useRef();
+  const loadingRef = useRef(null); // Element to observe for infinite scroll
+  const location = useLocation();
 
   useEffect(() => {
     applyFilters();
@@ -22,14 +26,38 @@ function ProductListPage({ products, loading }) {
     return () => {
       document.title = 'SamriddhiShop';
     };
-  }, [products, filters, searchTerm]);
+  }, [products, filters, searchTerm, location.search]); // Re-run applyFilters when these change
+
+  useEffect(() => {
+    // Reset displayCount whenever filters or search terms change
+    setDisplayCount(12);
+  }, [filters, searchTerm]);
 
   const applyFilters = () => {
+    // Extract search term from URL if present
+    const queryParams = new URLSearchParams(location.search);
+    const urlSearchTerm = queryParams.get('search');
+
+    // If there's a URL search term, prioritize it and update local state
+    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
+      setSearchTerm(urlSearchTerm);
+    } else if (!urlSearchTerm && searchTerm) {
+      // If URL search term is cleared but local state has one, clear local state
+      setSearchTerm('');
+    }
+
+    // If the search term was just updated from the URL, this function will re-run.
+    // We need to ensure we use the most up-to-date searchTerm for filtering.
+    const currentSearch = urlSearchTerm || searchTerm;
+
+
     let filtered = [...products];
 
-    if (searchTerm) {
+    if (currentSearch) {
       filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        product.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+        product.description.toLowerCase().includes(currentSearch.toLowerCase()) ||
+        product.category.toLowerCase().includes(currentSearch.toLowerCase())
       );
     }
 
@@ -74,6 +102,34 @@ function ProductListPage({ products, loading }) {
     setFilteredProducts(filtered);
   };
 
+  // Effect for Intersection Observer (Infinite Scrolling)
+  useEffect(() => {
+    if (loading) return; // Don't observe if initial products are still loading
+
+    // Disconnect previous observer if it exists
+    if (observer.current) {
+      observer.current.disconnect();
+    }
+
+    // Create new observer
+    observer.current = new IntersectionObserver((entries) => {
+      // If the loading sentinel is visible AND there are more products to load
+      if (entries[0].isIntersecting && displayCount < filteredProducts.length) {
+        // Add a small delay to prevent rapid loading
+        setTimeout(() => {
+          setDisplayCount(prevCount => prevCount + 12); // Load 12 more products
+        }, 300); // Debounce loading
+      }
+    }, { threshold: 0.5 }); // Trigger when 50% of the element is visible
+
+    // Start observing the loadingRef element
+    if (loadingRef.current) {
+      observer.current.observe(loadingRef.current);
+    }
+
+    // Cleanup function
+    return () => { if (observer.current) observer.current.disconnect(); };
+  }, [loading, filteredProducts, displayCount]); // Re-run when products or displayCount changes
   const categories = [...new Set(products.map(p => p.category))];
 
   if (loading) return <LoadingSpinner />;
@@ -250,17 +306,17 @@ function ProductListPage({ products, loading }) {
       )}
       
       <p className="text-gray-600 mb-4">
-        Showing {filteredProducts.length} of {products.length} products
+        Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
       </p>
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProducts.slice(0, 12).map(product => (
+        {filteredProducts.slice(0, displayCount).map(product => (
           <ProductCard key={product._id} product={product} />
         ))}
       </div>
-      {filteredProducts.length > 12 && (
-        <div className="text-center mt-8">
-          <p className="text-gray-600">Showing 12 of {filteredProducts.length} products</p>
+      {displayCount < filteredProducts.length && (
+        <div ref={loadingRef} className="text-center mt-8">
+          <LoadingSpinner />
         </div>
       )}
       

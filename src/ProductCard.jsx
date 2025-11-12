@@ -30,8 +30,8 @@ const ProductCard = React.memo(function ProductCard({ product }) {
             type="image/webp"
           />
           <img 
-            src={images[currentImageIndex]} 
-            srcSet={`${images[currentImageIndex]} 800w`}
+            src={getOptimizedImageUrl(images[currentImageIndex], { width: 400, quality: 'auto' })} // Optimized default src
+            srcSet={`${getOptimizedImageUrl(images[currentImageIndex], { width: 320, quality: 'auto' })} 320w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 400, quality: 'auto' })} 400w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 600, quality: 'auto' })} 600w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 800, quality: 'auto' })} 800w`}
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             alt={product.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
