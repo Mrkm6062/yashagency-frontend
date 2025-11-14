@@ -502,7 +502,7 @@ function AdminPanel({ user, API_BASE }) {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold">Products Management</h3>
-                    <button onClick={() => setShowProductForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"> + Add New Product</button>
+                    <button onClick={() => setShowProductForm(true)} className="text-xs font-semibold bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700"> Add Product</button>
                   </div>
                   <ProductForm
                     showProductForm={showProductForm}
@@ -517,17 +517,17 @@ function AdminPanel({ user, API_BASE }) {
                     <h3 className="text-lg font-semibold mb-4">Products List</h3>
                     
                     {/* Mobile Card View */}
-                    <div className="space-y-4 md:hidden">
+                    <div className="space-y-4 grid grid-cols-1 md:grid-cols md:hidden">
                       {products.map(product => (
-                        <div key={product._id} className="bg-white p-4 rounded-lg shadow border">
+                        <div key={product._id} className="bg-white py-0.5 rounded-lg ">
                           <div className="flex items-start gap-4">
-                            <img src={product.imageUrl} alt={product.name} className="w-20 h-20 object-cover rounded-md flex-shrink-0" />
+                            <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded-md flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-gray-800 truncate">{product.name}</p>
                               <p className="text-sm text-green-600 font-semibold">₹{product.price}</p>
                               <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                               {product.variants && product.variants.length > 0 && (
-                                <div className="mt-2">
+                                <div className="mt-1 flex flex-wrap gap-1.5">
                                   <p className="text-xs font-medium text-gray-500 mb-1">Variants:</p>
                                   <div className="flex flex-wrap gap-1.5">
                                     {product.variants.map((variant, index) => (<span key={index} className="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-full text-xs">{variant.size}/{variant.color}: <strong>{variant.stock}</strong></span>))}
