@@ -26,7 +26,7 @@ function AdminPanel({ user, API_BASE }) {
   const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '' });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [deliveryAreas, setDeliveryAreas] = useState({ states: [], districts: [], pincodes: [] });
-  const [courierForm, setCourierForm] = useState({ courierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
+  const [courierForm, setCourierForm] = useState({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   // Coupon form state
@@ -109,13 +109,16 @@ function AdminPanel({ user, API_BASE }) {
   const updateOrderStatus = async (orderId, status, withCourier = false) => {
     try {
       const payload = { status };
-      if (withCourier && status === 'shipped') {
-        Object.assign(payload, courierForm);
+      if (withCourier && status === 'shipped') {        
+        const finalCourierName = courierForm.courierName === 'Other' ? courierForm.manualCourierName : courierForm.courierName;
+        const courierDetails = { ...courierForm, courierName: finalCourierName };
+        delete courierDetails.manualCourierName; // Clean up the object before sending
+        Object.assign(payload, courierDetails);
       }
       await makeSecureRequest(`${API_BASE}/api/orders/${orderId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       fetchData();
       setSelectedOrder(null);
-      setCourierForm({ courierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
+      setCourierForm({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
       alert('Order status updated!');
     } catch (error) { alert('Failed to update order status'); }
   };
@@ -906,7 +909,21 @@ function AdminPanel({ user, API_BASE }) {
                             <option value="Delhivery">Delhivery</option>
                             <option value="Ekart">Ekart</option>
                             <option value="India Post">India Post</option>
+                            <option value="Shadowfax">Shadowfax</option>
+                            <option value="Other">Other</option>
                           </select>
+                          {courierForm.courierName === 'Other' && (
+                            <div className="mt-2">
+                              <label className="block text-sm font-medium mb-1">Enter Courier Name</label>
+                              <input
+                                type="text"
+                                value={courierForm.manualCourierName}
+                                onChange={(e) => setCourierForm({ ...courierForm, manualCourierName: e.target.value })}
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter courier name manually"
+                              />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-1">Tracking Number</label>
