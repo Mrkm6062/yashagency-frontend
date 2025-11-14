@@ -9,3 +9,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 );
+
+// Register Service Worker in Vite
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(() => console.log("Service Worker Registered"))
+      .catch((err) => console.log("SW registration failed:", err));
+  });
+}
