@@ -83,7 +83,7 @@ function BlogPage() {
               state={{ postData: post }} // Pass post data to avoid a second fetch
               className="group block bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-2 transition-all duration-300 border"
             >
-              <img src={post.thumbnailUrl} alt={post.title} className="w-full h-48 object-cover" />
+              <img src={post.thumbnailUrl} alt={post.title} className="w-full h-56 object-cover" />
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 mb-2">{post.title}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">{post.brief}</p>
