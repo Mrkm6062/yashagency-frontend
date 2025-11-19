@@ -79,7 +79,7 @@ function BlogPostDetailPage() {
         <img 
           src={post.thumbnailUrl} 
           alt={post.title} 
-          className="w-full h-auto max-h-[675px] object-cover rounded-lg shadow-lg mb-8" 
+          className="w-full h-auto max-h-[950px] object-cover rounded-lg shadow-lg mb-8" 
         />
 
         <div 
