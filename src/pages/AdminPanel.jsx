@@ -22,6 +22,13 @@ function AdminPanel({ user, API_BASE }) {
   const [contacts, setContacts] = useState([]);
   const [settingsForm, setSettingsForm] = useState({ shippingCost: 0, phone: '', email: '', instagram: '', facebook: '' });
   const [loading, setLoading] = useState(false);
+  const [shippingZones, setShippingZones] = useState([
+    // Example structure
+    // { id: 1, name: 'Local', pincodes: '400001, 400002', cost: 50 },
+    // { id: 2, name: 'State', states: 'Maharashtra', cost: 80 },
+    // { id: 3, name: 'Rest of India', pincodes: '*', cost: 120 }
+  ]);
+  const [editingZone, setEditingZone] = useState(null);
   const [analytics, setAnalytics] = useState({});
   const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '' });
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -73,7 +80,11 @@ function AdminPanel({ user, API_BASE }) {
       setFilteredUsers(userData);
       setContacts(await contactsRes.json());
       const settingsData = await settingsRes.json() || {};
-      setSettingsForm(settingsData);
+      // Destructure settings to separate shipping zones from other settings
+      const { shippingZones: fetchedZones, ...otherSettings } = settingsData;
+      setSettingsForm(otherSettings);
+      // If shippingZones are fetched, use them. Otherwise, keep the default empty array.
+      if (fetchedZones) setShippingZones(fetchedZones);
       setAnalytics(await analyticsRes.json());
       const bannerData = await bannerRes.json();
       setBannerForm(bannerData);
@@ -160,9 +171,15 @@ function AdminPanel({ user, API_BASE }) {
     } catch (error) { alert('Failed to fetch coupon report'); }
   };
 
-  const updateSettings = async () => {
+  const updateSettings = async (zones) => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settingsForm) });
+      // Use the provided zones only if it's an array, otherwise use the current state.
+      const zonesToSave = Array.isArray(zones) ? zones : shippingZones;
+      // Combine general settings and shipping zones for saving
+      const settingsToSave = { ...settingsForm, shippingZones: zonesToSave };
+      await makeSecureRequest(`${API_BASE}/api/admin/settings`, { 
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settingsToSave) 
+      });
       alert('Settings updated successfully!');
     } catch (error) { alert('Failed to update settings.'); }
   };
@@ -809,11 +826,39 @@ function AdminPanel({ user, API_BASE }) {
                       <div className="flex flex-col md:flex-row md:justify-between md:items-start space-y-3 md:space-y-0 mb-3">
                         <div className="flex-1">
                           <h4 className="font-medium">Order #{order.orderNumber || order._id.slice(-8)}</h4>
-                          <p className="text-gray-600">₹{order.total} | {new Date(order.createdAt).toLocaleDateString()}</p>
+                          <p className="text-gray-600">
+                            ₹{order.total} | Ordered: {new Date(order.createdAt).toLocaleDateString()}
+                            {['processing', 'shipped', 'delivered'].includes(order.status) && (() => {
+                              const processingEntry = order.statusHistory?.find(h => h.status === 'processing');
+                              const processingDate = processingEntry ? new Date(processingEntry.updatedAt) : null;
+                              return processingDate ? <span className="text-yellow-600 font-semibold"> | Processing: {processingDate.toLocaleDateString()}</span> : null;
+                            })()}
+                            {['shipped', 'delivered'].includes(order.status) && (() => {
+                              const shippedEntry = order.statusHistory?.find(h => h.status === 'shipped');
+                              const shippedDate = shippedEntry ? new Date(shippedEntry.updatedAt) : null;
+                              return shippedDate ? <span className="text-blue-600 font-semibold"> | Shipped: {shippedDate.toLocaleDateString()}</span> : null;
+                            })()}
+                            {order.status === 'delivered' && (() => {
+                              const deliveryEntry = order.statusHistory?.find(h => h.status === 'delivered');
+                              const deliveryDate = deliveryEntry ? new Date(deliveryEntry.updatedAt) : null;
+                              return deliveryDate ? <span className="text-green-600 font-semibold"> | Delivered: {deliveryDate.toLocaleDateString()}</span> : null;
+                            })()}
+                            {order.status === 'cancelled' && (() => {
+                              const cancelledEntry = order.statusHistory?.find(h => h.status === 'cancelled');
+                              const cancelledDate = cancelledEntry ? new Date(cancelledEntry.updatedAt) : null;
+                              return cancelledDate ? <span className="text-red-600 font-semibold"> | Cancelled: {cancelledDate.toLocaleDateString()}</span> : null;
+                            })()}
+                            {order.status === 'refunded' && (() => {
+                              const refundedEntry = order.statusHistory?.find(h => h.status === 'refunded');
+                              const refundedDate = refundedEntry ? new Date(refundedEntry.updatedAt) : null;
+                              return refundedDate ? <span className="text-orange-600 font-semibold"> | Refunded: {refundedDate.toLocaleDateString()}</span> : null;
+                            })()}
+                          </p>
                           <p className="text-sm text-gray-500 break-words">Customer: {order.userId?.name} ({order.userId?.email})</p>
                           {order.courierDetails?.trackingNumber && (
                             <p className="text-sm text-blue-600 break-words">Tracking: {order.courierDetails.trackingNumber} | {order.courierDetails.courierName}</p>
                           )}
+                          
                         </div>
                         <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-3">
                           <select
@@ -1260,26 +1305,84 @@ function AdminPanel({ user, API_BASE }) {
 
               <Route path="settings" element={
               <div className="space-y-6">
+                {/* New Shipping Zone Management UI */}
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">Shipping Settings</h3>
+                  <h3 className="text-lg font-semibold mb-4">🚚 Shipping Zones</h3>
+                  <div className="space-y-4">
+                    {shippingZones.map((zone, index) => (
+                      <div key={index} className="bg-white p-3 rounded-lg border flex justify-between items-center">
+                        <div>
+                          <p className="font-bold">{zone.name} - <span className="text-green-600">₹{zone.cost}</span></p>
+                          <p className="text-sm text-gray-600">
+                            {zone.states && `States: ${zone.states}`}
+                            {zone.pincodes && `Pincodes: ${zone.pincodes}`}
+                          </p>
+                        </div>
+                        <div>
+                          <button onClick={() => setEditingZone(zone)} className="text-blue-600 hover:underline text-sm font-medium mr-4">Edit</button>
+                          <button onClick={() => {
+                            const updatedZones = shippingZones.filter(z => z.id !== zone.id);
+                            setShippingZones(updatedZones);
+                            updateSettings(updatedZones); // Immediately save after deleting
+                          }} className="text-red-600 hover:underline text-sm font-medium">Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => setEditingZone({ id: Date.now(), name: '', states: '', pincodes: '', cost: '' })} className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    + Add Shipping Zone
+                  </button>
+                </div>
+
+                {/* Modal for Adding/Editing Shipping Zone */}
+                {editingZone && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-lg w-full mx-4">
+                      <h3 className="text-lg font-semibold mb-4">{editingZone.name ? 'Edit' : 'Add'} Shipping Zone</h3>
+                      <div className="space-y-4">
+                        <input type="text" placeholder="Zone Name (e.g., Local, National)" value={editingZone.name} onChange={e => setEditingZone({...editingZone, name: e.target.value})} className="w-full px-3 py-2 border rounded" />
+                        <textarea placeholder="Comma-separated states (e.g., Maharashtra, Gujarat)" value={editingZone.states} onChange={e => setEditingZone({...editingZone, states: e.target.value})} className="w-full px-3 py-2 border rounded h-20" />
+                        <textarea placeholder="Comma-separated pincodes (use '*' for all)" value={editingZone.pincodes} onChange={e => setEditingZone({...editingZone, pincodes: e.target.value})} className="w-full px-3 py-2 border rounded h-20" />
+                        <input type="number" placeholder="Shipping Cost (₹)" value={editingZone.cost} onChange={e => setEditingZone({...editingZone, cost: e.target.value})} className="w-full px-3 py-2 border rounded" />
+                      </div>
+                      <div className="flex space-x-3 mt-6">
+                        <button onClick={() => setEditingZone(null)} className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancel</button>
+                        <button 
+                          onClick={() => {
+                            let updatedZones;
+                            const isEditing = shippingZones.some(z => z.id === editingZone.id);
+                            if (isEditing) {
+                              updatedZones = shippingZones.map(z => z.id === editingZone.id ? editingZone : z);
+                            } else {
+                              updatedZones = [...shippingZones, editingZone];
+                            }
+                            setShippingZones(updatedZones);
+                            setEditingZone(null);
+                            updateSettings(updatedZones); // Immediately save the new state
+                          }}
+                          className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                        >
+                          Save Zone
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">Default Shipping Cost</h3>
                   <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-4">
-                    <label className="font-medium">Shipping Cost (₹):</label>
+                    <label className="font-medium">Fallback Cost (₹):</label>
                     <input
                       type="number"
                       value={settingsForm.shippingCost}
                       onChange={(e) => setSettingsForm({ ...settingsForm, shippingCost: Number(e.target.value) })}
                       className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-32"
                     />
-                    <button
-                      onClick={updateSettings}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 w-full md:w-auto"
-                    >
-                      Update
-                    </button>
                   </div>
-                  <p className="text-gray-600 text-sm mt-2">Set to 0 for free shipping</p>
-                </div>                
-
+                  <p className="text-gray-600 text-sm mt-2">This cost is used if an address doesn't match any shipping zone. Set to 0 for free shipping.</p>
+                </div>
+                
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
                   <h3 className="text-lg font-semibold mb-4">Contact & Social Settings</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1308,7 +1411,7 @@ function AdminPanel({ user, API_BASE }) {
                     onClick={updateSettings}
                     className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
                   >
-                    Update Contact Info
+                    Save All Settings
                   </button>
                 </div>
 

@@ -19,6 +19,9 @@ function CheckoutPage({ user, clearCart }) {
   const [saveAddress, setSaveAddress] = useState(true);
   const [shippingCost, setShippingCost] = useState(0);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isDeliverable, setIsDeliverable] = useState(true);
+  const [deliveryMessage, setDeliveryMessage] = useState('');
+  const [paymentDetails, setPaymentDetails] = useState(null); // State to hold successful payment info
 
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
@@ -37,25 +40,56 @@ function CheckoutPage({ user, clearCart }) {
     }
     document.title = 'Checkout - SamriddhiShop';
     fetchAddresses();
-    fetchShippingCost();
 
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     document.body.appendChild(script);
 
-    return () => {
-        document.title = 'SamriddhiShop';
-    }
+    return () => { document.title = 'SamriddhiShop'; }
   }, [user, items, navigate]);
 
-  const fetchShippingCost = async () => {
+  // This effect will run whenever the selected address changes
+  useEffect(() => {
+    if (selectedAddress?.zipCode) {
+      checkPincodeDeliverability(selectedAddress.zipCode);
+      calculateShippingCost(selectedAddress.zipCode, selectedAddress.state);
+    } else {
+      // Reset deliverability and shipping if no address is selected
+      setIsDeliverable(false);
+      setDeliveryMessage('');
+      setShippingCost(0); // Reset if no address is selected
+    }
+  }, [selectedAddress]);
+
+  const calculateShippingCost = async (pincode, state) => {
     try {
-      const response = await fetch(`${API_BASE}/api/settings`);
+      const response = await fetch(`${API_BASE}/api/calculate-shipping`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pincode, state })
+      });
       const data = await response.json();
-      setShippingCost(data.shippingCost || 0);
+      setShippingCost(data.shippingCost ?? 0);
     } catch (error) {
       console.error('Error fetching shipping cost:', error);
+      setShippingCost(0); // Default to free on error
+    }
+  };
+
+  const checkPincodeDeliverability = async (pincode) => {
+    if (!pincode || pincode.length !== 6) {
+      setIsDeliverable(false);
+      setDeliveryMessage('Please select an address with a valid 6-digit pincode.');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE}/api/check-pincode/${pincode}`);
+      const data = await response.json();
+      setIsDeliverable(data.deliverable);
+      setDeliveryMessage(data.message);
+    } catch (error) {
+      setIsDeliverable(false);
+      setDeliveryMessage('Could not verify pincode. Please try again.');
+      console.error('Error checking pincode:', error);
     }
   };
 
@@ -71,6 +105,7 @@ function CheckoutPage({ user, clearCart }) {
         // Automatically select the home address or the first one if home is not found
         const defaultSelected = data.addresses.find(addr => addr.addressType === 'home') || data.addresses[0];
         setSelectedAddress(defaultSelected);
+        // The useEffect for selectedAddress will now trigger the shipping calculation
       }
     } catch (error) {
       console.error('Error fetching addresses:', error);
@@ -92,7 +127,10 @@ function CheckoutPage({ user, clearCart }) {
       if (response.ok) {
         const savedAddress = await response.json();
         await fetchAddresses(); // Refresh address list
-        setSelectedAddress(savedAddress); // Auto-select the new address
+        // Find the full address object from the refreshed list to select it
+        const fullNewAddress = (await (await fetch(`${API_BASE}/api/profile`, { headers: { 'Authorization': localStorage.getItem('token') } })).json()).addresses.find(a => a.street === newAddress.street);
+        if (fullNewAddress) setSelectedAddress(fullNewAddress);
+
         setShowNewAddressForm(false); // Hide the form
         setNewAddress({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
       } else {
@@ -102,6 +140,7 @@ function CheckoutPage({ user, clearCart }) {
     } catch (error) { alert('Failed to add address'); }
     setLoading(false);
   };
+
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     try {
@@ -123,22 +162,21 @@ function CheckoutPage({ user, clearCart }) {
     }
   };
 
-  const processOrder = async () => {
-    if (paymentMethod === 'razorpay') {
-      handleRazorpayPayment();
-    } else {
-      placeOrder();
-    }
-  };
-
-  const placeOrder = async (paymentDetails = {}) => {
+  const placeOrder = async () => {
     let shippingAddress;
+
     if (selectedAddress) {
       shippingAddress = selectedAddress;
     } else if (newAddress.street && newAddress.city) {
       shippingAddress = newAddress;
     } else {
       alert('Please select or enter a shipping address');
+      return;
+    }
+
+    // For Razorpay, ensure payment has been made before placing the order
+    if (paymentMethod === 'razorpay' && !paymentDetails) {
+      alert('Please complete the payment before placing the order.');
       return;
     }
 
@@ -149,20 +187,6 @@ function CheckoutPage({ user, clearCart }) {
 
     setLoading(true);
 
-    try {
-      const pincodeRes = await fetch(`${API_BASE}/api/check-pincode/${shippingAddress.zipCode}`);
-      const pincodeData = await pincodeRes.json();
-      if (!pincodeRes.ok || !pincodeData.deliverable) {
-        alert(pincodeData.message || `Sorry, we are unable to deliver to your pincode ${shippingAddress.zipCode}.`);
-        setLoading(false);
-        return;
-      }
-    } catch (error) {
-      alert('Could not verify your pincode. Please try again.');
-      setLoading(false);
-      return;
-    }
-
     if (!selectedAddress && saveAddress && newAddress.street && newAddress.city) {
       try {
         await makeSecureRequest(`${API_BASE}/api/addresses`, {
@@ -172,21 +196,6 @@ function CheckoutPage({ user, clearCart }) {
         });
       } catch (error) {
         console.error('Error saving new address:', error);
-      }
-    }
-
-    if (paymentMethod === 'razorpay' && paymentDetails.razorpay_payment_id) {
-      try {
-        const verifyRes = await makeSecureRequest(`${API_BASE}/api/payment/verify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentDetails)
-        });
-        if (!verifyRes.ok) throw new Error('Payment verification failed');
-      } catch (error) {
-        alert('Payment verification failed. Please contact support.');
-        setLoading(false);
-        return;
       }
     }
 
@@ -242,7 +251,21 @@ function CheckoutPage({ user, clearCart }) {
         description: "Order Payment",
         order_id: orderId,
         handler: async function (response) {
-          await placeOrder({ ...response, shippingAddress });
+          // Verify payment on the backend
+          try {
+            const verifyRes = await makeSecureRequest(`${API_BASE}/api/payment/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response)
+            });
+            if (!verifyRes.ok) throw new Error('Payment verification failed');
+            
+            // On successful verification, save payment details and enable Place Order button
+            setPaymentDetails(response);
+            alert('Payment successful! You can now place your order.');
+          } catch (error) {
+            alert('Payment verification failed. Please contact support.');
+          }
         },
         prefill: { name: user.name, email: user.email, contact: user.phone },
         theme: { color: "#3399cc" }
@@ -254,6 +277,16 @@ function CheckoutPage({ user, clearCart }) {
       alert('Payment failed. Please try again.');
     }
     setLoading(false);
+  };
+
+  // Determine button text and action
+  const getButtonConfig = () => {
+    if (paymentMethod === 'razorpay') {
+      if (paymentDetails) return { text: '🛒 Place Order', action: placeOrder, disabled: loading || !termsAccepted };
+      return { text: '💳 Proceed to Payment', action: handleRazorpayPayment, disabled: loading || !termsAccepted || !selectedAddress || !isDeliverable };
+    }
+    // For COD
+    return { text: '🛒 Place Order', action: placeOrder, disabled: loading || !termsAccepted || !selectedAddress || !isDeliverable };
   };
 
   return (
@@ -279,7 +312,11 @@ function CheckoutPage({ user, clearCart }) {
                 <div className="space-y-3 mb-6">
                   <h3 className="font-medium text-gray-700">Saved Addresses</h3>
                   {addresses.map(address => (
-                    <label key={address._id} className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer ${selectedAddress?._id === address._id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
+                    <label 
+                      key={address._id} 
+                      className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-colors ${selectedAddress?._id === address._id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'}`}
+                      onClick={() => setSelectedAddress(address)}
+                    >
                       <input type="radio" name="address" onChange={() => { setSelectedAddress(address); setShowNewAddressForm(false); }} className="mt-1 text-blue-500" />
                       <div className="flex-1">
                         <p className="font-bold text-gray-900">{address.name}<span className="ml-2 text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full capitalize">{address.addressType}</span></p>
@@ -287,6 +324,11 @@ function CheckoutPage({ user, clearCart }) {
                         <p className="text-gray-600">{address.street}, {address.city}, {address.state} - {address.zipCode}</p>
                       </div>
                     </label>
+                  ))}
+                  {(deliveryMessage && selectedAddress && (
+                    <div className={`p-3 rounded-lg text-sm font-medium text-center ${isDeliverable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {deliveryMessage}
+                    </div>
                   ))}
                 </div>
               )}
@@ -304,7 +346,13 @@ function CheckoutPage({ user, clearCart }) {
                       <input type="text" placeholder="Street Address *" value={newAddress.street || ''} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} className="px-4 py-3 border rounded-lg" />
                       <input type="text" placeholder="City *" value={newAddress.city || ''} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} className="px-4 py-3 border rounded-lg" />
                       <input type="text" placeholder="State" value={newAddress.state || ''} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} className="px-4 py-3 border rounded-lg" />
-                      <input type="text" placeholder="ZIP Code" value={newAddress.zipCode || ''} onChange={(e) => setNewAddress({...newAddress, zipCode: e.target.value})} className="px-4 py-3 border rounded-lg" />
+                      <input type="text" placeholder="ZIP Code *" value={newAddress.zipCode || ''} onChange={(e) => {
+                        setNewAddress({...newAddress, zipCode: e.target.value});
+                        if (e.target.value.length === 6) {
+                          checkPincodeDeliverability(e.target.value);
+                          calculateShippingCost(e.target.value, newAddress.state);
+                        }
+                      }} className="px-4 py-3 border rounded-lg" />
                     </div>
                     <div className="mt-4">
                       <button onClick={handleAddAddress} disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
@@ -353,7 +401,10 @@ function CheckoutPage({ user, clearCart }) {
                 </label>
               </div>
               
-              <button onClick={processOrder} disabled={loading || !termsAccepted} className="w-full mt-6 bg-green-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? '⏳ Processing...' : '🛒 Place Order'}</button>
+              <button onClick={getButtonConfig().action} disabled={getButtonConfig().disabled} className="w-full mt-6 bg-green-600 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? '⏳ Processing...' : getButtonConfig().text}
+              </button>
+
               <div className="mt-4 text-center"><p className="text-gray-500 text-sm">🔒 Your payment information is secure</p></div>
             </div>
           </div>
