@@ -45,6 +45,8 @@ function AdminPanel({ user, API_BASE }) {
   const [bannerForm, setBannerForm] = useState({ desktop: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }, mobile: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' } });
   const [adminNotification, setAdminNotification] = useState(null);
 
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({ name: '', email: '', password: '', phone: '', role: 'user' });
   const location = useLocation();
 
   useEffect(() => {
@@ -192,14 +194,14 @@ function AdminPanel({ user, API_BASE }) {
   };
 
   const handlePrintKOT = (order) => {
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
+    const printWindow = window.open('', '_blank', 'width=1200,height=900');
     printWindow.document.write('<html><head><title>Customer Receipt</title>');
     printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
     printWindow.document.write('<style>');    
     printWindow.document.write(`
       @media print { @page { size: 80mm auto; margin: 2mm; } }
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; color: #000; }
-      .kot-container { width: 100%; box-sizing: border-box; }
+      .kot-container { width: 100%; border: 2px solid #000; padding: 1px; box-sizing: border-box; }
       .logo-container { text-align: center; margin-bottom: 15px; }
       .logo { max-height: 60px; }
       .barcode-container { text-align: center; margin-top: 15px; }
@@ -209,7 +211,7 @@ function AdminPanel({ user, API_BASE }) {
       .details-grid .full-width { grid-column: 1 / -1; }
       .products-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
       .products-table th, .products-table td { border: 1px solid #ccc; padding: 4px; text-align: left; font-size: 0.8rem; }
-      .products-table th { background-color: #f2f2f2; }
+      .products-table th { background-color: #e6e6e6; }
       .total-row td { font-weight: bold; }
       strong { font-weight: 600; }
     `);
@@ -273,6 +275,27 @@ function AdminPanel({ user, API_BASE }) {
     setTimeout(() => {
       printWindow.print();
     }, 1000); // 1-second delay
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
+      alert('Name, email, and password are required.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await makeSecureRequest(`${API_BASE}/api/admin/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUserForm),
+      });
+      const data = await response.json();
+      alert(data.message || 'User created successfully!');
+      setShowCreateUserModal(false);
+      setNewUserForm({ name: '', email: '', password: '', phone: '', role: 'user' });
+      fetchData(); // Refresh the user list
+    } catch (error) { alert('Failed to create user.'); }
+    setLoading(false);
   };
 
   const getReceiptHTML = (order) => {
@@ -541,6 +564,7 @@ function AdminPanel({ user, API_BASE }) {
                             <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded-md flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-gray-800 truncate">{product.name}</p>
+                              <p className="font-semibold text-blue-500 truncate">Sold BY:- {product.soldBy}</p>
                               <p className="text-sm text-green-600 font-semibold">₹{product.price}</p>
                               <p className="text-sm text-gray-500">Stock: {product.stock}</p>
                               {product.variants && product.variants.length > 0 && (
@@ -568,6 +592,7 @@ function AdminPanel({ user, API_BASE }) {
                           <tr>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Product</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Category</th>
+                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">SoldBy</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Price</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Stock</th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
@@ -584,6 +609,7 @@ function AdminPanel({ user, API_BASE }) {
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-600">{product.category}</td>
+                              <td className="px-4 py-3 text-sm text-gray-600">{product.soldBy}</td>
                               <td className="px-4 py-3 text-sm text-gray-600">₹{product.price}</td>
                               <td className="px-4 py-3 text-sm text-gray-600">{product.stock}</td>
                               <td className="px-4 py-3 text-sm"><button onClick={() => toggleProduct(product._id, product.enabled)} className={`px-3 py-1 rounded text-xs ${product.enabled !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{product.enabled !== false ? 'Enabled' : 'Disabled'}</button></td>
@@ -623,6 +649,9 @@ function AdminPanel({ user, API_BASE }) {
                       className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                     >
                       📊 Export Excel
+                    </button>
+                    <button onClick={() => setShowCreateUserModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                      + Create User
                     </button>
                   </div>
                 </div>
@@ -749,6 +778,47 @@ function AdminPanel({ user, API_BASE }) {
                 {filteredUsers.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <p>No users found</p>
+                  </div>
+                )}
+
+                {/* Create User Modal */}
+                {showCreateUserModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                      <h3 className="text-lg font-semibold mb-4">Create New User</h3>
+                      <div className="space-y-4">
+                        <input type="text" placeholder="Full Name" value={newUserForm.name} onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <input type="email" placeholder="Email Address" value={newUserForm.email} onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <input type="tel" placeholder="Phone (Optional)" value={newUserForm.phone} onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Role</label>
+                          <select
+                            value={newUserForm.role}
+                            onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value })}
+                            className="w-full px-3 py-2 border rounded bg-white"
+                          >
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex space-x-3 mt-6">
+                        <button
+                          onClick={() => setShowCreateUserModal(false)}
+                          className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleCreateUser}
+                          disabled={loading}
+                          className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {loading ? 'Creating...' : 'Create User'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>} />
