@@ -73,28 +73,25 @@ function AdminPanel({ user, API_BASE }) {
         fetch(`${API_BASE}/api/banner`),
         fetch(`${API_BASE}/api/admin/delivery-areas`, { headers })
       ]);
-
-      const safeJson = async (res) => {
-        try {
-          return await res.json();
-        } catch (e) {
-          console.error("Failed to parse JSON for a request", e);
-          return []; // Return an empty array on JSON parsing failure
-        }
-      };
-
-      setProducts(await safeJson(productsRes));
-      setOrders(await safeJson(ordersRes));
-      setCoupons(await safeJson(couponsRes));
-      const userData = await safeJson(usersRes);
+      
+      setProducts(await productsRes.json());
+      setOrders(await ordersRes.json());
+      setCoupons(await couponsRes.json());
+      const userData = await usersRes.json();
       setUsers(userData);
       setFilteredUsers(userData);
-      setContacts(await safeJson(contactsRes));
-      const settingsData = (await safeJson(settingsRes)) || {};
-      const { shippingZones: fetchedZones, ...otherSettings } = settingsData;      setSettingsForm(otherSettings);
-      if (fetchedZones) setShippingZones(fetchedZones);      setAnalytics((await safeJson(analyticsRes)) || {});
-      setBannerForm((await safeJson(bannerRes)) || {});
-      setDeliveryAreas((await safeJson(deliveryAreasRes)) || { stateDistrictMap: [] });
+      setContacts(await contactsRes.json());
+      const settingsData = await settingsRes.json() || {};
+      // Destructure settings to separate shipping zones from other settings
+      const { shippingZones: fetchedZones, ...otherSettings } = settingsData;
+      setSettingsForm(otherSettings);
+      // If shippingZones are fetched, use them. Otherwise, keep the default empty array.
+      if (fetchedZones) setShippingZones(fetchedZones);
+      setAnalytics(await analyticsRes.json());
+      const bannerData = await bannerRes.json();
+      setBannerForm(bannerData);
+      const deliveryData = await deliveryAreasRes.json();
+      setDeliveryAreas(deliveryData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
     }
