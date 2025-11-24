@@ -50,7 +50,8 @@ function AdminPanel({ user, API_BASE }) {
   const location = useLocation();
 
   useEffect(() => {
-    if (user?.email !== 'admin@samriddhishop.com') {
+    if (user?.email !== 'admin@samriddhishop.com') }
+    {
     // Check the user's role from the user object provided on login, not a hardcoded email.
     if (user?.role !== 'admin') {
       return;
