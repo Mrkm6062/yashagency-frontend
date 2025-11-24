@@ -73,24 +73,49 @@ function AdminPanel({ user, API_BASE }) {
         fetch(`${API_BASE}/api/banner`),
         fetch(`${API_BASE}/api/admin/delivery-areas`, { headers })
       ]);
-      
-      setProducts(await productsRes.json());
-      setOrders(await ordersRes.json());
-      setCoupons(await couponsRes.json());
-      const userData = await usersRes.json();
-      setUsers(userData);
-      setFilteredUsers(userData);
-      setContacts(await contactsRes.json());
-      const settingsData = await settingsRes.json() || {};
+
+      // Helper function to safely parse JSON and handle errors
+      const safeJson = async (response, fallback = []) => {
+        if (!response.ok) {
+          console.error(`API call failed with status ${response.status}: ${response.url}`);
+          // If the response is not OK, return the fallback value (empty array)
+          // This prevents the ".map is not a function" error.
+          return fallback;
+        }
+        // For analytics, the fallback should be an object
+        if (response.url.includes('analytics')) {
+            return await response.json();
+        }
+        const data = await response.json();
+        // Ensure the data is an array before returning
+        return Array.isArray(data) ? data : fallback;
+      };
+
+      const productsData = await safeJson(productsRes);
+      const ordersData = await safeJson(ordersRes);
+      const couponsData = await safeJson(couponsRes);
+      const usersData = await safeJson(usersRes);
+      const contactsData = await safeJson(contactsRes);
+      const analyticsData = await safeJson(analyticsRes, {}); // Fallback to empty object for analytics
+
+      setProducts(productsData);
+      setOrders(ordersData);
+      setCoupons(couponsData);
+      setUsers(usersData);
+      setFilteredUsers(usersData);
+      setContacts(contactsData);
+      setAnalytics(analyticsData);
+
+      const settingsData = settingsRes.ok ? (await settingsRes.json() || {}) : {};
       // Destructure settings to separate shipping zones from other settings
       const { shippingZones: fetchedZones, ...otherSettings } = settingsData;
       setSettingsForm(otherSettings);
       // If shippingZones are fetched, use them. Otherwise, keep the default empty array.
       if (fetchedZones) setShippingZones(fetchedZones);
-      setAnalytics(await analyticsRes.json());
-      const bannerData = await bannerRes.json();
+
+      const bannerData = bannerRes.ok ? await bannerRes.json() : {};
       setBannerForm(bannerData);
-      const deliveryData = await deliveryAreasRes.json();
+      const deliveryData = deliveryAreasRes.ok ? await deliveryAreasRes.json() : { states: [], districts: [], pincodes: [] };
       setDeliveryAreas(deliveryData);
     } catch (error) {
       console.error('Error fetching admin data:', error);
