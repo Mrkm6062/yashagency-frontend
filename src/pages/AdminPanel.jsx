@@ -51,6 +51,8 @@ function AdminPanel({ user, API_BASE }) {
 
   useEffect(() => {
     if (user?.email !== 'admin@samriddhishop.com') {
+    // Check the user's role from the user object provided on login, not a hardcoded email.
+    if (user?.role !== 'admin') {
       return;
     }
     document.title = 'Admin Panel - SamriddhiShop';
@@ -452,6 +454,8 @@ function AdminPanel({ user, API_BASE }) {
   };
 
   if (user?.email !== 'admin@samriddhishop.com') {
+  // Use the role from the user object to determine if the user is an admin.
+  if (user?.role !== 'admin') {
     return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Admin access required</p></div>;
   }
 
