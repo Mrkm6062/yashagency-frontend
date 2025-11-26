@@ -17,13 +17,13 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
   }, [images.length]);
   
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+    <div className="bg-white rounded-b-[2rem] overflow-hidden shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
       <Link to={`/product/${product._id}`}>
         <div className="relative overflow-hidden rounded-t-lg">
           <img 
             src={images[currentImageIndex]} 
             alt={product.name}
-            className="w-full h-48 object-cover transition-all duration-300 group-hover:scale-105"
+            className="w-full h-64 object-cover transition-all duration-300 group-hover:scale-105"
           />
           {images.length > 1 && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
@@ -35,7 +35,7 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
         </div>
       </Link>
       
-      <div className="p-1">
+      <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-4 rounded-t-3xl rounded-b-3xl relative z-10  shadow-inner">
         <Link to={`/product/${product._id}`}>
           <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors">{product.name}</h5>
           <p className="text-gray-600 text-sm mb-2">{product.description.substring(0, 10)}...</p>

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 
-function ProductListPage({ products, loading }) {
+function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
@@ -311,7 +311,7 @@ function ProductListPage({ products, loading }) {
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.slice(0, displayCount).map(product => (
-          <ProductCard key={product._id} product={product} />
+          <ProductCard key={product._id} product={product} addToCart={addToCart} />
         ))}
       </div>
       {displayCount < filteredProducts.length && (

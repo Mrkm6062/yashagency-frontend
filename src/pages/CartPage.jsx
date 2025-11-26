@@ -29,10 +29,6 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
     }
   };
 
-  const handleAddToCart = (product) => {
-    addToCart(product);
-  };
-
   const handleCheckout = () => {
     if (!user) {
       navigate('/login');
@@ -91,15 +87,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
             const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
             return (
               <div key={product._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-                <ProductCard product={product} />
-                <div className="p-4">
-                  <button 
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
+                <ProductCard product={product} addToCart={addToCart} />
               </div>
             );
           })}
