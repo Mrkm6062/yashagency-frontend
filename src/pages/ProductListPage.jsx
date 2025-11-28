@@ -224,7 +224,7 @@ function ProductListPage({ products, loading, addToCart }) {
       </div>
       
       {showFilters && (
-        <div className="fixed inset-0 z-50 md:hidden  md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowFilters(false)}></div>
           <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
             <div className="p-6">
