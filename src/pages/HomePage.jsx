@@ -6,7 +6,7 @@ import { getOptimizedImageUrl } from '../imageUtils.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
-function HomePage({ products, loading }) {
+function HomePage({ products, loading, addToCart }) {
   const [banners, setBanners] = useState({
     desktop: {
       title: 'Welcome to SamriddhiShop',
@@ -136,7 +136,7 @@ function HomePage({ products, loading }) {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {categoryProducts.slice(0, 4).map((product) => (
-                <ProductCard key={product._id} product={product} />
+                <ProductCard key={product._id} product={product} addToCart={addToCart} />
               ))}
             </div>
           </section>

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 
-function ProductListPage({ products, loading }) {
+function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
@@ -224,7 +224,7 @@ function ProductListPage({ products, loading }) {
       </div>
       
       {showFilters && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden  md:hidden">
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowFilters(false)}></div>
           <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
             <div className="p-6">
@@ -311,7 +311,7 @@ function ProductListPage({ products, loading }) {
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.slice(0, displayCount).map(product => (
-          <ProductCard key={product._id} product={product} />
+          <ProductCard key={product._id} product={product} addToCart={addToCart} />
         ))}
       </div>
       {displayCount < filteredProducts.length && (
