@@ -84,7 +84,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
             {hasDiscount && (
               <>
                 <span className="text-xs text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
-                <span className="bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-md font-bold">{product.discountPercentage}% 🢃
+                <span className="bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-md font-bold">{product.discountPercentage}%S
 
 </span>
               </>
