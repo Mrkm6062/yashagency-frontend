@@ -13,12 +13,20 @@ function ProductListPage({ products, loading, addToCart }) {
     minRating: '',
     sortBy: 'name'
   });
-  const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
   const observer = useRef();
   const loadingRef = useRef(null); // Element to observe for infinite scroll
   const location = useLocation();
+
+  // This effect will sync the URL search query with the filter UI
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const urlSearchTerm = queryParams.get('search') || '';
+    // If you want the search term to appear in the filter's search box
+    // you would need a state for it, but the filtering logic below
+    // already uses the URL directly.
+  }, [location.search]);
 
   useEffect(() => {
     applyFilters();
@@ -26,7 +34,7 @@ function ProductListPage({ products, loading, addToCart }) {
     return () => {
       document.title = 'SamriddhiShop';
     };
-  }, [products, filters, searchTerm, location.search]); // Re-run applyFilters when these change
+  }, [products, filters, location.search]); // Re-run applyFilters when these change
 
   useEffect(() => {
     // Reset displayCount whenever filters or search terms change
@@ -37,11 +45,7 @@ function ProductListPage({ products, loading, addToCart }) {
     // Extract search term from URL if present
     const queryParams = new URLSearchParams(location.search);
     const urlSearchTerm = queryParams.get('search');
-
-    // If the search term was just updated from the URL, this function will re-run.
-    // We need to ensure we use the most up-to-date searchTerm for filtering.
-    const currentSearch = urlSearchTerm || searchTerm;
-
+    const currentSearch = urlSearchTerm;
 
     let filtered = [...products];
 
@@ -151,13 +155,6 @@ function ProductListPage({ products, loading, addToCart }) {
       <div className="hidden md:block bg-white p-6 rounded-lg shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
           <select
             value={filters.category}
             onChange={(e) => setFilters({...filters, category: e.target.value})}
@@ -207,7 +204,6 @@ function ProductListPage({ products, loading, addToCart }) {
         <button
           onClick={() => {
             setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
-            setSearchTerm('');
           }}
           className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
         >
@@ -225,13 +221,6 @@ function ProductListPage({ products, loading, addToCart }) {
                 <button onClick={() => setShowFilters(false)} className="text-gray-500 hover:text-gray-700">✕</button>
               </div>
               <div className="space-y-6">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({...filters, category: e.target.value})}
@@ -282,7 +271,6 @@ function ProductListPage({ products, loading, addToCart }) {
                 <button
                   onClick={() => {
                     setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
-                    setSearchTerm('');
                     // No need to call applyFilters here, as closing the modal will trigger useEffect
                     // which will then apply the filters based on the updated state.
                   }}
