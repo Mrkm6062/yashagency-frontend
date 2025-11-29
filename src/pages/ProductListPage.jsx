@@ -154,8 +154,9 @@ function ProductListPage({ products, loading, addToCart }) {
       
       <div className="hidden md:block bg-white p-6 rounded-lg shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          <select
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-grow">
+            <select
             value={filters.category}
             onChange={(e) => setFilters({...filters, category: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -165,50 +166,51 @@ function ProductListPage({ products, loading, addToCart }) {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-          <input
+            <input
             type="number"
             placeholder="Min Price"
             value={filters.minPrice}
             onChange={(e) => setFilters({...filters, minPrice: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <input
+            <input
             type="number"
             placeholder="Max Price"
             value={filters.maxPrice}
             onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <select
+            <select
             value={filters.minRating}
             onChange={(e) => setFilters({...filters, minRating: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Any Rating</option>
-            <option value="4">4+ Stars</option>
-            <option value="3">3+ Stars</option>
-            <option value="2">2+ Stars</option>
-            <option value="1">1+ Stars</option>
-          </select>
-          <select
+              <option value="">Any Rating</option>
+              <option value="4">4+ Stars</option>
+              <option value="3">3+ Stars</option>
+              <option value="2">2+ Stars</option>
+              <option value="1">1+ Stars</option>
+            </select>
+            <select
             value={filters.sortBy}
             onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="name">Sort by Name</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="rating">Highest Rated</option>
-          </select>
-        </div>
-        <button
+              <option value="name">Sort by Name</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </div>
+          <button
           onClick={() => {
             setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
           }}
-          className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+          className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors h-fit"
         >
           Clear Filters
         </button>
+        </div>
       </div>
       
       {showFilters && (
