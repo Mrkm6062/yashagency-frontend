@@ -39,7 +39,7 @@ function ProductListPage({ products, loading, addToCart }) {
   useEffect(() => {
     // Reset displayCount whenever filters or search terms change
     setDisplayCount(12);
-  }, [filters, searchTerm]);
+  }, [filters, location.search]);
 
   const applyFilters = () => {
     // Extract search term from URL if present
