@@ -128,21 +128,71 @@ function ProductListPage({ products, loading, addToCart }) {
   }, [loading, filteredProducts, displayCount]); // Re-run when products or displayCount changes
   const categories = [...new Set(products.map(p => p.category))];
 
+  const categoryColors = [
+    'blue',
+    'red',
+    'green',
+    'purple',
+    'pink',
+    'indigo',
+    'teal',
+    'yellow'
+  ];
+
   if (loading) return <LoadingSpinner />;
 
   return (
     <div>
-      <button 
-        onClick={() => navigate('/')}
-        className="mb-6 flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
-      >
-        <span>←</span>
-        <span>Back to Home</span>
-      </button>
+      {/* Categories Section */}
+      <div className="mb-8">
+        <div className="flex flex-wrap justify-center gap-4 md:flex-nowrap md:justify-start md:overflow-x-auto md:pb-4 md:-mx-4 md:px-4 md:scrollbar-thin md:scrollbar-thumb-gray-300 md:scrollbar-track-gray-100">
+          {/* "All" Category */}
+          <div
+            key="all-categories"
+            onClick={() => setFilters(prev => ({ ...prev, category: '' }))}
+            className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group"
+          >
+            <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
+              !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
+            }`}>
+              <img 
+                src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.png" 
+                alt="All Categories" 
+                className="w-8 h-8 md:w-14 md:h-14 object-contain"
+              />
+            </div>
+            <p className={`text-sm font-medium transition-colors ${!filters.category ? 'text-blue-600' : 'text-gray-700 group-hover:text-blue-500'}`}>
+              All
+            </p>
+          </div>
 
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">All Products</h1>
+          {/* Dynamic Categories */}
+          {categories.map((category, index) => {
+            const color = categoryColors[index % categoryColors.length];
+            const activeClasses = `border-${color}-600 ring-2 ring-${color}-200`;
+            const hoverClasses = `group-hover:border-${color}-400`;
+            const activeTextClasses = `text-${color}-600`;
+            const hoverTextClasses = `group-hover:text-${color}-500`;
 
+            return (
+              <div
+              key={category}
+              onClick={() => setFilters(prev => ({ ...prev, category }))}
+              className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
+            >
+              <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
+                filters.category === category ? activeClasses : 'border-gray-300'
+              }`}>
+                {/* Replace with actual category images when available */}
+                <img src={`https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${category.substring(0,1)}`} alt={category} className="w-full h-full object-cover rounded-full" />
+              </div>
+              <p className={`text-xs font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
+            </div>
+          )})}
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center">
         <button
           onClick={() => setShowFilters(true)}
           className="md:hidden bg-white hover:bg-gray-50 text-gray-800 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
@@ -154,18 +204,29 @@ function ProductListPage({ products, loading, addToCart }) {
       
       <div className="hidden md:block bg-white p-6 rounded-lg shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="flex flex-wrap items-end gap-4">
+        <div className="w-full flex flex-wrap items-end gap-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-grow">
             <select
-            value={filters.category}
-            onChange={(e) => setFilters({...filters, category: e.target.value})}
+            value={filters.sortBy}
+            onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
+              <option value="name">Sort by Name</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+            <select
+            value={filters.minRating}
+            onChange={(e) => setFilters({...filters, minRating: e.target.value})}
+            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+              <option value="">Any Rating</option>
+              <option value="4">4+ Stars</option>
+              <option value="3">3+ Stars</option>
+              <option value="2">2+ Stars</option>
+              <option value="1">1+ Stars</option>
+            </select>
             <input
             type="number"
             placeholder="Min Price"
@@ -180,27 +241,6 @@ function ProductListPage({ products, loading, addToCart }) {
             onChange={(e) => setFilters({...filters, maxPrice: e.target.value})}
             className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-            <select
-            value={filters.minRating}
-            onChange={(e) => setFilters({...filters, minRating: e.target.value})}
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-              <option value="">Any Rating</option>
-              <option value="4">4+ Stars</option>
-              <option value="3">3+ Stars</option>
-              <option value="2">2+ Stars</option>
-              <option value="1">1+ Stars</option>
-            </select>
-            <select
-            value={filters.sortBy}
-            onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-              <option value="name">Sort by Name</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
           </div>
           <button
           onClick={() => {
