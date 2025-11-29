@@ -38,14 +38,6 @@ function ProductListPage({ products, loading, addToCart }) {
     const queryParams = new URLSearchParams(location.search);
     const urlSearchTerm = queryParams.get('search');
 
-    // If there's a URL search term, prioritize it and update local state
-    if (urlSearchTerm && urlSearchTerm !== searchTerm) {
-      setSearchTerm(urlSearchTerm);
-    } else if (!urlSearchTerm && searchTerm) {
-      // If URL search term is cleared but local state has one, clear local state
-      setSearchTerm('');
-    }
-
     // If the search term was just updated from the URL, this function will re-run.
     // We need to ensure we use the most up-to-date searchTerm for filtering.
     const currentSearch = urlSearchTerm || searchTerm;
