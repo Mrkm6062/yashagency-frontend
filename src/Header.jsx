@@ -6,6 +6,7 @@ import { getOptimizedImageUrl } from './imageUtils.js';
 
 const Header = React.memo(function Header({ user, logout, cartCount, wishlistCount, notifications, setUserNotifications, API_BASE, LOGO_URL, t, makeSecureRequest }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,6 +15,15 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   useOutsideClick(notificationRef, () => {
     if (showNotifications) setShowNotifications(false);
   });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setShowSearch(false); // Hide search bar after search
+    }
+  };
 
   const NavLink = ({ to, children }) => {
     const isActive = location.pathname === to;
@@ -81,6 +91,25 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               <img src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.png" alt="SamriddhiShop" className="h-full w-auto" />
             </picture>
           </Link>
+
+          {/* Search Bar - Centered */}
+          <div className="hidden lg:flex flex-1 justify-center px-8">
+            <form onSubmit={handleSearchSubmit} className="relative w-full max-w-lg">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search for products, brands and more"
+                className="w-full px-4 py-2 border rounded-lg bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+              />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </form>
+          </div>
+
 
           <nav className="hidden lg:flex items-center space-x-8">
             <NavLink to="/">{t('HOME')}</NavLink>
@@ -158,6 +187,25 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
           </nav>
           <div className="flex items-center space-x-2 lg:hidden">
             {/* Mobile Icons */}
+            {showSearch ? (
+              <form onSubmit={handleSearchSubmit} className="relative flex-1">
+                <input
+                  type="text"
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onBlur={() => setShowSearch(false)}
+                  placeholder="Search..."
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                />
+              </form>
+            ) : (
+              <button onClick={() => setShowSearch(true)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700" aria-label="Search">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            )}
             {user && (
               <div className="relative" ref={notificationRef}>
                 <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700" aria-label="View notifications">
