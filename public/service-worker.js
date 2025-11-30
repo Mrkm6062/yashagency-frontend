@@ -21,14 +21,30 @@ self.addEventListener("fetch", (event) => {
 
   // Use a cache-first strategy for all other requests (images, CSS, etc.).
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return the cached response if it exists.
+    caches.match(event.request).then((response) => {
+      // If we have a cached response, return it.
+      if (response) {
+        return response;
+      }
+
       // Otherwise, fetch from the network.
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Optional: You can return a specific offline placeholder for images/assets here
-        // For now, it will just fail if not in cache and offline.
-        console.log("Fetch failed for:", event.request.url);
-      });
+      return fetch(event.request).then((networkResponse) => {
+        // If the fetch is successful, clone it and cache it.
+        // We need to clone because a response is a stream and can only be consumed once.
+        let responseToCache = networkResponse.clone();
+        caches.open("v1").then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        // Return the original network response to the browser.
+        return networkResponse;
+      }).catch(error => {
+        console.error("Service Worker fetch failed:", error);
+        // IMPORTANT: Return a generic error response to avoid the TypeError
+        return new Response("Network error happened", {
+          status: 408,
+          headers: { "Content-Type": "text/plain" },
+        });
+      })
     })
   );
 });
