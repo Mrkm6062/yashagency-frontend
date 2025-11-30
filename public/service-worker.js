@@ -19,6 +19,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Ignore non-GET requests and requests made by browser extensions.
+  if (
+    event.request.method !== "GET" ||
+    !event.request.url.startsWith("http")
+  ) {
+    return; // Let the browser handle it.
+  }
+
   // Use a cache-first strategy for all other requests (images, CSS, etc.).
   event.respondWith(
     caches.match(event.request).then((response) => {
