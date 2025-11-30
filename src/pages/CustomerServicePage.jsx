@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { makeSecureRequest } from '../csrf.js';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 function CustomerServicePage({ API_BASE }) {
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -70,22 +68,20 @@ function CustomerServicePage({ API_BASE }) {
         body: JSON.stringify(contactForm)
       });
       if (response.ok) {
-        toast.success('Message sent successfully! We\'ll get back to you soon.');
+        alert('Message sent successfully! We\'ll get back to you soon.');
         setContactForm({ name: '', email: '', subject: '', message: '' });
         setErrors({});
       } else {
-        toast.error('Failed to send message. Please try again.');
+        alert('Failed to send message. Please try again.');
       }
     } catch (error) {
-      console.error('Contact form submission error:', error);
-      toast.error('Failed to send message. Please try again.');
+      alert('Failed to send message. Please try again.');
     }
     setLoading(false);
   };
 
   return (
     <div className="py-4 lg:py-8">
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       <div className="w-full mx-0">
         <button
           onClick={() => navigate(-1)}
