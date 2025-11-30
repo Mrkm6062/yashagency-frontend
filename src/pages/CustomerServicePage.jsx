@@ -51,7 +51,7 @@ function CustomerServicePage({ API_BASE }) {
     const { name, value } = e.target;
     let sanitizedValue = value;
     // Sanitize inputs to prevent XSS by removing characters like < and >
-    if (name === 'name' || name === 'subject' || name === 'message') {
+    if (name === 'name' || name === 'email' || name === 'subject' || name === 'message') {
       sanitizedValue = value.replace(/[<>]/g, '');
     }
     setContactForm({ ...contactForm, [name]: sanitizedValue });
