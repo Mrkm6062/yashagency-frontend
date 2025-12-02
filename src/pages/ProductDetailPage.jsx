@@ -262,34 +262,34 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               onMouseLeave={() => setIsZooming(false)}
               onMouseMove={handleMouseMove}
             >
-                <picture>
-                  <source
-                    srcSet={`
-                      ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 400 })} 400w,
-                      ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 800 })} 800w,
-                      ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 1200 })} 1200w
-                    `}
-                    sizes="(max-width: 1023px) 90vw, 45vw"
-                    type="image/webp"
-                  />
+              <picture>
+                <source
+                  srcSet={`
+                    ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 400 })} 400w,
+                    ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 800 })} 800w,
+                    ${getOptimizedImageUrl(images[selectedImage], { format: "webp", width: 1200 })} 1200w
+                  `}
+                  sizes="(max-width: 1023px) 90vw, 45vw"
+                  type="image/webp"
+                />
 
-                  <img
-                    src={images[selectedImage]}
-                    srcSet={`
-                      ${getOptimizedImageUrl(images[selectedImage], { width: 400 })} 400w,
-                      ${getOptimizedImageUrl(images[selectedImage], { width: 800 })} 800w,
-                      ${getOptimizedImageUrl(images[selectedImage], { width: 1200 })} 1200w
-                    `}
-                    sizes="(max-width: 1023px) 90vw, 45vw"
-                    alt={product.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-300"
-                    style={{
-                      transform: isZooming ? "scale(2)" : "scale(1)",
-                      transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
-                    }}
-                  />
-                </picture> 
+                <img
+                  src={images[selectedImage]}
+                  srcSet={`
+                    ${getOptimizedImageUrl(images[selectedImage], { width: 400 })} 400w,
+                    ${getOptimizedImageUrl(images[selectedImage], { width: 800 })} 800w,
+                    ${getOptimizedImageUrl(images[selectedImage], { width: 1200 })} 1200w
+                  `}
+                  sizes="(max-width: 1023px) 90vw, 45vw"
+                  alt={product.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover transition-transform duration-300"
+                  style={{
+                    transform: isZooming ? "scale(2)" : "scale(1)",
+                    transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
+                  }}
+                />
+              </picture> 
               {/* {product.originalPrice && product.discountPercentage > 0 && (
                 <div className="absolute top-1 left-1 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                   {product.discountPercentage}% OFF
@@ -332,7 +332,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             </div>
           </div>
 
-          <div className="space-y-6 pb-48 lg:pb-0">
+          <div className="space-y-6">
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{product.category}</span>
