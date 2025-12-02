@@ -548,7 +548,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             )}
           </div>
         </div>
-        <div className="mt-6">
+        <div className="">
           <SuggestedProducts allProducts={products} currentProductId={product._id} currentCategory={product.category} />
         </div>
 
