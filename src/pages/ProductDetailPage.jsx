@@ -417,10 +417,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               ) : (
                 <div>
                   <div className="flex space-x-2">
-                    <input type="number" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value)} className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" inputMode="numeric" placeholder="Enter Pincode" value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))} className="w-48 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                     <button onClick={() => checkPincode()} className="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 flex items-center justify-center"><FaArrowRight className="h-5 w-5" /></button>
                   </div>
-                  {pincodeStatus && showManualPincode && (
+                  {pincodeStatus && (!userAddress || showManualPincode) && (
                     <div className={`mt-3 text-sm font-medium ${pincodeStatus.loading ? 'text-gray-500' : pincodeStatus.available ? 'text-green-600' : 'text-red-600'}`}>
                       {pincodeStatus.loading ? 'Checking...' : pincodeStatus.message}
                     </div>
@@ -493,7 +493,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-blue-800 mb-2">Review</label>
-                      <textarea value={review} onChange={(e) => setReview(e.target.value)} className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Share your experience..."/>
+                      <textarea value={review} onChange={(e) => setReview(e.target.value.replace(/[<>]/g, ''))} className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Share your experience..."/>
                     </div>
                     <div className="flex space-x-3">
                       <button onClick={submitReview} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Submit</button>
@@ -560,11 +560,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                     key={index}
                     onClick={() => {
                       setSelectedSize(size);
-                      const colorsForThisSize = product.variants.filter(v => v.size === size).map(v => ({ color: v.color, stock: v.stock }));
+                      const colorsForThisSize = product.variants.filter(v => v.size === size);
                       if (colorsForThisSize.length === 1) {
                         setSelectedColor(colorsForThisSize[0].color);
                       } else {
-                        setSelectedColor(null); // This case shouldn't happen if the popup is only for size
+                        setSelectedColor(null);
                       }
                     }}
                     className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedSize === size ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'}`}
@@ -573,6 +573,20 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   </button>
                 ))}
               </div>
+
+              {selectedSize && colorsForSelectedSize.length > 1 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold mb-4">Select a Color</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {colorsForSelectedSize.map((item, index) => (
+                      <button key={index} onClick={() => setSelectedColor(item.color)} className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${selectedColor === item.color ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 hover:border-gray-400'} ${item.stock <= 0 ? 'opacity-50 cursor-not-allowed line-through' : ''}`} disabled={item.stock <= 0}>
+                        {item.color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={() => {
                   if (pendingAction) pendingAction();
