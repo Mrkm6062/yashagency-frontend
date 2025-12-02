@@ -26,7 +26,7 @@ function SuggestedProducts({ allProducts, currentProductId, currentCategory }) {
   }, [allProducts, currentProductId, currentCategory]);
 
   return (
-    <div className="mb-8">
+    <div className="mb-1">
       <h2 className="text-2xl font-bold mb-6">You might also like</h2>
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {suggested.map(product => <ProductCard key={product._id} product={product} />)}
