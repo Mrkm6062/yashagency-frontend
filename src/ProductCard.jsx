@@ -51,7 +51,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           />
         </picture>
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
-        <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0">
+        <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`}>
           {images.length > 1 && (
             <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
               {images.map((_, index) => (
@@ -66,7 +66,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           )}
         </Link>
       </div>
-      <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block">
+      <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block" aria-label={`View ${product.name}`}>
         <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 rounded-t-3xl relative z-10 text-center shadow-inner">
           <h4 className="py-4 font-semibold text-sm group-hover:text-blue-600 transition-colors">
              {product.name.length > 20 
