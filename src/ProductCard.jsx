@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getOptimizedImageUrl } from './imageUtils.js';
 
 const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
-  
-  useEffect(() => {
-    if (images.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex(prev => (prev + 1) % images.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [images.length]);
+  const mainImageUrl = product.imageUrl;
   
   const handleAddToCart = (e) => {
     e.preventDefault(); // Prevent the Link from navigating
@@ -35,13 +25,13 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
       <div className="relative overflow-hidden  aspect-[2/3] bg-[#4b2d1e]">
         <picture>
           <source 
-            srcSet={`${getOptimizedImageUrl(images[currentImageIndex], { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(images[currentImageIndex], { format: 'webp', width: 800 })} 800w`}
+            srcSet={`${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 800 })} 800w`}
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             type="image/webp"
           />
           <img 
-            src={getOptimizedImageUrl(images[currentImageIndex], { width: 400, quality: 'auto' })} // Optimized default src
-            srcSet={`${getOptimizedImageUrl(images[currentImageIndex], { width: 320, quality: 'auto' })} 320w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 400, quality: 'auto' })} 400w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 600, quality: 'auto' })} 600w, ${getOptimizedImageUrl(images[currentImageIndex], { width: 800, quality: 'auto' })} 800w`}
+            src={getOptimizedImageUrl(mainImageUrl, { width: 400, quality: 'auto' })} // Optimized default src
+            srcSet={`${getOptimizedImageUrl(mainImageUrl, { width: 320, quality: 'auto' })} 320w, ${getOptimizedImageUrl(mainImageUrl, { width: 400, quality: 'auto' })} 400w, ${getOptimizedImageUrl(mainImageUrl, { width: 600, quality: 'auto' })} 600w, ${getOptimizedImageUrl(mainImageUrl, { width: 800, quality: 'auto' })} 800w`}
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             alt={product.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
@@ -51,20 +41,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           />
         </picture>
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
-        <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`}>
-          {images.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-              {images.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-        </Link>
+        <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`} />
       </div>
       <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block" aria-label={`View ${product.name}`}>
         <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 rounded-t-3xl relative z-10 text-center shadow-inner">
