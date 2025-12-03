@@ -1,4 +1,62 @@
+# =========================================================
+# Robots.txt for Samriddhi Shop (SEO Optimized)
+# =========================================================
+
 User-agent: *
 Allow: /
 
-Sitemap: http://localhost:3000/sitemap.xml
+# ------------------------------
+# Block duplicate / irrelevant pages
+# ------------------------------
+Disallow: /login
+Disallow: /register
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /wishlist
+Disallow: /order
+Disallow: /orders
+Disallow: /account
+Disallow: /admin
+Disallow: /dashboard
+
+# ------------------------------
+# Block API endpoints (should NOT appear on Google)
+# ------------------------------
+Disallow: /api/
+Disallow: */api/*
+
+# ------------------------------
+# Allow all product, category, and blog pages
+# ------------------------------
+Allow: /product/
+Allow: /products/
+Allow: /category/
+Allow: /blog/
+Allow: /search/
+
+# ------------------------------
+# Crawlers allowed (safe)
+# ------------------------------
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Disallow: /  # Block China crawler (optional)
+
+# ------------------------------
+# Prevent internal search pages from indexing
+# (Google recommends this)
+# ------------------------------
+Disallow: /search?
+
+# ------------------------------
+# SITEMAP (correct domain)
+# ------------------------------
+Sitemap: https://samriddhishop.in/sitemap.xml
