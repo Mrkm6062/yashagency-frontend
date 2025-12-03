@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 
 function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
+  const { categoryName } = useParams(); // Get category from URL
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
     category: '',
@@ -18,15 +19,12 @@ function ProductListPage({ products, loading, addToCart }) {
   const observer = useRef();
   const loadingRef = useRef(null); // Element to observe for infinite scroll
   const location = useLocation();
-
-  // This effect will sync the URL search query with the filter UI
+  
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const urlSearchTerm = queryParams.get('search') || '';
-    // If you want the search term to appear in the filter's search box
-    // you would need a state for it, but the filtering logic below
-    // already uses the URL directly.
-  }, [location.search]);
+    // Sync the category from the URL parameter to the filter state
+    const currentCategory = categoryName === 'allcategory' ? '' : categoryName || '';
+    setFilters(prev => ({ ...prev, category: currentCategory }));
+  }, [categoryName]);
 
   useEffect(() => {
     applyFilters();
@@ -34,7 +32,9 @@ function ProductListPage({ products, loading, addToCart }) {
     return () => {
       document.title = 'SamriddhiShop';
     };
-  }, [products, filters, location.search]); // Re-run applyFilters when these change
+    // We removed location.search from dependencies because applyFilters now reads it directly.
+    // We added categoryName to re-run filters when the URL category changes.
+  }, [products, filters, location.search, categoryName]); // Re-run applyFilters when these change
 
   useEffect(() => {
     // Reset displayCount whenever filters or search terms change
@@ -149,7 +149,7 @@ function ProductListPage({ products, loading, addToCart }) {
           {/* "All" Category */}
           <div
             key="all-categories"
-            onClick={() => setFilters(prev => ({ ...prev, category: '' }))}
+            onClick={() => navigate('/products/allcategory')}
             className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group"
           >
             <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
@@ -177,7 +177,7 @@ function ProductListPage({ products, loading, addToCart }) {
             return (
               <div
               key={category}
-              onClick={() => setFilters(prev => ({ ...prev, category }))}
+              onClick={() => navigate(`/products/${category}`)}
               className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
             >
               <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
@@ -245,6 +245,7 @@ function ProductListPage({ products, loading, addToCart }) {
           <button
           onClick={() => {
             setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
+            navigate('/products/allcategory');
           }}
           className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors h-fit"
         >
@@ -265,7 +266,10 @@ function ProductListPage({ products, loading, addToCart }) {
               <div className="space-y-6">
                 <select
                   value={filters.category}
-                  onChange={(e) => setFilters({...filters, category: e.target.value})}
+                  onChange={(e) => {
+                    const newCategory = e.target.value;
+                    navigate(newCategory ? `/products/${newCategory}` : '/products/allcategory');
+                  }}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">All Categories</option>
@@ -313,8 +317,7 @@ function ProductListPage({ products, loading, addToCart }) {
                 <button
                   onClick={() => {
                     setFilters({ category: '', minPrice: '', maxPrice: '', minRating: '', sortBy: 'name' });
-                    // No need to call applyFilters here, as closing the modal will trigger useEffect
-                    // which will then apply the filters based on the updated state.
+                    navigate('/products/allcategory');
                   }}
                   className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg"
                 >
