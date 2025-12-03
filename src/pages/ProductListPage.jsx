@@ -215,7 +215,6 @@ const formattedCategory =
           <h1 className="text-xl font-bold mb-2">
             {formattedCategory} – Latest Collection
           </h1>
-
           <p className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
             Discover the latest {formattedCategory} on Samriddhi Shop. We offer
             trending and high-quality products updated daily. Enjoy the best prices

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaArrowRight, FaShareAlt, FaArrowDown, FaCheckCircle } from 'react-icons/fa';
 import { makeSecureRequest } from '../csrf.js';
@@ -243,6 +244,89 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+      <Helmet>
+  {/* SEO Title */}
+  <title>{`${product.name} – Buy Online at Best Price | Samriddhi Shop`}</title>
+
+  {/* Meta Description */}
+  <meta 
+    name="description" 
+    content={`${product.name} – ${product.description?.slice(0, 150)}... Buy now at best price on Samriddhi Shop.`} 
+  />
+
+  {/* Breadcrumb Schema */}
+  <script 
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "http://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://samriddhishop.in"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Products",
+            "item": "https://samriddhishop.in/products/allcategory"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": product.name,
+            "item": `https://samriddhishop.in/product/${product._id}`
+          }
+        ]
+      })
+    }}
+  />
+
+  {/* PRODUCT SCHEMA */}
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.name,
+        "image": [product.imageUrl, ...(product.images || [])],
+        "description": product.description,
+        "sku": product._id,
+        "category": product.category,
+        "brand": "Samriddhi Shop",
+
+        "offers": {
+          "@type": "Offer",
+          "url": `https://samriddhishop.in/product/${product._id}`,
+          "priceCurrency": "INR",
+          "price": product.price,
+          "availability": product.stock > 0 ? "InStock" : "OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Samriddhi Shop"
+          }
+        },
+
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": product.averageRating || 0,
+          "reviewCount": product.ratings?.length || 0
+        }
+      })
+    }}
+  />
+</Helmet>
+<div className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
+  <h1>{product.name} – Best Price Online</h1>
+  <p>
+    Buy {product.name} online at Samriddhi Shop. {product.description}.
+    Quality checked, fast delivery, and best affordable price.
+  </p>
+</div>
       <div className="max-w-7xl mx-auto px-4">
         <nav className="mb-8 hidden sm:block">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
