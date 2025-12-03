@@ -37,7 +37,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').repla
 
 
 // --- Logo Configuration ---
-const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/bigsize.png"; // <-- CHANGE YOUR LOGO URL HERE
+const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/bigsize.webp"; // <-- CHANGE YOUR LOGO URL HERE
 
 // Main App Component
 function App() {
