@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from "react-helmet-async";
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
@@ -138,9 +139,88 @@ function ProductListPage({ products, loading, addToCart }) {
   ];
 
   if (loading) return <LoadingSpinner />;
+  // Format category name (capitalize each word)
+const formattedCategory =
+  categoryName && categoryName !== "allcategory"
+    ? decodeURIComponent(categoryName)
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : "All Products";
 
   return (
     <div>
+          <Helmet>
+            {/* Dynamic Title */}
+            <title>
+              {formattedCategory === "All Products"
+                ? "All Products - Samriddhi Shop"
+                : `${formattedCategory} – Buy Latest ${formattedCategory} Online | Samriddhi Shop`}
+            </title>
+
+            {/* Meta Description */}
+            <meta
+              name="description"
+              content={
+                formattedCategory === "All Products"
+                  ? "Shop all products across all categories at Samriddhi Shop. Trending items updated daily with fast delivery."
+                  : `Shop trending ${formattedCategory} at Samriddhi Shop. Explore latest designs, top quality, and fast delivery. Updated daily.`
+              }
+            />
+
+            {/* Breadcrumb Schema */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                    {
+                      "@type": "ListItem",
+                      position: 1,
+                      name: "Home",
+                      item: "https://samriddhishop.in",
+                    },
+                    {
+                      "@type": "ListItem",
+                      position: 2,
+                      name: formattedCategory,
+                      item:
+                        formattedCategory === "All Products"
+                          ? "https://samriddhishop.in/products/allcategory"
+                          : `https://samriddhishop.in/products/${categoryName}`,
+                    },
+                  ],
+                }),
+              }}
+            />
+
+            {/* ItemList Schema (products list) */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "ItemList",
+                  itemListElement: filteredProducts.map((p, i) => ({
+                    "@type": "ListItem",
+                    position: i + 1,
+                    name: p.name,
+                    url: `https://samriddhishop.in/product/${p._id}`,
+                  })),
+                }),
+              }}
+            />
+          </Helmet>
+          <h1 className="text-xl font-bold mb-2">
+            {formattedCategory} – Latest Collection
+          </h1>
+
+          <p className="text-gray-600 mb-4">
+            Discover the latest {formattedCategory} on Samriddhi Shop. We offer
+            trending and high-quality products updated daily. Enjoy the best prices
+            and fast delivery across India.
+          </p>
       {/* Categories Section */}
       <div className="mb-8">
         <div className="flex flex-wrap justify-center gap-4 md:flex-nowrap md:justify-start md:overflow-x-auto md:pb-4 md:-mx-4 md:px-4 md:scrollbar-thin md:scrollbar-thumb-gray-300 md:scrollbar-track-gray-100">
