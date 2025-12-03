@@ -321,10 +321,28 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   />
 </Helmet>
 <div className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
-  <h1>{product.name} – Best Price Online</h1>
+  <h1>{product.name} – Buy Online at Best Price in India</h1>
+
   <p>
-    Buy {product.name} online at Samriddhi Shop. {product.description}.
-    Quality checked, fast delivery, and best affordable price.
+    {product.name} is one of the top-selling products in the {product.category} category on 
+    Samriddhi Shop. This product features: {product.description}. Buy original and 
+    high-quality {product.name} online at the lowest price.
+  </p>
+
+  <p>
+    Best features of {product.name}: 
+    {product.highlights?.join(", ") || ""}.
+  </p>
+
+  <p>
+    Related Keywords: Buy {product.name} online, Best {product.category} products, 
+    Affordable {product.category} items, Latest {product.name} India, {product.name} price, 
+    {product.category} online shopping, Trending {product.category} items.
+  </p>
+
+  <p>
+    This product is available for delivery across India. Fast delivery, quality assurance, 
+    easy returns, and secure checkout available.
   </p>
 </div>
       <div className="max-w-7xl mx-auto px-4">
