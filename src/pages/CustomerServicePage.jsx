@@ -94,8 +94,16 @@ function CustomerServicePage({ API_BASE }) {
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
             <nav className="flex overflow-x-auto">
               {tabs.map(tab => (
-                <Link key={tab.id} to={`/support/${tab.id}`} className={`flex flex-col items-center justify-center space-y-0.5 px-3 py-2 font-medium whitespace-nowrap transition-all flex-grow ${location.pathname.endsWith(tab.id) ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}`}>
-                  <span className="text-sm">{tab.icon}</span><span className="text-xs">{tab.label}</span>
+                <Link
+                  key={tab.id}
+                  to={`/support/${tab.id}`}
+                  aria-label={tab.label}
+                  className={`flex flex-col items-center justify-center space-y-0.5 px-3 py-2 font-medium whitespace-nowrap transition-all flex-grow 
+                    ${location.pathname.endsWith(tab.id) ? 'border-b-3 border-blue-600 text-blue-600 bg-white shadow-sm' : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'}
+                  `}
+                >
+                  <span className="text-sm">{tab.icon}</span>
+                  <span className="text-xs">{tab.label}</span>
                 </Link>
               ))}
             </nav>
