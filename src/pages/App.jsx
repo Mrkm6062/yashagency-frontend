@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import ProductListPage from './pages/ProductListPage';
 // Assuming you have these other components
@@ -31,7 +31,8 @@ function App() {
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <Routes>
           {/* Add other routes here */}
-          <Route path="/products" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
+          <Route path="/products/:categoryName" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
+          <Route path="/products" element={<Navigate to="/products/allcategory" replace />} />
         </Routes>
       </main>
     </Router>

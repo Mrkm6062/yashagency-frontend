@@ -22,7 +22,7 @@ function ProductListPage({ products, loading, addToCart }) {
   
   useEffect(() => {
     // Sync the category from the URL parameter to the filter state
-    const currentCategory = categoryName === 'allcategory' ? '' : categoryName || '';
+    const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
     setFilters(prev => ({ ...prev, category: currentCategory }));
   }, [categoryName]);
 
@@ -32,8 +32,6 @@ function ProductListPage({ products, loading, addToCart }) {
     return () => {
       document.title = 'SamriddhiShop';
     };
-    // We removed location.search from dependencies because applyFilters now reads it directly.
-    // We added categoryName to re-run filters when the URL category changes.
   }, [products, filters, location.search, categoryName]); // Re-run applyFilters when these change
 
   useEffect(() => {
@@ -177,14 +175,14 @@ function ProductListPage({ products, loading, addToCart }) {
             return (
               <div
               key={category}
-              onClick={() => navigate(`/products/${category}`)}
+              onClick={() => navigate(`/products/${encodeURIComponent(category)}`)}
               className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
             >
               <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
                 filters.category === category ? activeClasses : 'border-gray-300'
               }`}>
                 {/* Replace with actual category images when available */}
-                <img src={`https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${category.substring(0,1)}`} alt={category} className="w-full h-full object-cover rounded-full" />
+                <img src={`https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`} alt={category} className="w-full h-full object-cover rounded-full" />
               </div>
               <p className={`text-xs font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
             </div>
@@ -268,7 +266,7 @@ function ProductListPage({ products, loading, addToCart }) {
                   value={filters.category}
                   onChange={(e) => {
                     const newCategory = e.target.value;
-                    navigate(newCategory ? `/products/${newCategory}` : '/products/allcategory');
+                    navigate(newCategory ? `/products/${encodeURIComponent(newCategory)}` : '/products/allcategory');
                   }}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
