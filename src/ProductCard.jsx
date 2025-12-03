@@ -68,11 +68,11 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
       </div>
       <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block">
         <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 rounded-t-3xl relative z-10 text-center shadow-inner">
-          <h6 className="py-4 font-semibold text-sm group-hover:text-blue-600 transition-colors">
+          <h4 className="py-4 font-semibold text-sm group-hover:text-blue-600 transition-colors">
              {product.name.length > 20 
               ? product.name.slice(0, 25) + "" 
              : product.name}
-          </h6>
+          </h4>
           <div className="-mt-2 px-2 flex items-center mb-1 space-x-1">
             <div className="justify-center text-yellow-400 text-xl ">
               {'★'.repeat(Math.floor(product.averageRating || 0))}{'☆'.repeat(5 - Math.floor(product.averageRating || 0))}
