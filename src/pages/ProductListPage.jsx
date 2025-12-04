@@ -138,6 +138,12 @@ function ProductListPage({ products, loading, addToCart }) {
     'yellow'
   ];
 
+  // Mapping of category names to specific image URLs
+  const categoryImageMap = {
+    // Example: 'Category Name': 'URL to image'
+    'Kitchen Tools': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20tools.webp',
+  };
+
   if (loading) return <LoadingSpinner />;
   // Format category name (capitalize each word)
 const formattedCategory =
@@ -233,7 +239,7 @@ const formattedCategory =
               !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
             }`}>
               <img 
-                src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.png" 
+                src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.webp" 
                 alt="All Categories" 
                 className="w-8 h-8 md:w-14 md:h-14 object-contain"
               />
@@ -260,8 +266,13 @@ const formattedCategory =
               <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
                 filters.category === category ? activeClasses : 'border-gray-300'
               }`}>
-                {/* Replace with actual category images when available */}
-                <img src={`https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`} alt={category} className="w-full h-full object-cover rounded-full" />
+                <img 
+                  src={categoryImageMap[category] || `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`} 
+                  alt={category} 
+                  className="w-full h-full object-cover rounded-full" 
+                  // Add error handling for images that might fail to load
+                  onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`; }}
+                />
               </div>
               <p className={`text-xs font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
             </div>
