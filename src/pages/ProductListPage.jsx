@@ -142,6 +142,13 @@ function ProductListPage({ products, loading, addToCart }) {
   const categoryImageMap = {
     // Example: 'Category Name': 'URL to image'
     'Kitchen Tools': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20tools.webp',
+    'Ladies Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
+    'Kids & Toys': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%26Toys.webp',
+    'Mens Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Mens%20Wear.webp',
+    'Watches': 'https://storage.googleapis.com/samriddhi-blog-images-123/Watchess.webp',
+    'Home Decor': 'https://storage.googleapis.com/samriddhi-blog-images-123/homedecore.webp',
+    'Kids Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%20Wear.webp',
+    'Beauty & Care': 'https://storage.googleapis.com/samriddhi-blog-images-123/beauty.webp',
   };
 
   if (loading) return <LoadingSpinner />;
