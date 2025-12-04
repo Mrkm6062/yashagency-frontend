@@ -242,7 +242,7 @@ const formattedCategory =
             onClick={() => navigate('/products/allcategory')}
             className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group"
           >
-            <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
+            <div className={`w-14 h-14 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
               !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
             }`}>
               <img 
@@ -270,13 +270,13 @@ const formattedCategory =
               onClick={() => navigate(`/products/${encodeURIComponent(category)}`)}
               className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
             >
-              <div className={`w-14 h-14 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
+              <div className={`w-14 h-14 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
                 filters.category === category ? activeClasses : 'border-gray-300'
               }`}>
                 <img 
                   src={categoryImageMap[category] || `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`} 
                   alt={category} 
-                  className="w-full h-full object-cover rounded-full" 
+                  className="w-full h-full object-cover rounded-lg" 
                   // Add error handling for images that might fail to load
                   onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`; }}
                 />
