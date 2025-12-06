@@ -2,7 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount, wishlistCount, location }) {
-  const isAdmin = user?.email === 'admin@samriddhishop.com';
+
+  const adminEmails = ['admin@samriddhishop.com', 'support@samriddhishop.in'];
+
+  const isAdmin = adminEmails.includes(user?.email);
     
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },

@@ -50,7 +50,7 @@ function AdminPanel({ user, API_BASE }) {
   const location = useLocation();
 
   useEffect(() => {
-    if (user?.email !== 'admin@samriddhishop.com') {
+    if (user?.email !== 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') {
       return;
     }
     document.title = 'Admin Panel - SamriddhiShop';
@@ -436,8 +436,8 @@ function AdminPanel({ user, API_BASE }) {
   const applyUserFilters = (filters) => {
     let filtered = [...users];
     if (filters.search) filtered = filtered.filter(user => user.name.toLowerCase().includes(filters.search.toLowerCase()) || user.email.toLowerCase().includes(filters.search.toLowerCase()));
-    if (filters.userType === 'admin') filtered = filtered.filter(user => user.email === 'admin@samriddhishop.com');
-    else if (filters.userType === 'user') filtered = filtered.filter(user => user.email !== 'admin@samriddhishop.com');
+    if (filters.userType === 'admin') filtered = filtered.filter(user => user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in');
+    else if (filters.userType === 'user') filtered = filtered.filter(user => user.email !== 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in');
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'email': return a.email.localeCompare(b.email);
@@ -451,7 +451,7 @@ function AdminPanel({ user, API_BASE }) {
     setFilteredUsers(filtered);
   };
 
-  if (user?.email !== 'admin@samriddhishop.com') {
+  if (user?.email !== 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') {
     return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Admin access required</p></div>;
   }
 
@@ -661,7 +661,7 @@ function AdminPanel({ user, API_BASE }) {
                         const csvContent = "data:text/csv;charset=utf-8," + 
                           "Name,Email,Phone,User Type,Join Date,Orders,Total Amount\n" +
                           filteredUsers.map(user => 
-                            `"${user.name}","${user.email}","${user.phone || 'N/A'}","${user.email === 'admin@samriddhishop.com' ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
+                            `"${user.name}","${user.email}","${user.phone || 'N/A'}","${(user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
                           ).join("\n");
                         const encodedUri = encodeURI(csvContent);
                         const link = document.createElement("a");
@@ -757,8 +757,8 @@ function AdminPanel({ user, API_BASE }) {
                           <p className="text-sm text-gray-600 break-all">{user.email}</p>
                           <p className="text-sm text-gray-600">{user.phone || 'No phone'}</p>
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.email === 'admin@samriddhishop.com' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
-                          {user.email === 'admin@samriddhishop.com' ? 'Admin' : 'User'}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${(user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                          {(user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') ? 'Admin' : 'User'}
                         </span>
                       </div>
                       <div className="mt-3 pt-3 border-t grid grid-cols-5 text-center gap-2">
@@ -788,7 +788,7 @@ function AdminPanel({ user, API_BASE }) {
                     <tbody className="divide-y divide-gray-200">
                       {filteredUsers.map(user => (
                         <tr key={user._id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${user.email === 'admin@samriddhishop.com' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{user.email === 'admin@samriddhishop.com' ? 'Admin' : 'User'}</span></td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${(user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{(user.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') ? 'Admin' : 'User'}</span></td>
                           <td className="px-4 py-3 text-sm text-gray-600 break-words"><div>{user.email}</div><div>{user.phone || 'Not provided'}</div></td>
                           <td className="px-4 py-3 text-sm text-gray-600"><div>Orders: <strong>{user.orderCount || 0}</strong></div><div>Spent: <strong>₹{(user.totalAmount || 0).toLocaleString()}</strong></div></td>
                           <td className="px-4 py-3 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString('en-IN')}</td>                          
