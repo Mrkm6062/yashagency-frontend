@@ -21,11 +21,6 @@ function ProductListPage({ products, loading, addToCart }) {
   const loadingRef = useRef(null); // Element to observe for infinite scroll
   const location = useLocation();
   
-  useEffect(() => {
-    // Sync the category from the URL parameter to the filter state
-    const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
-    setFilters(prev => ({ ...prev, category: currentCategory }));
-  }, [categoryName]);
 
   useEffect(() => {
     applyFilters();
@@ -42,10 +37,12 @@ function ProductListPage({ products, loading, addToCart }) {
 
   const applyFilters = () => {
     // Extract search term from URL if present
-    const queryParams = new URLSearchParams(location.search);
-    const urlSearchTerm = queryParams.get('search');
-    const currentSearch = urlSearchTerm;
-
+     const queryParams = new URLSearchParams(location.search);
+     const currentSearch = queryParams.get('search');
+ 
+     // Sync the category from the URL parameter to the filter state
+     const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
+ 
     let filtered = [...products];
 
     if (currentSearch) {
@@ -55,8 +52,8 @@ function ProductListPage({ products, loading, addToCart }) {
       );
     }
 
-    if (filters.category) {
-      filtered = filtered.filter(product => product.category === filters.category);
+    if (currentCategory) {
+      filtered = filtered.filter(product => product.category === currentCategory);
     }
 
     if (filters.minPrice) {
@@ -93,6 +90,11 @@ function ProductListPage({ products, loading, addToCart }) {
       }
     });
 
+    // Update filter state for UI consistency, but use direct values for filtering
+    setFilters(prev => ({
+      ...prev,
+      category: currentCategory,
+    }));
     setFilteredProducts(filtered);
   };
 
