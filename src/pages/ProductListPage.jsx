@@ -51,8 +51,7 @@ function ProductListPage({ products, loading, addToCart }) {
     if (currentSearch) {
       filtered = filtered.filter(product => 
         product.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
-        product.description.toLowerCase().includes(currentSearch.toLowerCase()) ||
-        product.category.toLowerCase().includes(currentSearch.toLowerCase())
+        product.description.toLowerCase().includes(currentSearch.toLowerCase())
       );
     }
 
