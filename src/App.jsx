@@ -244,33 +244,35 @@ const validateToken = async (token) => {
   };
 
   // Fetch all products with caching
-  const fetchProducts = async () => {
-    const cached = localStorage.getItem('products_cache');
-    const cacheTime = localStorage.getItem('products_cache_time');
-    
-    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+const fetchProducts = async () => {
+  setLoading(true);
+
+  try {
+    // Always fetch fresh version, ignore browser cache
+    const response = await fetch(
+      `${API_BASE}/api/products?ts=${Date.now()}`,
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    // Save fresh data in cache
+    localStorage.setItem('products_cache', JSON.stringify(data || []));
+    localStorage.setItem('products_cache_time', Date.now().toString());
+
+    setProducts(data || []);
+  } catch (err) {
+    console.error("Error fetching", err);
+
+    // fallback to cached if exists
+    const cached = localStorage.getItem("products_cache");
+    if (cached) {
       setProducts(JSON.parse(cached));
-      return;
     }
-    
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/products`);
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data || []);
-        localStorage.setItem('products_cache', JSON.stringify(data || []));
-        localStorage.setItem('products_cache_time', Date.now().toString());
-      } else {
-        console.error('Failed to fetch products:', response.status);
-        setProducts([]);
-      }
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setProducts([]);
-    }
-    setLoading(false);
-  };
+  }
+
+  setLoading(false);
+};
 
 // Add item to cart
 const addToCart = async (product) => {
