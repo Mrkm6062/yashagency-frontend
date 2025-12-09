@@ -20,7 +20,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      navigate(`/products/allcategory?search=${encodeURIComponent(searchTerm.trim())}`);
       setShowSearch(false); // Hide search bar after search
     }
   };

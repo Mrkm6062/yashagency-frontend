@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Helmet } from "react-helmet-async";
+import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
@@ -7,19 +7,19 @@ import ProductCard from '../ProductCard.jsx';
 function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
   const { categoryName } = useParams(); // Get category from URL
+  const location = useLocation();
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
     category: '',
     minPrice: '',
     maxPrice: '',
-    minRating: '',
+    minRating: 0,
     sortBy: 'name'
   });
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
   const observer = useRef();
   const loadingRef = useRef(null); // Element to observe for infinite scroll
-  const location = useLocation();
   
 
   useEffect(() => {
@@ -32,23 +32,25 @@ function ProductListPage({ products, loading, addToCart }) {
 
   useEffect(() => {
     // Reset displayCount whenever filters or search terms change
-    setDisplayCount(12);
-  }, [filters, location.search]);
+    setDisplayCount(12); 
+  }, [filters, location.search, categoryName]);
 
   const applyFilters = () => {
     // Extract search term from URL if present
-     const queryParams = new URLSearchParams(location.search);
-     const currentSearch = queryParams.get('search');
+    const queryParams = new URLSearchParams(location.search);
+    const currentSearch = queryParams.get('search')?.toLowerCase() || '';
  
      // Sync the category from the URL parameter to the filter state
-     const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
+    const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
  
     let filtered = [...products];
 
     if (currentSearch) {
       filtered = filtered.filter(product => 
-        product.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
-        product.description.toLowerCase().includes(currentSearch.toLowerCase())
+        product.name.toLowerCase().includes(currentSearch) ||
+        product.description.toLowerCase().includes(currentSearch) ||
+        product.category.toLowerCase().includes(currentSearch)
+        // You can add more fields to search here, like category or brand
       );
     }
 
@@ -90,11 +92,6 @@ function ProductListPage({ products, loading, addToCart }) {
       }
     });
 
-    // Update filter state for UI consistency, but use direct values for filtering
-    setFilters(prev => ({
-      ...prev,
-      category: currentCategory,
-    }));
     setFilteredProducts(filtered);
   };
 
@@ -112,7 +109,7 @@ function ProductListPage({ products, loading, addToCart }) {
       // If the loading sentinel is visible AND there are more products to load
       if (entries[0].isIntersecting && displayCount < filteredProducts.length) {
         // Add a small delay to prevent rapid loading
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           setDisplayCount(prevCount => prevCount + 12); // Load 12 more products
         }, 300); // Debounce loading
       }
@@ -124,9 +121,21 @@ function ProductListPage({ products, loading, addToCart }) {
     }
 
     // Cleanup function
-    return () => { if (observer.current) observer.current.disconnect(); };
+    return () => {
+      if (observer.current) observer.current.disconnect();
+    };
   }, [loading, filteredProducts, displayCount]); // Re-run when products or displayCount changes
   const categories = [...new Set(products.map(p => p.category))];
+
+  // Effect to sync the category from the URL to the filter state for UI consistency
+  useEffect(() => {
+    const currentCategory = categoryName === 'allcategory' ? '' : decodeURIComponent(categoryName || '');
+    setFilters(prev => ({
+      ...prev,
+      category: currentCategory,
+    }));
+  }, [categoryName]);
+
 
   const categoryColors = [
     'blue',
