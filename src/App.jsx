@@ -302,104 +302,135 @@ const removeFromCart = async (productId) => {
   localStorage.setItem('cart', JSON.stringify(newCart));
 };
 
+  // Login function (SECURE VERSION)
+const login = async (email, password) => {
+  try {
+    // 🔥 1. Remove any old token to avoid "already logged in" backend block
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
 
-  // Login function
-  const login = async (email, password) => {
-    try {
-      const handleLoginCartSync = async (loginToken) => {
-        const localCartRaw = localStorage.getItem('cart');
-        const localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
-    
-        try {
-          // 1. Fetch server cart
-          const response = await fetch(`${API_BASE}/api/cart`, {
-            headers: { 'Authorization': `Bearer ${loginToken}` }
-          });
-    
-          if (!response.ok) {
-            // If server cart fails to load, just push the local cart to the server.
-            if (localCart.length > 0) {
-              setCart(localCart); // Set state to trigger sync
-            }
-            return;
+    const handleLoginCartSync = async (loginToken) => {
+      const localCartRaw = localStorage.getItem('cart');
+      const localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
+
+      try {
+        const response = await fetch(`${API_BASE}/api/cart`, {
+          headers: { 'Authorization': `Bearer ${loginToken}` }
+        });
+
+        if (!response.ok) {
+          if (localCart.length > 0) {
+            setCart(localCart);
           }
-    
-          const serverData = await response.json();
-          const serverCart = serverData.cart || [];
-    
-          // 2. Merge local and server carts. Server cart is the source of truth.
-          const mergedCartMap = new Map();
-    
-          // Add server items first
-          serverCart.forEach(item => mergedCartMap.set(item._id, item));
-    
-          // Add/update with local items. If item exists, add quantity. If not, add item.
-          localCart.forEach(localItem => {
-            if (mergedCartMap.has(localItem._id)) {
-              const existingItem = mergedCartMap.get(localItem._id);
-              // Make sure quantity is a number before adding
-              existingItem.quantity = (Number(existingItem.quantity) || 0) + (Number(localItem.quantity) || 0);
-            } else {
-              mergedCartMap.set(localItem._id, { ...localItem });
-            }
-          });
-    
-          const mergedCart = Array.from(mergedCartMap.values());
-          setCart(mergedCart); // This updates the UI and triggers the sync in useEffect
-          localStorage.setItem('cart', JSON.stringify(mergedCart)); // Also update localStorage
-        } catch (error) {
-          console.error('Error during cart sync on login:', error);
+          return;
         }
-      };
-      const response = await fetch(`${API_BASE}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      if (response.status === 429) {
-        alert('Too many login attempts. Please wait 15 minutes and try again.');
-        return false;
+
+        const serverData = await response.json();
+        const serverCart = serverData.cart || [];
+
+        const mergedCartMap = new Map();
+
+        serverCart.forEach(item => mergedCartMap.set(item._id, item));
+
+        localCart.forEach(localItem => {
+          if (mergedCartMap.has(localItem._id)) {
+            const existingItem = mergedCartMap.get(localItem._id);
+            existingItem.quantity =
+              (Number(existingItem.quantity) || 0) + 
+              (Number(localItem.quantity) || 0);
+          } else {
+            mergedCartMap.set(localItem._id, { ...localItem });
+          }
+        });
+
+        const mergedCart = Array.from(mergedCartMap.values());
+        setCart(mergedCart);
+        localStorage.setItem('cart', JSON.stringify(mergedCart));
+
+      } catch (error) {
+        console.error('Error during cart sync on login:', error);
       }
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user)); 
-        setToken(data.token);
-        setUser(data.user);
-        
-        // After successful login, fetch user data and CSRF token.
-        // We await the cart sync to ensure it completes before navigation.
-        try {
-          await Promise.all([
-            handleLoginCartSync(data.token), // Pass the new token directly
-            fetchWishlist(),
-            fetchUserNotifications(),
-            getCSRFToken()
-          ]);
-          subscribeUser(); // Subscribe user to push notifications
-          return true;
-        } catch (syncError) {
-          console.error("Error during post-login sync:", syncError);
-          return true; // Still consider login successful even if sync has issues
-        }
-      }
-    } catch (error) {
-      console.error('Login error:', error);
+    };
+
+    // 🔥 2. Perform login API request
+    const response = await fetch(`${API_BASE}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (response.status === 429) {
+      alert('Too many login attempts. Please wait 15 minutes and try again.');
       return false;
     }
-  };
 
-  // Logout function
-const logout = () => {
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || 'Login failed.');
+      return false;
+    }
+
+    // 🔥 3. Store new login token (fresh & secure)
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+
+    // 🔥 4. Perform post-login sync actions
+    try {
+      await Promise.all([
+        handleLoginCartSync(data.token),
+        fetchWishlist(),
+        fetchUserNotifications(),
+        getCSRFToken()
+      ]);
+
+      subscribeUser();
+      return true;
+
+    } catch (syncError) {
+      console.error("Error during post-login sync:", syncError);
+      return true;
+    }
+
+  } catch (error) {
+    console.error('Login error:', error);
+    return false;
+  }
+};
+
+// Logout function (SECURE VERSION)
+const logout = async () => {
+  try {
+    const token = localStorage.getItem('token');
+
+    // 🔥 1. Notify backend to invalidate sessionVersion
+    if (token) {
+      await fetch(`${API_BASE}/api/logout`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      }).catch(() => {}); // Avoid breaking logout if backend is down
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+
+  // 🔥 2. Clear frontend session
   localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('cart');
+
   clearAuth();
   setUser(null);
-  localStorage.removeItem('cart'); // Clear guest cart on logout
-  setCart([]); // state cleared, but localStorage cart can remain for guest
+  setCart([]);
   setUserNotifications([]);
+
 };
 
   // Fetch user-specific notificatio
