@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -95,10 +95,7 @@ function CheckoutPage({ user, clearCart }) {
 
   const fetchAddresses = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/profile`);
       const data = await response.json();
       setAddresses(data.addresses || []);
       if (data.addresses && data.addresses.length > 0) {
@@ -119,7 +116,7 @@ function CheckoutPage({ user, clearCart }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/addresses`, {
+      const response = await secureRequest(`${API_BASE}/api/addresses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAddress)
@@ -128,7 +125,7 @@ function CheckoutPage({ user, clearCart }) {
         const savedAddress = await response.json();
         await fetchAddresses(); // Refresh address list
         // Find the full address object from the refreshed list to select it
-        const fullNewAddress = (await (await fetch(`${API_BASE}/api/profile`, { headers: { 'Authorization': localStorage.getItem('token') } })).json()).addresses.find(a => a.street === newAddress.street);
+        const fullNewAddress = (await (await secureRequest(`${API_BASE}/api/profile`)).json()).addresses.find(a => a.street === newAddress.street);
         if (fullNewAddress) setSelectedAddress(fullNewAddress);
 
         setShowNewAddressForm(false); // Hide the form
@@ -144,7 +141,7 @@ function CheckoutPage({ user, clearCart }) {
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/apply-coupon`, {
+      const response = await secureRequest(`${API_BASE}/api/apply-coupon`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponCode, total: subtotal })
@@ -189,7 +186,7 @@ function CheckoutPage({ user, clearCart }) {
 
     if (!selectedAddress && saveAddress && newAddress.street && newAddress.city) {
       try {
-        await makeSecureRequest(`${API_BASE}/api/addresses`, {
+        await secureRequest(`${API_BASE}/api/addresses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newAddress)
@@ -201,7 +198,7 @@ function CheckoutPage({ user, clearCart }) {
 
     try {
       const payload = { items, total: finalTotal, shippingAddress, paymentMethod, couponCode, couponId, discount, shippingCost, tax, ...paymentDetails };
-      const response = await makeSecureRequest(`${API_BASE}/api/checkout`, {
+      const response = await secureRequest(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -234,7 +231,7 @@ function CheckoutPage({ user, clearCart }) {
 
     setLoading(true);
     try {
-      const orderRes = await makeSecureRequest(`${API_BASE}/api/payment/create-order`, {
+      const orderRes = await secureRequest(`${API_BASE}/api/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: finalTotal })
@@ -253,7 +250,7 @@ function CheckoutPage({ user, clearCart }) {
         handler: async function (response) {
           // Verify payment on the backend
           try {
-            const verifyRes = await makeSecureRequest(`${API_BASE}/api/payment/verify`, {
+            const verifyRes = await secureRequest(`${API_BASE}/api/payment/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(response)

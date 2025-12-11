@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import { getToken } from '../storage.js';
 import SalesChart from '../SalesChart.jsx';
 import DeliveryAreaManagement from '../DeliveryAreaManagement.jsx';
@@ -60,18 +60,16 @@ function AdminPanel({ user, API_BASE }) {
 
   const fetchData = async () => {
     try {
-      const token = getToken();
-      const headers = { 'Authorization': `Bearer ${token}` };
       const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes, deliveryAreasRes] = await Promise.all([
-        fetch(`${API_BASE}/api/admin/products`, { headers }),
-        fetch(`${API_BASE}/api/admin/orders`, { headers }),
-        fetch(`${API_BASE}/api/admin/coupons`, { headers }),
-        fetch(`${API_BASE}/api/admin/users`, { headers }),
-        fetch(`${API_BASE}/api/admin/contacts`, { headers }),
-        fetch(`${API_BASE}/api/settings`, { headers }),
-        fetch(`${API_BASE}/api/admin/analytics`, { headers }),
-        fetch(`${API_BASE}/api/banner`),
-        fetch(`${API_BASE}/api/admin/delivery-areas`, { headers })
+        secureRequest(`${API_BASE}/api/admin/products`),
+        secureRequest(`${API_BASE}/api/admin/orders`),
+        secureRequest(`${API_BASE}/api/admin/coupons`),
+        secureRequest(`${API_BASE}/api/admin/users`),
+        secureRequest(`${API_BASE}/api/admin/contacts`),
+        secureRequest(`${API_BASE}/api/settings`),
+        secureRequest(`${API_BASE}/api/admin/analytics`),
+        secureRequest(`${API_BASE}/api/banner`),
+        secureRequest(`${API_BASE}/api/admin/delivery-areas`)
       ]);
 
       // Helper function to safely parse JSON and handle errors
@@ -125,10 +123,7 @@ function AdminPanel({ user, API_BASE }) {
   const fetchOrdersByDate = async () => {
     try {
       const params = new URLSearchParams(orderFilters);
-      const token = getToken();
-      const response = await fetch(`${API_BASE}/api/admin/orders/date-range?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/admin/orders/date-range?${params}`);
       const data = await response.json();
       setOrders(data);
     } catch (error) {
@@ -138,7 +133,7 @@ function AdminPanel({ user, API_BASE }) {
 
   const toggleProduct = async (productId, enabled) => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: !enabled }) });
+      await secureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', body: JSON.stringify({ enabled: !enabled }) });
       fetchData();
       localStorage.removeItem('products_cache');
     } catch (error) { alert('Failed to toggle product'); }
@@ -153,7 +148,7 @@ function AdminPanel({ user, API_BASE }) {
         delete courierDetails.manualCourierName; // Clean up the object before sending
         Object.assign(payload, courierDetails);
       }
-      await makeSecureRequest(`${API_BASE}/api/orders/${orderId}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      await secureRequest(`${API_BASE}/api/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify(payload) });
       fetchData();
       setSelectedOrder(null);
       setCourierForm({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
@@ -169,7 +164,7 @@ function AdminPanel({ user, API_BASE }) {
   const saveCoupon = async () => {
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/admin/coupons`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(couponForm) });
+      const response = await secureRequest(`${API_BASE}/api/admin/coupons`, { method: 'POST', body: JSON.stringify(couponForm) });
       if (response.ok) {
         alert('Coupon created!');
         setCouponForm({ code: '', discount: '', type: 'percentage', minAmount: '', maxDiscount: '', expiryDate: '', oneTimeUse: false });
@@ -184,14 +179,14 @@ function AdminPanel({ user, API_BASE }) {
 
   const toggleCoupon = async (couponId, isActive) => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/coupons/${couponId}/toggle`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: !isActive }) });
+      await secureRequest(`${API_BASE}/api/admin/coupons/${couponId}/toggle`, { method: 'PATCH', body: JSON.stringify({ isActive: !isActive }) });
       fetchData();
     } catch (error) { alert('Failed to toggle coupon'); }
   };
 
   const fetchCouponReport = async () => {
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/admin/coupons/report`);
+      const response = await secureRequest(`${API_BASE}/api/admin/coupons/report`);
       const data = await response.json();
       setCouponReport(data);
       setShowReport(true);
@@ -204,8 +199,8 @@ function AdminPanel({ user, API_BASE }) {
       const zonesToSave = Array.isArray(zones) ? zones : shippingZones;
       // Combine general settings and shipping zones for saving
       const settingsToSave = { ...settingsForm, shippingZones: zonesToSave };
-      await makeSecureRequest(`${API_BASE}/api/admin/settings`, { 
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settingsToSave) 
+      await secureRequest(`${API_BASE}/api/admin/settings`, { 
+        method: 'PUT', body: JSON.stringify(settingsToSave) 
       });
       alert('Settings updated successfully!');
     } catch (error) { alert('Failed to update settings.'); }
@@ -213,7 +208,7 @@ function AdminPanel({ user, API_BASE }) {
 
   const updateBanner = async () => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/banner`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bannerForm) });
+      await secureRequest(`${API_BASE}/api/admin/banner`, { method: 'PUT', body: JSON.stringify(bannerForm) });
       alert('Banner updated successfully!');
     } catch (error) { alert('Failed to update banner'); }
   };
@@ -309,9 +304,8 @@ function AdminPanel({ user, API_BASE }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/admin/users`, {
+      const response = await secureRequest(`${API_BASE}/api/admin/users`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUserForm),
       });
       const data = await response.json();
@@ -1374,9 +1368,8 @@ function AdminPanel({ user, API_BASE }) {
                           <button 
                             onClick={async () => {
                               try {                                
-                                await makeSecureRequest(`${API_BASE}/api/admin/contacts/${contact._id}/status`, {
+                                await secureRequest(`${API_BASE}/api/admin/contacts/${contact._id}/status`, {
                                   method: 'PATCH',
-                                  headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ status: 'read' }),
                                 });
                                 fetchData();

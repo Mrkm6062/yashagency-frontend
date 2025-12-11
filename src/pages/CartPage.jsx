@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { t } from '../i18n.js';
 import CartItemCard from '../CartItemCard.jsx';
 import ProductCard from '../ProductCard.jsx';
+import { secureRequest } from '../secureRequest.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -21,7 +22,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 
   const fetchSuggestedProducts = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/products`);
+      const response = await secureRequest(`${API_BASE}/api/products`);
       const data = await response.json();
       setProducts(data.slice(0, 4));
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 
 function CustomerServicePage({ API_BASE }) {
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -62,9 +62,8 @@ function CustomerServicePage({ API_BASE }) {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/contact`, {
+      const response = await secureRequest(`${API_BASE}/api/contact`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactForm)
       });
       if (response.ok) {

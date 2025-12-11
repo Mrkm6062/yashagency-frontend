@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 
 function OrderStatusPage({ user, API_BASE, addToCart }) {
@@ -19,10 +19,7 @@ function OrderStatusPage({ user, API_BASE, addToCart }) {
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/orders`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/orders`);
       const data = await response.json();
       setOrders(data);
     } catch (error) {
@@ -34,7 +31,7 @@ function OrderStatusPage({ user, API_BASE, addToCart }) {
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/orders/${orderId}/cancel`, { 
+      const response = await secureRequest(`${API_BASE}/api/orders/${orderId}/cancel`, { 
         method: 'PATCH',
       });
 

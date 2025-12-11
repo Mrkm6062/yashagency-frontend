@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -72,7 +72,7 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
     try {
       const url = editingProduct ? `${API_BASE}/api/admin/products/${editingProduct._id}` : `${API_BASE}/api/admin/products`;
       const method = editingProduct ? 'PUT' : 'POST';
-      const response = await makeSecureRequest(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(productForm) });
+      const response = await secureRequest(url, { method, body: JSON.stringify(productForm) });
       if (response.ok) {
         setAdminNotification({ message: editingProduct ? 'Product updated!' : 'Product added!', type: 'success' });
         handleClose();

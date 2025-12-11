@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { makeSecureRequest, clearCSRFToken } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import { getToken, setToken, clearAuth } from '../storage.js';
 import OrderHistory from '../OrderHistory.jsx';
 
@@ -40,10 +40,7 @@ function ProfilePage({ user, setUser }) {
 
   const fetchProfile = async () => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_BASE}/api/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/profile`);
       const data = await response.json();
       setProfile({ name: data.name, email: data.email, phone: data.phone || '', isEmailVerified: data.isEmailVerified });
       setAddresses(data.addresses || []);
@@ -55,9 +52,8 @@ function ProfilePage({ user, setUser }) {
   const updateProfile = async () => {
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/profile`, {
+      const response = await secureRequest(`${API_BASE}/api/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)
       });
       const data = await response.json();
@@ -81,9 +77,8 @@ function ProfilePage({ user, setUser }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/change-password`, {
+      const response = await secureRequest(`${API_BASE}/api/change-password`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new })
       });
       const data = await response.json();
@@ -116,9 +111,8 @@ function ProfilePage({ user, setUser }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/addresses`, {
+      const response = await secureRequest(`${API_BASE}/api/addresses`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAddress)
       });
       if (response.ok) {
@@ -139,7 +133,7 @@ function ProfilePage({ user, setUser }) {
   const deleteAddress = async (addressId) => {
     if (!window.confirm('Are you sure you want to delete this address?')) return;
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/addresses/${addressId}`, { method: 'DELETE' });
+      const response = await secureRequest(`${API_BASE}/api/addresses/${addressId}`, { method: 'DELETE' });
       if (response.ok) {
         await fetchProfile();
         alert('Address deleted successfully!');
@@ -161,9 +155,8 @@ function ProfilePage({ user, setUser }) {
     if (!editingAddress) return;
     setLoading(true);
     try {
-        const response = await makeSecureRequest(`${API_BASE}/api/addresses/${editingAddress._id}`, {
+        const response = await secureRequest(`${API_BASE}/api/addresses/${editingAddress._id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(editingAddress)
         });
         if (response.ok) {
@@ -188,9 +181,8 @@ function ProfilePage({ user, setUser }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/request-email-change`, {
+      const response = await secureRequest(`${API_BASE}/api/request-email-change`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newEmail })
       });
       const data = await response.json();
@@ -214,9 +206,8 @@ function ProfilePage({ user, setUser }) {
     }
     setLoading(true);
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/verify-email-change`, {
+      const response = await secureRequest(`${API_BASE}/api/verify-email-change`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newEmail, otp: emailChangeOtp })
       });
       const data = await response.json();
@@ -226,7 +217,6 @@ function ProfilePage({ user, setUser }) {
         setUser(data.user);
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('token', data.token); // Update token
-        clearCSRFToken(); // Clear the old CSRF token
         setToken(data.token); // Update token in csrf.js
 
         // Reset form and re-fetch profile to ensure UI is updated

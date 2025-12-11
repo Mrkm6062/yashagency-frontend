@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import WishlistProductCard from '../WishlistProductCard.jsx';
 
@@ -19,7 +19,7 @@ function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNot
 
   const removeFromWishlist = async (productId) => {
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${productId}`, {
+      const response = await secureRequest(`${API_BASE}/api/wishlist/${productId}`, {
         method: 'DELETE',
       });
       

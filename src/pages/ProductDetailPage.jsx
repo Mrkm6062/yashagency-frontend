@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaArrowRight, FaShareAlt, FaArrowDown, FaCheckCircle } from 'react-icons/fa';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import { getToken, getUser } from '../storage.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import SuggestedProducts from '../SuggestedProducts.jsx';
@@ -85,9 +85,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
       const token = getToken();
       if (user && token) {
         try {
-          const response = await fetch(`${API_BASE}/api/profile`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const response = await secureRequest(`${API_BASE}/api/profile`);
           if (response.ok) {
             const data = await response.json();
             if (data.addresses && data.addresses.length > 0) {
@@ -124,9 +122,8 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     }
     
     try {
-      const response = await makeSecureRequest(`${API_BASE}/api/products/${product._id}/rating`, {
+      const response = await secureRequest(`${API_BASE}/api/products/${product._id}/rating`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating, review })
       });
       
@@ -408,7 +405,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   if (!token) { alert('Please login to add to wishlist'); return; }
                   const isInWishlist = wishlistItems && wishlistItems.includes(product._id);
                   try {
-                    const response = await makeSecureRequest(`${API_BASE}/api/wishlist/${product._id}`, { method: isInWishlist ? 'DELETE' : 'POST' });
+                    const response = await secureRequest(`${API_BASE}/api/wishlist/${product._id}`, { method: isInWishlist ? 'DELETE' : 'POST' });
                     if (response.ok) {
                       fetchWishlist(); 
                       setNotification({ message: isInWishlist ? 'Removed from wishlist' : 'Added to wishlist', product: product.name, type: 'wishlist' });

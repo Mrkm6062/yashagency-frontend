@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { makeSecureRequest } from '../csrf.js';
+import { secureRequest } from '../secureRequest.js';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 
 function TrackOrderPage({ user, API_BASE }) {
@@ -33,10 +33,7 @@ function TrackOrderPage({ user, API_BASE }) {
 
   const fetchOrderDetails = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/orders/${orderId}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -71,12 +68,11 @@ function TrackOrderPage({ user, API_BASE }) {
     setRefundLoading(true);
     try {
       const [contactResponse, orderUpdateResponse] = await Promise.all([
-        makeSecureRequest(`${API_BASE}/api/contact`, {
+        secureRequest(`${API_BASE}/api/contact`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(refundForm)
         }),
-        makeSecureRequest(`${API_BASE}/api/orders/${orderId}/refund-details-submitted`, {
+        secureRequest(`${API_BASE}/api/orders/${orderId}/refund-details-submitted`, {
           method: 'PATCH'
         })
       ]);

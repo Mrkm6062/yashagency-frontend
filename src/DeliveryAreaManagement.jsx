@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { makeSecureRequest } from './csrf.js';
-import { getToken } from './storage.js';
+import { secureRequest } from './secureRequest.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -20,9 +19,7 @@ function DeliveryAreaManagement({ deliveryAreas, fetchData }) {
     setSearched(true);
     try {
       const params = new URLSearchParams({ state: filter.state, district: filter.district, pincode: pincodeSearch });
-      const response = await fetch(`${API_BASE}/api/admin/pincodes/search?${params}`, {
-        headers: { 'Authorization': `Bearer ${getToken()}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/admin/pincodes/search?${params}`);
       const data = await response.json();
       setPincodes(data);
     } catch (error) {
@@ -33,9 +30,8 @@ function DeliveryAreaManagement({ deliveryAreas, fetchData }) {
 
   const togglePincode = async (pincode, enabled) => {
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/pincodes/${pincode}`, {
+      await secureRequest(`${API_BASE}/api/admin/pincodes/${pincode}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ deliverable: !enabled })
       });
       await searchPincodes(); // Re-run the search to get updated data
@@ -53,9 +49,8 @@ function DeliveryAreaManagement({ deliveryAreas, fetchData }) {
     if (!window.confirm(`Are you sure you want to ${deliverable ? 'ENABLE' : 'DISABLE'} all pincodes for ${target}?`)) return;
 
     try {
-      await makeSecureRequest(`${API_BASE}/api/admin/delivery-areas/bulk-update`, {
+      await secureRequest(`${API_BASE}/api/admin/delivery-areas/bulk-update`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stateName: filter.state, districtName: scope === 'district' ? filter.district : undefined, deliverable })
       });
       fetchData(); // Refetch all admin data to see the changes

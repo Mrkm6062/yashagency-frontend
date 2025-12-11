@@ -1,10 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense, useRef, startTransition } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import { t } from './i18n.js';
-import { makeSecureRequest, getCSRFToken } from './csrf.js';
 import { subscribeUser } from './pushNotifications.js';
 import { getToken, setToken, getUser, setUser, clearAuth } from './storage.js';
 import { useOutsideClick } from './useOutsideClick.js';
+import { secureRequest } from "./secureRequest.js";
 
 // Import only the most critical, lightweight components directly
 import LoadingSpinner from './LoadingSpinner.jsx';
@@ -57,6 +57,10 @@ function App() {
     setCart(newCart);
     localStorage.setItem('cart', JSON.stringify(newCart));
   };
+
+  const removeFromCart = (productId) => {
+    updateCartQuantity(productId, 0);
+  };
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true); // Set initial loading to true
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -91,157 +95,188 @@ function App() {
   }, [notification]);
 
     // Load user from localStorage on app start
- useEffect(() => {
+useEffect(() => {
   const token = localStorage.getItem('token');
   const savedUser = localStorage.getItem('user');
-  const savedCart = localStorage.getItem('cart');
 
-  const restoreSession = async () => {
+  const restore = async () => {
     if (token && savedUser) {
-      setToken(token); // update state
+      setToken(token);
       setUser(JSON.parse(savedUser));
 
-      const isValid = await validateToken(token);
+      const valid = await validateToken(token);
 
-      if (!isValid) {
+      if (!valid) {
         logout();
-        setIsInitialLoad(false); // Ensure loading state is finalized
-      } else {
-        // The cart is now fetched inside validateToken to ensure
-        // it runs after CSRF token is ready.
-        // No action needed here.
       }
-    } else if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    } else {
+      // Load guest cart only if user is not logged in
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) setCart(JSON.parse(savedCart));
     }
 
     setIsInitialLoad(false);
-    fetchProducts().then(() => setLoading(false));
+    fetchProducts().finally(() => setLoading(false));
   };
 
-  restoreSession();
-
+  restore();
 }, []);
+
 
   // Validate token and set user
 const validateToken = async (token) => {
   try {
     const response = await fetch(`${API_BASE}/api/profile`, {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (response.ok) {
-      const profileData = await response.json();
-      const userObj = { 
-        id: profileData._id, 
-        name: profileData.name, 
-        email: profileData.email, 
-        phone: profileData.phone,
-        isEmailVerified: profileData.isEmailVerified // Include new field
-      };
-      setUser(userObj);
+    if (!response.ok) return false;
 
-      // Fetch dependent data
-      Promise.all([
-        fetchWishlist(),
-        fetchCart(), // Move fetchCart here
-        fetchUserNotifications(),
-        getCSRFToken(),
-      ]).catch(console.error);
+    const profile = await response.json();
 
-      return true;
-    } else {
-      return false; // 401/403 triggers logout
-    }
+    const userObj = {
+      id: profile._id,
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      isEmailVerified: profile.isEmailVerified,
+      role: profile.role,
+    };
+
+    setUser(userObj);
+
+    // Load data only after token is verified
+    await Promise.all([
+      fetchWishlist(),
+      fetchCart(),
+      fetchUserNotifications(),
+    ]);
+
+    return true;
+
   } catch (err) {
-    console.error('Token validation failed', err);
-    return true; // Trust local token on network errors
+    console.error("validateToken network error:", err);
+    // Offline: trust the token but skip API fetches
+    return true;
   }
 };
 
+
   // Sync cart with server when cart changes for logged-in users
-  useEffect(() => {
-    if (user && !isInitialLoad && cart.length >= 0) {
-      // Ensure CSRF token is available before syncing.
-      // getCSRFToken will fetch it if it's not already cached.
-      getCSRFToken().then(token => {
-        if (token) syncCart(cart);
-      });
-    }
+useEffect(() => {
+  if (user && !isInitialLoad) {
+    syncCart(cart);
+  }
+}, [user, cart, isInitialLoad]);
+
     // Set up notification polling for logged-in users
-    if (user && !isInitialLoad) {
-      const intervalId = setInterval(fetchUserNotifications, 60000); // Poll every 60 seconds
-      return () => clearInterval(intervalId);
+useEffect(() => {
+  if (!user || isInitialLoad) return;
+
+  const interval = setInterval(fetchUserNotifications, 60000);
+
+  return () => clearInterval(interval);
+}, [user, isInitialLoad]);
+
+const fetchWishlist = async () => {
+  try {
+    const token = getToken();
+    if (!token) {
+      setWishlistProducts([]);
+      setWishlistItems([]);
+      return;
     }
 
-  }, [cart, user, isInitialLoad]);
+    const response = await secureRequest(`${API_BASE}/api/wishlist`);
 
-  const fetchWishlist = async () => {
-    // This function is now called after successful login/token validation
-    try {
-      const token = getToken();
-      if (!token) return;
-      
-      const response = await fetch(`${API_BASE}/api/wishlist`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // The backend /api/wishlist returns { wishlist: [], products: [] }
-        if (data && Array.isArray(data.products)) {
-          setWishlistProducts(data.products);
-          // Keep wishlistItems (IDs) in sync for quick lookups (e.g., heart icon)
-          setWishlistItems(data.products.map(item => item._id));
-        } else {
-          setWishlistProducts([]);
-          setWishlistItems([]);
-        }
+    // 🔒 If token is invalid or session expired, auto logout
+    if (response.status === 401 || response.status === 403) {
+      console.warn("Wishlist: Token expired or invalid.");
+      logout();
+      return;
+    }
+
+    if (!response.ok) {
+      console.error("Wishlist fetch failed:", response.status);
+      return;
+    }
+
+    const data = await response.json();
+
+    // Backend returns { wishlist: [...ids], products: [...] }
+    if (data && Array.isArray(data.products)) {
+      setWishlistProducts(data.products);
+      setWishlistItems(data.products.map(item => item._id));
+    } else {
+      setWishlistProducts([]);
+      setWishlistItems([]);
+    }
+
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+  }
+};
+
+const fetchCart = async () => {
+  try {
+    const token = getToken();
+    if (!token) {
+      setCart([]);
+      return;
+    }
+
+    const response = await secureRequest(`${API_BASE}/api/cart`);
+
+    // Handle expired token
+    if (response.status === 401 || response.status === 403) {
+      console.warn("Cart fetch: token invalid → logging out");
+      logout();
+      return;
+    }
+
+    if (!response.ok) {
+      console.error("Failed to fetch cart:", response.status);
+      return;
+    }
+
+    const data = await response.json();
+
+    const cartFromServer = data.cart || [];
+
+    setCart(cartFromServer);
+    localStorage.setItem("cart", JSON.stringify(cartFromServer));
+
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    // If offline → fallback to local cart
+    const fallback = localStorage.getItem("cart");
+    if (fallback) setCart(JSON.parse(fallback));
+  }
+};
+
+
+const syncCart = async (cartData) => {
+  if (!getToken()) return;
+
+  try {
+    const response = await secureRequest(`${API_BASE}/api/cart`, {
+      method: "POST",
+      body: JSON.stringify({ cart: cartData }),
+    });
+
+    if (response.ok) {
+      console.log("Cart synced successfully");
+    } else {
+      console.warn(`Cart sync failed with status ${response.status}. Request queued for retry.`);
+      if (response.status === 401 || response.status === 403) {
+        logout();
       }
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
     }
-  };
+  } catch (error) {
+    console.error("Cart sync network error. Request queued for retry.", error);
+  }
+};
 
-  const fetchCart = async () => {
-    // This function is now called after successful login/token validation
-    try {
-      const token = getToken();
-      if (!token) {
-        setIsInitialLoad(false);
-        return;
-      }
-      
-      const response = await fetch(`${API_BASE}/api/cart`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCart(data.cart || []);
-        localStorage.setItem('cart', JSON.stringify(data.cart || []));
-        setIsInitialLoad(false);
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      setIsInitialLoad(false);
-    }
-  };
-
-  const syncCart = async (cartData) => {
-    try {
-      await makeSecureRequest(`${API_BASE}/api/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'        },
-        body: JSON.stringify({ cart: cartData })
-      });
-    } catch (error) {
-      console.error('Error syncing cart:', error);
-    }
-  };
 
   // Fetch all products with caching
   const fetchProducts = async () => {
@@ -272,9 +307,10 @@ const validateToken = async (token) => {
     setLoading(false);
   };
 
-// Add item to cart
 const addToCart = async (product) => {
   let newCart;
+
+  // Check if item already exists in cart
   const existingItem = cart.find(item => item._id === product._id);
 
   if (existingItem) {
@@ -287,20 +323,30 @@ const addToCart = async (product) => {
     newCart = [...cart, { ...product, quantity: 1 }];
   }
 
-  // Update state and localStorage
+  // Update UI immediately (fast UX)
   setCart(newCart);
   localStorage.setItem('cart', JSON.stringify(newCart));
 
-  // Show notification
-  setNotification({ message: 'Added to cart', product: product.name });
+  // If user logged in → sync with server using secureRequest
+  if (user) {
+    try {
+      await secureRequest(`${API_BASE}/api/cart`, {
+        method: "POST",
+        body: JSON.stringify({ cart: newCart })
+      });
+    } catch (err) {
+      console.error("Cart sync failed in addToCart:", err);
+    }
+  }
+
+  // Show popup notification
+  setNotification({
+    message: "Added to cart",
+    product: product.name,
+    type: "success"
+  });
 };
 
-// Remove item from cart
-const removeFromCart = async (productId) => {
-  const newCart = cart.filter(item => item._id !== productId);
-  setCart(newCart);
-  localStorage.setItem('cart', JSON.stringify(newCart));
-};
 
   // Login function (SECURE VERSION)
 const login = async (email, password) => {
@@ -316,9 +362,7 @@ const login = async (email, password) => {
       const localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
 
       try {
-        const response = await fetch(`${API_BASE}/api/cart`, {
-          headers: { 'Authorization': `Bearer ${loginToken}` }
-        });
+        const response = await secureRequest(`${API_BASE}/api/cart`);
 
         if (!response.ok) {
           if (localCart.length > 0) {
@@ -355,9 +399,8 @@ const login = async (email, password) => {
     };
 
     // 🔥 2. Perform login API request
-    const response = await fetch(`${API_BASE}/api/login`, {
+    const response = await secureRequest(`${API_BASE}/api/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
 
@@ -408,12 +451,8 @@ const logout = async () => {
 
     // 🔥 1. Notify backend to invalidate sessionVersion
     if (token) {
-      await fetch(`${API_BASE}/api/logout`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+      await secureRequest(`${API_BASE}/api/logout`, {
+        method: "POST"
       }).catch(() => {}); // Avoid breaking logout if backend is down
     }
   } catch (error) {
@@ -437,12 +476,12 @@ const logout = async () => {
     const token = getToken();
     if (!token) return;
     try {
-      const response = await fetch(`${API_BASE}/api/notifications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await secureRequest(`${API_BASE}/api/notifications`);
       if (response.ok) {
         const data = await response.json();
         setUserNotifications(data);
+      } else if (response.status === 401 || response.status === 403) {
+        logout();
       }
     } catch (error) {
       console.error('Error fetching user notifications:', error);
@@ -463,7 +502,7 @@ const logout = async () => {
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
         {cookieConsent === 'true' && <MetaPixelTracker user={user} />}
-        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest}>
+        <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} secureRequest={secureRequest}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
@@ -538,7 +577,7 @@ const logout = async () => {
   );
 }
 
-const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, notifications, setUserNotifications }) => {
+const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, notifications, setUserNotifications, API_BASE, LOGO_URL, t, secureRequest }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -569,7 +608,7 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
   return (
     <div className="pb-16 lg:pb-0">
       <Suspense fallback={<div className="h-[85px] bg-white border-b"></div>}>
-        {!hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={makeSecureRequest} />}
+        {!hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={secureRequest} />}
       </Suspense>
       <div className="flex-grow">{children}</div>
       <Suspense fallback={null}>
