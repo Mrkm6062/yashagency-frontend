@@ -1,22 +1,27 @@
-// service-worker.js - optimized for e-commerce PWA with background sync (no push)
+// ============================================================
+// service-worker.js - Optimized for E-Commerce PWA
+// With background sync + safe caching limit (no push)
+// ============================================================
+
+// CACHE NAME + LIMIT
+const STATIC_CACHE = "pwa-static-v4";
+const MAX_CACHE_ITEMS = 200; // prevents QuotaExceededError
 
 // ----- Install -----
 self.addEventListener("install", (event) => {
   console.log("Service Worker Installed");
-  // Activate new SW immediately (use carefully in production)
   self.skipWaiting();
 });
 
 // ----- Activate -----
 self.addEventListener("activate", (event) => {
-  console.log("Service Worker Activated - cleaning old caches");
-  const allowedCaches = ["pwa-static-v3"];
+  console.log("Service Worker Activated - Cleaning old caches");
 
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (!allowedCaches.includes(key)) {
+          if (key !== STATIC_CACHE) {
             console.log("Deleting old cache:", key);
             return caches.delete(key);
           }
@@ -25,77 +30,82 @@ self.addEventListener("activate", (event) => {
     )
   );
 
-  // Take control of uncontrolled clients
   self.clients.claim();
 });
+
+// Limit cache size to avoid browser storage full
+async function limitCacheSize(cacheName, maxItems) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxItems) {
+    await cache.delete(keys[0]);
+    return limitCacheSize(cacheName, maxItems);
+  }
+}
 
 // ----- Fetch Handler -----
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // 1) Never cache API requests — always use network
-  if (url.pathname.startsWith("/api/")) {
-    return; // let network handle it
-  }
+  // 1) Never cache API requests
+  if (url.pathname.startsWith("/api/")) return;
 
-  // 2) Never cache JS bundles or source maps — always use network
-  if (url.pathname.endsWith(".js") || url.pathname.endsWith(".map")) {
-    return;
-  }
+  // 2) Never cache JS files
+  if (url.pathname.endsWith(".js") || url.pathname.endsWith(".map")) return;
 
-  // 3) Navigation requests (HTML pages) → network-first, fallback to cached index.html
+  // 3) Navigation → network-first, fallback to cached index.html
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
-          // Optionally update the cached index.html if you want
-          return networkResponse;
-        })
-        .catch(() => caches.match("/index.html"))
+      fetch(request).catch(() => caches.match("/index.html"))
     );
     return;
   }
 
-  // 4) Cache-first for static assets: images, styles, fonts
+  // 4) Cache-first for static assets (images, CSS, fonts)
   if (
     request.destination === "image" ||
     request.destination === "style" ||
     request.destination === "font"
   ) {
     event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
+      caches.match(request).then(async (cached) => {
+        if (cached) return cached;
 
-        return fetch(request)
-          .then((networkResponse) => {
-            // Cache the fetched asset for future offline use
-            return caches.open("pwa-static-v3").then((cache) => {
-              cache.put(request, networkResponse.clone());
-              return networkResponse;
-            });
-          })
-          .catch(() => {
-            // Optional: return a lightweight fallback for images (small blank svg) or styles
-            return new Response("", { status: 408, statusText: "Network error" });
+        try {
+          const networkResponse = await fetch(request);
+          const cache = await caches.open(STATIC_CACHE);
+
+          try {
+            await cache.put(request, networkResponse.clone());
+            await limitCacheSize(STATIC_CACHE, MAX_CACHE_ITEMS);
+          } catch (e) {
+            console.warn("Cache write failed:", e);
+          }
+
+          return networkResponse;
+        } catch (err) {
+          console.error("Fetch failed:", err);
+          return new Response("Offline", {
+            status: 408,
+            headers: { "Content-Type": "text/plain" },
           });
+        }
       })
     );
     return;
   }
 
-  // Default: network-only (do not cache)
-  // This avoids accidentally caching other dynamic content
+  // Default: network-only
 });
 
-// ------------------------------
-// Background sync (IndexedDB outbox)
-// ------------------------------
+// ============================================================
+// Background Sync - IndexedDB Outbox
+// ============================================================
 
 const DB_NAME = "pwa-sync-db";
 const STORE_NAME = "outbox";
 
-// Open IndexedDB
 function idbOpen() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
@@ -140,55 +150,43 @@ async function idbClearAll() {
   });
 }
 
-// Expose helper to add to outbox from client via postMessage (optional)
-// Client can also use its own IndexedDB helper; exposing postMessage is convenient.
+// Handle outbox messages from app.jsx
 self.addEventListener("message", (event) => {
-  try {
-    const { action, payload } = event.data || {};
-    if (action === "OUTBOX_ADD" && payload) {
-      // payload: { url, method, headers, body }
-      idbAdd(payload).then(() => {
-        // try register sync if available
-        if (self.registration && self.registration.sync) {
-          self.registration.sync.register("sync-outbox").catch((err) => {
-            // registration may fail in some browsers — not fatal
-            console.warn("Background sync registration failed", err);
-          });
-        }
-      });
-    }
-  } catch (e) {
-    console.error("SW message handler error", e);
+  const { action, payload } = event.data || {};
+  if (action === "OUTBOX_ADD" && payload) {
+    idbAdd(payload).then(() => {
+      if (self.registration?.sync) {
+        self.registration.sync.register("sync-outbox").catch((err) =>
+          console.warn("Sync registration failed", err)
+        );
+      }
+    });
   }
 });
 
-// Background sync event — flush outbox to network
+// Background sync flush
 self.addEventListener("sync", (event) => {
-  if (event.tag === "sync-outbox") {
-    event.waitUntil(
-      (async () => {
-        const items = await idbGetAll();
-        if (!items.length) return;
+  if (event.tag !== "sync-outbox") return;
 
-        for (const item of items) {
-          try {
-            // item should contain { url, method, body, headers }
-            await fetch(item.url, {
-              method: item.method || "POST",
-              headers: item.headers || { "Content-Type": "application/json" },
-              body: item.body ? JSON.stringify(item.body) : undefined,
-            });
-            // continue to next item if success
-          } catch (err) {
-            // stop on first failure — leave remaining items for next sync
-            console.error("Background sync failed for item", item, err);
-            return;
-          }
+  event.waitUntil(
+    (async () => {
+      const items = await idbGetAll();
+      if (!items.length) return;
+
+      for (const item of items) {
+        try {
+          await fetch(item.url, {
+            method: item.method || "POST",
+            headers: item.headers || { "Content-Type": "application/json" },
+            body: item.body ? JSON.stringify(item.body) : undefined,
+          });
+        } catch (err) {
+          console.error("Background sync failed", err);
+          return; // stop, try again later
         }
+      }
 
-        // All requests succeeded — clear outbox
-        await idbClearAll();
-      })()
-    );
-  }
+      await idbClearAll();
+    })()
+  );
 });
