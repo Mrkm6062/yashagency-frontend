@@ -385,7 +385,6 @@ const login = async (email, password) => {
         handleLoginCartSync(data.token),
         fetchWishlist(),
         fetchUserNotifications(),
-        getCSRFToken()
       ]);
 
       subscribeUser();
