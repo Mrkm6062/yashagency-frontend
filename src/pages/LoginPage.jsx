@@ -186,7 +186,7 @@ function LoginPage({ login, user, setNotification }) {
               {isLogin && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
                 </div>
               )}
               
