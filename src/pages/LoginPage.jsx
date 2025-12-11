@@ -52,6 +52,9 @@ function LoginPage({ login, user, setNotification }) {
     setLoading(true);
     
     if (isLogin) {
+
+      localStorage.removeItem("token");
+      
       const success = await login(email, password);
       if (success) {
         const from = location.state?.from?.pathname || '/';
