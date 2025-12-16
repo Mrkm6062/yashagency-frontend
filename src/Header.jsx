@@ -133,7 +133,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
               </span>
             </NavLink>}
             {user && <NavLink to="/profile">PROFILE</NavLink>}
-            {(user?.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') && (
+            {(user?.email === 'yashagency25@gmail.com') && (
               <Link to="/admin" className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-medium transition-colors">
                 ADMIN
               </Link>
@@ -245,7 +245,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 )}
               </div>
             )}
-            {(user?.email === 'admin@samriddhishop.com' || user?.email === 'support@samriddhishop.in') && (
+            {(user?.email === 'yashagency25@gmail.com' || user?.email === 'support@samriddhishop.in') && (
               <Link to="/admin/dashboard" className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 text-sm font-bold">
                 ADMIN
               </Link>

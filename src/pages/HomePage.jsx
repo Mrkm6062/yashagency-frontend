@@ -5,7 +5,7 @@ import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { getOptimizedImageUrl } from '../imageUtils.js';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').replace(/\/$/, '');
 
 function HomePage({ products, loading, addToCart }) {
   const [banners, setBanners] = useState({

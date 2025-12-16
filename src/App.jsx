@@ -33,7 +33,7 @@ const BlogPostDetailPage = lazy(() => import('./pages/BlogPostDetailPage.jsx'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'));
 
 // API Base URL
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').replace(/\/$/, '');
 
 
 // --- Logo Configuration ---
