@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount, wishlistCount, location }) {
 
-  const adminEmails = ['admin@samriddhishop.com', 'support@samriddhishop.in'];
+  const adminEmails = ['yashagency25@gmail.com'];
 
   const isAdmin = user?.role === 'admin' || adminEmails.includes(user?.email);
     
