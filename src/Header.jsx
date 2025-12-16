@@ -87,7 +87,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             </picture>
             {/* Mobile Logo */}
             <picture className="md:hidden h-full">
-              <source srcSet={getOptimizedImageUrl("https://storage.googleapis.com/samriddhi-blog-images-123/WhatsApp%20Image%202025-12-16%20at%2011.59.38%20AM.jpeg", { format: 'webp/png' })} type="image/webp" />
+              <source srcSet={getOptimizedImageUrl("https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png", { format: 'webp/png' })} type="image/webp" />
               <img src="https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png" alt="YashAgency" className="h-full w-auto" />
             </picture>
           </Link>
