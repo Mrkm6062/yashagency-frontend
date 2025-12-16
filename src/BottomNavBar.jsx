@@ -5,7 +5,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
 
   const adminEmails = ['admin@samriddhishop.com', 'support@samriddhishop.in'];
 
-  const isAdmin = adminEmails.includes(user?.email);
+  const isAdmin = user?.role === 'admin' || adminEmails.includes(user?.email);
     
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
