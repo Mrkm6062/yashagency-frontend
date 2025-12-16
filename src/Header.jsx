@@ -83,12 +83,12 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
             {/* Desktop Logo */}
             <picture className="hidden md:block h-full">
               <source srcSet={getOptimizedImageUrl(LOGO_URL, { format: 'webp/png' })} type="image/webp" />
-              <img src={LOGO_URL} alt="SamriddhiShop" className="h-full w-auto" />
+              <img src={LOGO_URL} alt="YashAgency" className="h-full w-auto" />
             </picture>
             {/* Mobile Logo */}
             <picture className="md:hidden h-full">
               <source srcSet={getOptimizedImageUrl("https://storage.googleapis.com/samriddhi-blog-images-123/WhatsApp%20Image%202025-12-16%20at%2011.59.38%20AM.jpeg", { format: 'webp/png' })} type="image/webp" />
-              <img src="https://storage.googleapis.com/samriddhi-blog-images-123/VERIFYLOGO%20ICON.webp" alt="SamriddhiShop" className="h-full w-auto" />
+              <img src="https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png" alt="YashAgency" className="h-full w-auto" />
             </picture>
           </Link>
 
