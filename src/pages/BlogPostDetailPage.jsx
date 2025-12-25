@@ -34,10 +34,10 @@ function BlogPostDetailPage() {
 
   useEffect(() => {
     if (post) {
-      document.title = `${post.title} - SamriddhiShop Blog`;
+      document.title = `${post.title} - Yash Agency Blog`;
     }
     // Cleanup function to reset the document title
-    return () => { document.title = 'SamriddhiShop'; };
+    return () => { document.title = 'Yash Agency'; };
   }, [post]);
 
   if (loading) {

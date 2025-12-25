@@ -73,7 +73,7 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-          <p>&copy; 2024 SamriddhiShop. All rights reserved. | Built with ❤️ in India</p>
+          <p>&copy; 2024 Yash Agency. All rights reserved. | Built with ❤️ in India</p>
         </div>
       </div>
     </footer>

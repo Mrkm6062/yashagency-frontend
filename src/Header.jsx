@@ -245,7 +245,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
                 )}
               </div>
             )}
-            {(user?.role === 'admin' || user?.email === 'yashagency25@gmail.com' || user?.email === 'support@samriddhishop.in') && (
+            {(user?.role === 'admin' || user?.email === 'yashagency25@gmail.com' || user?.email === 'support@Yash Agency.in') && (
               <Link to="/admin/dashboard" className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 text-sm font-bold">
                 ADMIN
               </Link>

@@ -499,7 +499,6 @@ const logout = async () => {
     <Router>      
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
-        {cookieConsent === 'true' && <MetaPixelTracker user={user} />}
         <ConditionalLayout user={user} logout={logout} cartCount={cart.length} wishlistCount={wishlistItems.length} notifications={userNotifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} secureRequest={secureRequest}>
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>

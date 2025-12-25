@@ -10,7 +10,7 @@ function CheckoutPage({ user, clearCart }) {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [newAddress, setNewAddress] = useState({ name: '', mobileNumber: '', alternateMobileNumber: '', street: '', city: '', state: '', zipCode: '', country: 'India', addressType: 'home' });
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -21,7 +21,6 @@ function CheckoutPage({ user, clearCart }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isDeliverable, setIsDeliverable] = useState(true);
   const [deliveryMessage, setDeliveryMessage] = useState('');
-  const [paymentDetails, setPaymentDetails] = useState(null); // State to hold successful payment info
 
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
@@ -38,15 +37,10 @@ function CheckoutPage({ user, clearCart }) {
       navigate('/cart');
       return;
     }
-    document.title = 'Checkout - SamriddhiShop';
+    document.title = 'Checkout - Yash Agency';
     fetchAddresses();
 
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => { document.title = 'SamriddhiShop'; }
+    return () => { document.title = 'Yash Agency'; }
   }, [user, items, navigate]);
 
   // This effect will run whenever the selected address changes
@@ -171,12 +165,6 @@ function CheckoutPage({ user, clearCart }) {
       return;
     }
 
-    // For Razorpay, ensure payment has been made before placing the order
-    if (paymentMethod === 'razorpay' && !paymentDetails) {
-      alert('Please complete the payment before placing the order.');
-      return;
-    }
-
     if (!shippingAddress.zipCode) {
       alert('Please provide a pincode for delivery verification.');
       return;
@@ -197,7 +185,7 @@ function CheckoutPage({ user, clearCart }) {
     }
 
     try {
-      const payload = { items, total: finalTotal, shippingAddress, paymentMethod, couponCode, couponId, discount, shippingCost, tax, ...paymentDetails };
+      const payload = { items, total: finalTotal, shippingAddress, paymentMethod, couponCode, couponId, discount, shippingCost, tax };
       const response = await secureRequest(`${API_BASE}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -218,70 +206,8 @@ function CheckoutPage({ user, clearCart }) {
     setLoading(false);
   };
 
-  const handleRazorpayPayment = async () => {
-    let shippingAddress;
-    if (selectedAddress) {
-      shippingAddress = selectedAddress;
-    } else if (newAddress.street && newAddress.city) {
-      shippingAddress = newAddress;
-    } else {
-      alert('Please select or enter a shipping address');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const orderRes = await secureRequest(`${API_BASE}/api/payment/create-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: finalTotal })
-      });
-
-      if (!orderRes.ok) throw new Error('Failed to create Razorpay order');
-      const { orderId, amount, keyId } = await orderRes.json();
-
-      const options = {
-        key: keyId,
-        amount: amount,
-        currency: "INR",
-        name: "SamriddhiShop",
-        description: "Order Payment",
-        order_id: orderId,
-        handler: async function (response) {
-          // Verify payment on the backend
-          try {
-            const verifyRes = await secureRequest(`${API_BASE}/api/payment/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(response)
-            });
-            if (!verifyRes.ok) throw new Error('Payment verification failed');
-            
-            // On successful verification, save payment details and enable Place Order button
-            setPaymentDetails(response);
-            alert('Payment successful! You can now place your order.');
-          } catch (error) {
-            alert('Payment verification failed. Please contact support.');
-          }
-        },
-        prefill: { name: user.name, email: user.email, contact: user.phone },
-        theme: { color: "#3399cc" }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      alert('Payment failed. Please try again.');
-    }
-    setLoading(false);
-  };
-
   // Determine button text and action
   const getButtonConfig = () => {
-    if (paymentMethod === 'razorpay') {
-      if (paymentDetails) return { text: '🛒 Place Order', action: placeOrder, disabled: loading || !termsAccepted };
-      return { text: '💳 Proceed to Payment', action: handleRazorpayPayment, disabled: loading || !termsAccepted || !selectedAddress || !isDeliverable };
-    }
     // For COD
     return { text: '🛒 Place Order', action: placeOrder, disabled: loading || !termsAccepted || !selectedAddress || !isDeliverable };
   };
@@ -364,7 +290,6 @@ function CheckoutPage({ user, clearCart }) {
               <h2 className="text-xl font-bold text-gray-900 mb-4"> Payment Method</h2>
               <div className="space-y-3">
                 <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer"><input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)} className="text-blue-500" /><div className="flex items-center space-x-3"><span className="text-2xl">💵</span><div><p className="font-medium">Cash on Delivery</p><p className="text-gray-600 text-sm">Pay on delivery</p></div></div></label>
-                <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer"><input type="radio" name="payment" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={(e) => setPaymentMethod(e.target.value)} className="text-blue-500" /><div className="flex items-center space-x-3"><span className="text-2xl">💳</span><div><p className="font-medium">Credit/Debit Card, UPI</p><p className="text-gray-600 text-sm">Pay with Razorpay</p></div></div></label>
               </div>
             </div>
           </div>

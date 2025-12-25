@@ -53,9 +53,9 @@ function AdminPanel({ user, API_BASE }) {
     if (user?.email !== 'yashagency25@gmail.com' || user?.email === 'support@samriddhishop.in') {
       return;
     }
-    document.title = 'Admin Panel - SamriddhiShop';
+    document.title = 'Admin Panel - Yash Agency';
     fetchData();
-    return () => { document.title = 'SamriddhiShop'; };
+    return () => { document.title = 'Yash Agency'; };
   }, [user]);
 
   const fetchData = async () => {
@@ -244,7 +244,7 @@ function AdminPanel({ user, API_BASE }) {
 
     printWindow.document.write('<div class="kot-container">');
     printWindow.document.write('<div class="logo-container">');
-    printWindow.document.write(`<img src="${LOGO_URL}" alt="SamriddhiShop Logo" class="logo" />`);
+    printWindow.document.write(`<img src="${LOGO_URL}" alt="Yash Agency Logo" class="logo" />`);
     printWindow.document.write('</div>');
     printWindow.document.write('<h1>Customer Receipt</h1>');
     printWindow.document.write(`<p style="text-align:center; font-size: 0.8rem; margin-bottom: 15px;">${new Date(order.createdAt).toLocaleString('en-IN')}</p>`);

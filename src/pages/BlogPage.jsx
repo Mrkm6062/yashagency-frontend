@@ -6,11 +6,11 @@ function BlogPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedAuthor, setSelectedAuthor] = useState('SamriddhiShop');
+  const [selectedAuthor, setSelectedAuthor] = useState('Yash Agency');
   const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    document.title = 'Blog - SamriddhiShop';
+    document.title = 'Blog - Yash Agency';
     const fetchPosts = async () => {
       try {
         setLoading(true);
@@ -37,7 +37,7 @@ function BlogPage() {
     fetchPosts();
 
     // Cleanup function to reset the document title
-    return () => { document.title = 'SamriddhiShop'; };
+    return () => { document.title = 'Yash Agency'; };
   }, []);
 
   useEffect(() => {

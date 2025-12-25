@@ -14,9 +14,9 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 
   useEffect(() => {
     fetchSuggestedProducts();
-    document.title = 'Your Cart - SamriddhiShop';
+    document.title = 'Your Cart - Yash Agency';
     return () => {
-      document.title = 'SamriddhiShop';
+      document.title = 'Yash Agency';
     };
   }, []);
 
