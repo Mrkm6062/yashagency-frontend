@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useParams, u
 import { t } from './i18n.js';
 import { subscribeUser } from './pushNotifications.js';
 import { getToken, setToken, getUser, setUser, clearAuth } from './storage.js';
-import { useOutsideClick } from './useOutsideClick.js';
+// import { useOutsideClick } from './useOutsideClick.js';
 import { secureRequest } from "./secureRequest.js";
 
 // Import only the most critical, lightweight components directly
@@ -14,8 +14,6 @@ import ScrollToTop from './ScrollToTop.jsx';
 const Header = lazy(() => import('./Header.jsx'));
 const Footer = lazy(() => import('./Footer.jsx'));
 const BottomNavBar = lazy(() => import('./BottomNavBar.jsx'));
-const MetaPixelTracker = lazy(() => import('./MetaPixelTracker.jsx'));
-const HomePage = lazy(() => import('./pages/HomePage.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));
 const CartPage = lazy(() => import('./pages/CartPage.jsx'));
@@ -506,7 +504,8 @@ const logout = async () => {
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              <Route path="/" element={<HomePage products={products} loading={loading} addToCart={addToCart} />} />
+              <Route path="/" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
+              <Route path="/products/:categoryName" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/products" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/product/:slug" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} API_BASE={API_BASE} />} />
               <Route path="/cart" element={<CartPage cart={cart} removeFromCart={removeFromCart} updateCartQuantity={updateCartQuantity} addToCart={addToCart} user={user} setNotification={setNotification} API_BASE={API_BASE} />} />

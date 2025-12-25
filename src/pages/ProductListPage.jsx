@@ -8,6 +8,7 @@ function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
   const { categoryName } = useParams(); // Get category from URL
   const location = useLocation();
+  const isHomePage = location.pathname === '/';
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [filters, setFilters] = useState({
     category: '',
@@ -24,11 +25,11 @@ function ProductListPage({ products, loading, addToCart }) {
 
   useEffect(() => {
     applyFilters();
-    document.title = 'All Products - SamriddhiShop';
+    document.title = isHomePage ? 'Home - Yash Agency' : 'All Products - Yash Agency';
     return () => {
-      document.title = 'SamriddhiShop';
+      document.title = 'Yash Agency';
     };
-  }, [products, filters, location.search, categoryName]); // Re-run applyFilters when these change
+  }, [products, filters, location.search, categoryName, isHomePage]); // Re-run applyFilters when these change
 
   useEffect(() => {
     // Reset displayCount whenever filters or search terms change
@@ -172,69 +173,6 @@ const formattedCategory =
 
   return (
     <div>
-          <Helmet>
-            {/* Dynamic Title */}
-            <title>
-              {formattedCategory === "All Products"
-                ? "All Products - Samriddhi Shop"
-                : `${formattedCategory} – Buy Latest ${formattedCategory} Online | Samriddhi Shop`}
-            </title>
-
-            {/* Meta Description */}
-            <meta
-              name="description"
-              content={
-                formattedCategory === "All Products"
-                  ? "Shop all products across all categories at Samriddhi Shop. Trending items updated daily with fast delivery."
-                  : `Shop trending ${formattedCategory} at Samriddhi Shop. Explore latest designs, top quality, and fast delivery. Updated daily.`
-              }
-            />
-
-            {/* Breadcrumb Schema */}
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "BreadcrumbList",
-                  itemListElement: [
-                    {
-                      "@type": "ListItem",
-                      position: 1,
-                      name: "Home",
-                      item: "https://samriddhishop.in",
-                    },
-                    {
-                      "@type": "ListItem",
-                      position: 2,
-                      name: formattedCategory,
-                      item:
-                        formattedCategory === "All Products"
-                          ? "https://samriddhishop.in/products/allcategory"
-                          : `https://samriddhishop.in/products/${categoryName}`,
-                    },
-                  ],
-                }),
-              }}
-            />
-
-            {/* ItemList Schema (products list) */}
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "ItemList",
-                  itemListElement: filteredProducts.map((p, i) => ({
-                    "@type": "ListItem",
-                    position: i + 1,
-                    name: p.name,
-                    url: `https://samriddhishop.in/product/${p._id}`,
-                  })),
-                }),
-              }}
-            />
-          </Helmet>
           <h1 className="text-xl font-bold mb-2">
             {formattedCategory} – Latest Collection
           </h1>
