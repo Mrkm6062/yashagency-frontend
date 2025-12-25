@@ -20,6 +20,8 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
   // Create a URL-friendly slug from the product name
   const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
+  const imageUrl = mainImagePath ? `${API_BASE}/api/image/${mainImagePath}` : '';
+
   return (
     <div className="overflow-hidden shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col">
       <div className="relative overflow-hidden  aspect-[2/3] bg-[#4b2d1e]">
