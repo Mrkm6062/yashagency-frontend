@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
-import { getOptimizedImageUrl } from './imageUtils.js';
+// import { getOptimizedImageUrl } from './imageUtils.js';
 
 const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
   const [settings, setSettings] = useState({
@@ -30,10 +30,10 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
       <div className="w-full mx-0 px-1 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="pr-4">
-            <picture>
+            {/* <picture>
               <source srcSet={getOptimizedImageUrl(LOGO_URL, { format: 'webp', width: 400 })} type="image/webp" />
-              <img src={LOGO_URL} alt="SamriddhiShop" width="227" height="67" className="w-auto mb-4" />
-            </picture>
+              <img src={LOGO_URL} alt="YashAgency" width="227" height="67" className="w-auto mb-4" />
+            </picture> */}
             <p className="text-gray-300 text-sm">Your trusted online shopping destination for quality products at great prices.</p>
           </div>
           
