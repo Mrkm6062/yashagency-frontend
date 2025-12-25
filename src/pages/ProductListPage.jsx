@@ -152,8 +152,8 @@ function ProductListPage({ products, loading, addToCart }) {
   // Mapping of category names to specific image URLs
   const categoryImageMap = {
     // Example: 'Category Name': 'URL to image'
-    'Kitchen Tools': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20toolsv2.webp',
-    'Ladies Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
+    'Cleaning': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20toolsv2.webp',
+    'New': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
     'Kids & Toys': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%26Toys.webp',
     'Mens Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Mens%20Wear.webp',
     'Watches': 'https://storage.googleapis.com/samriddhi-blog-images-123/Watchess.webp',
@@ -177,7 +177,7 @@ const formattedCategory =
             {formattedCategory} – Latest Collection
           </h1>
           <p className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
-            Discover the latest {formattedCategory} on Samriddhi Shop. We offer
+            Discover the latest {formattedCategory} on Yash Agency. We offer
             trending and high-quality products updated daily. Enjoy the best prices
             and fast delivery across India.
           </p>
