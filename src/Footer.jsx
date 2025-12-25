@@ -42,7 +42,7 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
               <h4 className="font-semibold mb-3">Quick Links</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
-                <li><Link to="/products" className="text-gray-300 hover:text-white">Products</Link></li>
+                {/* <li><Link to="/products" className="text-gray-300 hover:text-white">Products</Link></li> */}
                 <li><Link to="/orders" className="text-gray-300 hover:text-white">My Orders</Link></li>
                 <li><Link to="/wishlist" className="text-gray-300 hover:text-white">Wishlist</Link></li>
                 <li><Link to="/profile" className="text-gray-300 hover:text-white">Profile</Link></li>
