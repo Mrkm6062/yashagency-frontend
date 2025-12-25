@@ -153,7 +153,7 @@ function ProductListPage({ products, loading, addToCart }) {
   const categoryImageMap = {
     // Example: 'Category Name': 'URL to image'
     'Cleaning': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20toolsv2.webp',
-    'New': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
+    'new': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
     'Kids & Toys': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%26Toys.webp',
     'Mens Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Mens%20Wear.webp',
     'Watches': 'https://storage.googleapis.com/samriddhi-blog-images-123/Watchess.webp',
