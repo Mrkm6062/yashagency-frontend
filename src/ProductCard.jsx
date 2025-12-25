@@ -50,12 +50,6 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
               ? product.name.slice(0, 25) + "" 
              : product.name}
           </h3>
-          <div className="-mt-2 px-2 flex items-center mb-1 space-x-1">
-            <div className="justify-center text-yellow-400 text-xl ">
-              {'★'.repeat(Math.floor(product.averageRating || 0))}{'☆'.repeat(5 - Math.floor(product.averageRating || 0))}
-            </div>
-            <span className="text-gray-900 text-xs ml-1">({product.totalRatings || 0})</span>
-          </div>
           <div className="px-1 flex items-baseline space-x-2">
             <span className="text-lg font-bold text-green-800">₹{product.price.toLocaleString()}</span>
             {hasDiscount && (
