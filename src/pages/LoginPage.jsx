@@ -21,9 +21,9 @@ function LoginPage({ login, user, setNotification }) {
 
   useEffect(() => {
     if (isLogin) {
-      document.title = 'Login - SamriddhiShop';
+      document.title = 'Login - Yash Agency';
     } else {
-      document.title = 'Create Account - SamriddhiShop';
+      document.title = 'Create Account - Yash Agency';
     }
   }, [isLogin]);
 
@@ -102,7 +102,7 @@ function LoginPage({ login, user, setNotification }) {
           if (response.ok) {
             setNotification({
               message: 'Account created successfully!',
-              product: 'Welcome to SamriddhiShop!',
+              product: 'Welcome to Yash Agency!',
               type: 'success'
             });
             // Automatically log the user in

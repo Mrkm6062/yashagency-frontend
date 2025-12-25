@@ -10,12 +10,12 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').repla
 function HomePage({ products, loading, addToCart }) {
   const [banners, setBanners] = useState({
     desktop: {
-      title: 'Welcome to SamriddhiShop',
+      title: 'Welcome to Yash Agency',
       subtitle: 'Discover amazing products at great prices',
       backgroundImage: ''
     },
     mobile: {
-      title: 'Welcome to SamriddhiShop',
+      title: 'Welcome to Yash Agency',
       subtitle: 'Amazing products, great prices',
       backgroundImage: ''
     }
@@ -24,19 +24,19 @@ function HomePage({ products, loading, addToCart }) {
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Samriddhi Shop",
-    "url": "https://samriddhishop.in",
-    "logo": "https://samriddhishop.in/logo.png"
+    "name": "Yash Agency",
+    "url": "https://Yash Agency.in",
+    "logo": "https://Yash Agency.in/logo.png"
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Samriddhi Shop",
-    "url": "https://samriddhishop.in",
+    "name": "Yash Agency",
+    "url": "https://Yash Agency.in",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://samriddhishop.in/search?q={search_term_string}",
+      "target": "https://Yash Agency.in/search?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -49,16 +49,16 @@ function HomePage({ products, loading, addToCart }) {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://samriddhishop.in"
+        "item": "https://Yash Agency.in"
       }
     ]
   };
 
   useEffect(() => {
     fetchBanner();
-    document.title = 'SamriddhiShop - Quality Products, Great Prices';
+    document.title = 'Yash Agency - Quality Products, Great Prices';
     return () => {
-      document.title = 'SamriddhiShop'; // Reset title on unmount
+      document.title = 'Yash Agency'; // Reset title on unmount
     };
   }, []);
 

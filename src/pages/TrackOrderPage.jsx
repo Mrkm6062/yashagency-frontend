@@ -16,7 +16,7 @@ function TrackOrderPage({ user, API_BASE }) {
 
   useEffect(() => {    
     if (user && orderId) {
-      document.title = `Track Order #${orderId.slice(-8)} - SamriddhiShop`;
+      document.title = `Track Order #${orderId.slice(-8)} - Yash Agency`;
       fetchOrderDetails();
     } else if (!user && orderId) {
         // If user is not logged in, we can't fetch order details. Redirect to login.
@@ -27,7 +27,7 @@ function TrackOrderPage({ user, API_BASE }) {
     }
 
     return () => {
-      document.title = 'SamriddhiShop';
+      document.title = 'Yash Agency';
     };
   }, [user, orderId]);
 

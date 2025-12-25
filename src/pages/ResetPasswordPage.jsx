@@ -10,8 +10,8 @@ function ResetPasswordPage({ API_BASE }) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    document.title = 'Reset Password - SamriddhiShop';
-    return () => { document.title = 'SamriddhiShop'; };
+    document.title = 'Reset Password - Yash Agency';
+    return () => { document.title = 'Yash Agency'; };
   }, []);
 
   const handleSubmit = async (e) => {

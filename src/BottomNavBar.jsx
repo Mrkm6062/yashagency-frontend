@@ -9,7 +9,7 @@ const BottomNavBar = React.memo(function BottomNavBar({ user, logout, cartCount,
     
   const navItems = [
     { to: '/', icon: '🏠', label: 'Home' },
-    { to: '/products', icon: '🛍️', label: 'Shop' },
+    // { to: '/products', icon: '🛍️', label: 'Shop' },
     { to: '/cart', icon: '🛒', label: 'Cart', count: cartCount, badgeColor: 'bg-blue-600' },
     // { to: '/blogs', icon: '📝', label: 'Blogs' },
     { to: '/wishlist', icon: '❤️', label: 'Wishlist', requiresUser: true, count: wishlistCount },

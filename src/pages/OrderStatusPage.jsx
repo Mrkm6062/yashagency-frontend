@@ -8,13 +8,13 @@ function OrderStatusPage({ user, API_BASE, addToCart }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'My Orders - SamriddhiShop';
+    document.title = 'My Orders - Yash Agency';
     if (user) {
       fetchOrders();
     } else {
       setLoading(false);
     }
-    return () => { document.title = 'SamriddhiShop'; };
+    return () => { document.title = 'Yash Agency'; };
   }, [user]);
 
   const fetchOrders = async () => {

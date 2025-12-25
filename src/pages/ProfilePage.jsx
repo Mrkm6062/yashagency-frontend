@@ -34,8 +34,8 @@ function ProfilePage({ user, setUser }) {
       fetchProfile();
     }
     const currentTab = tabs.find(tab => tab.id === activeTab);
-    document.title = `${currentTab?.label || 'Profile'} - SamriddhiShop`;
-    return () => { document.title = 'SamriddhiShop'; };
+    document.title = `${currentTab?.label || 'Profile'} - Yash Agency`;
+    return () => { document.title = 'Yash Agency'; };
   }, [user, activeTab]);
 
   const fetchProfile = async () => {

@@ -37,10 +37,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(5);
   useEffect(() => {
     if (product) {
-      document.title = `${product.name} - SamriddhiShop`;
+      document.title = `${product.name} - Yash Agency`;
     }
     return () => {
-      document.title = 'SamriddhiShop';
+      document.title = 'Yash Agency';
     };
   }, [product]);
 
@@ -243,86 +243,15 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     <div className="min-h-screen bg-gray-50 py-8">
       <Helmet>
   {/* SEO Title */}
-  <title>{`${product.name} – Buy Online at Best Price | Samriddhi Shop`}</title>
+  <title>{`${product.name} – Buy Online at Best Price | Yash Agency`}</title>
 
-  {/* Meta Description */}
-  <meta 
-    name="description" 
-    content={`${product.name} – ${product.description?.slice(0, 150)}... Buy now at best price on Samriddhi Shop.`} 
-  />
-
-  {/* Breadcrumb Schema */}
-  <script 
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{
-      __html: JSON.stringify({
-        "@context": "http://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://samriddhishop.in"
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Products",
-            "item": "https://samriddhishop.in/products/allcategory"
-          },
-          {
-            "@type": "ListItem",
-            "position": 3,
-            "name": product.name,
-            "item": `https://samriddhishop.in/product/${product._id}`
-          }
-        ]
-      })
-    }}
-  />
-
-  {/* PRODUCT SCHEMA */}
-  <script
-    type="application/ld+json"
-    dangerouslySetInnerHTML={{
-      __html: JSON.stringify({
-        "@context": "https://schema.org/",
-        "@type": "Product",
-        "name": product.name,
-        "image": [product.imageUrl, ...(product.images || [])],
-        "description": product.description,
-        "sku": product._id,
-        "category": product.category,
-        "brand": "Samriddhi Shop",
-
-        "offers": {
-          "@type": "Offer",
-          "url": `https://samriddhishop.in/product/${product._id}`,
-          "priceCurrency": "INR",
-          "price": product.price,
-          "availability": product.stock > 0 ? "InStock" : "OutOfStock",
-          "seller": {
-            "@type": "Organization",
-            "name": "Samriddhi Shop"
-          }
-        },
-
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": product.averageRating || 0,
-          "reviewCount": product.ratings?.length || 0
-        }
-      })
-    }}
-  />
 </Helmet>
 <div className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
   <h1>{product.name} – Buy Online at Best Price in India</h1>
 
   <p>
     {product.name} is one of the top-selling products in the {product.category} category on 
-    Samriddhi Shop. This product features: {product.description}. Buy original and 
+    Yash Agency. This product features: {product.description}. Buy original and 
     high-quality {product.name} online at the lowest price.
   </p>
 

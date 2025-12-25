@@ -10,7 +10,7 @@ function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNot
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    document.title = 'My Wishlist - SamriddhiShop';
+    document.title = 'My Wishlist - Yash Agency';
     if (user && !wishlistProducts.length) {
       setLoading(true);
       fetchWishlist().finally(() => setLoading(false));
