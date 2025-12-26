@@ -9,7 +9,7 @@ import ProductForm from './ProductForm.jsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/bigsize.png";
+const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png";
 
 function AdminPanel({ user, API_BASE }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
@@ -213,84 +213,114 @@ function AdminPanel({ user, API_BASE }) {
     } catch (error) { alert('Failed to update banner'); }
   };
 
-  const handlePrintKOT = (order) => {
-    const printWindow = window.open('', '_blank', 'width=1200,height=900');
-    printWindow.document.write('<html><head><title>Customer Receipt</title>');
-    printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>');
-    printWindow.document.write('<style>');    
-    printWindow.document.write(`
-      @media print { @page { size: 80mm auto; margin: 2mm; } }
-      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; color: #000; }
-      .kot-container { width: 100%; border: 2px solid #000; padding: 1px; box-sizing: border-box; }
-      .logo-container { text-align: center; margin-bottom: 15px; }
-      .logo { max-height: 60px; }
-      .barcode-container { text-align: center; margin-top: 15px; }
-      h1 { text-align: center; margin: 0 0 15px; font-size: 1.2rem; }
-      .details-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 15px; margin-bottom: 15px; }
-      .details-grid p { margin: 0; font-size: 0.8rem; }
-      .details-grid .full-width { grid-column: 1 / -1; }
-      .products-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-      .products-table th, .products-table td { border: 1px solid #ccc; padding: 4px; text-align: left; font-size: 0.8rem; }
-      .products-table th { background-color: #e6e6e6; }
-      .total-row td { font-weight: bold; }
-      strong { font-weight: 600; }
-    `);
-    printWindow.document.write('</style></head><body>');
-    
-    const address = order.shippingAddress;
-    const orderIdForBarcode = order.orderNumber || order._id.slice(-8);
-    const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}`;
-    const phoneNumbers = `${address.mobileNumber}${address.alternateMobileNumber ? `, Alt: ${address.alternateMobileNumber}` : ''}`;
+const handlePrintKOT = (order) => {
+  const printWindow = window.open('', '_blank', 'width=1200,height=900');
 
-    printWindow.document.write('<div class="kot-container">');
-    printWindow.document.write('<div class="logo-container">');
-    printWindow.document.write(`<img src="${LOGO_URL}" alt="Yash Agency Logo" class="logo" />`);
-    printWindow.document.write('</div>');
-    printWindow.document.write('<h1>Customer Receipt</h1>');
-    printWindow.document.write(`<p style="text-align:center; font-size: 0.8rem; margin-bottom: 15px;">${new Date(order.createdAt).toLocaleString('en-IN')}</p>`);
-    printWindow.document.write('<div class="details-grid">');
-    printWindow.document.write(`<p><strong>Order ID:</strong> ${order.orderNumber || order._id.slice(-8)}</p>`);
-    printWindow.document.write(`<p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>`);    
-    printWindow.document.write(`<p><strong>Name:</strong> ${address.name || order.userId?.name || 'N/A'}</p>`);
-    printWindow.document.write(`<p><strong>Phone:</strong> ${address.mobileNumber || order.userId?.phone || 'N/A'}</p>`);
-    printWindow.document.write(`<p class="full-width"><strong>Address:</strong> ${fullAddress}</p>`);
-    printWindow.document.write(`<p class="full-width"><strong>Email:</strong> ${order.userId?.email || 'N/A'}</p>`);
-    printWindow.document.write(`<p class="full-width"><strong>Payment:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Prepaid'}</p>`);
-    printWindow.document.write('</div>');
+  const address = order.shippingAddress;
+  const orderId = order.orderNumber || order._id.slice(-8);
+  const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}`;
 
-    printWindow.document.write('<table class="products-table">');
-    printWindow.document.write('<thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>');
-    printWindow.document.write('<tbody>');
-    
-    let subtotal = 0;
-    order.items.forEach(item => {
-      const itemTotal = item.price * item.quantity;
-      subtotal += itemTotal;
-      printWindow.document.write(`<tr><td>${item.name}</td><td>${item.quantity}</td><td>₹${item.price.toFixed(2)}</td><td>₹${itemTotal.toFixed(2)}</td></tr>`);
+  const numberToWords = (num) => {
+    const a = ['', 'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+    const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+    if (num === 0) return '';
+    if (num < 20) return a[num];
+    if (num < 100) return b[Math.floor(num/10)] + (num%10 ? ' ' + a[num%10] : '');
+    if (num < 1000) return a[Math.floor(num/100)] + ' Hundred' + (num%100 ? ' ' + numberToWords(num%100) : '');
+    if (num < 100000) return numberToWords(Math.floor(num/1000)) + ' Thousand' + (num%1000 ? ' ' + numberToWords(num%1000) : '');
+    if (num < 10000000) return numberToWords(Math.floor(num/100000)) + ' Lakh' + (num%100000 ? ' ' + numberToWords(num%100000) : '');
+    return numberToWords(Math.floor(num/10000000)) + ' Crore' + (num%10000000 ? ' ' + numberToWords(num%10000000) : '');
+  };
+
+  const receiptHTML = `
+  <table>
+    <tr>
+      <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="60"/></td>
+      <td class="right" colspan="2" style="border-left: none;">
+        <strong>YASH AGENCY</strong><br/>
+        Store Address Line<br/>
+        GSTIN: XXXXXXXX
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">
+        <strong>Customer Name:</strong> ${address.name}<br/>
+        ${fullAddress}<br/>
+        Phone: ${address.mobileNumber}
+      </td>
+      <td class="center" style="vertical-align: top;"> 
+          <strong>ESTIMATE ORDER</strong>
+      </td>
+      <td class="right" style="vertical-align: top;">
+        <strong>Order No:</strong> ${orderId}<br/>
+        <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" style="height: 4.5in; vertical-align: top;">
+        <table width="100%">
+          <tr><th>No</th><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+          ${order.items.map((item, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${item.name}</td>
+              <td class="center">${item.quantity}</td>
+              <td class="right">₹${item.price.toFixed(2)}</td>
+              <td class="right">₹${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" class="center">
+        <svg class="barcode"></svg>
+      </td>
+      <td class="right"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
+    </tr>
+  </table>
+  `;
+
+  printWindow.document.write(`
+  <html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+      @media print {
+        @page { size: A4 landscape; margin: 0.2in; }
+        .receipt { page-break-inside: avoid; }
+      }
+      body { font-family: Arial; font-size: 10px; }
+      .page { display: flex; gap: 10px; }
+      .receipt { width: 50%; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { border: 1px solid #000; padding: 6px; }
+      .no-border { border: none; }
+      .right { text-align: right; }
+      .center { text-align: center; }
+    </style>
+  </head>
+  <body>
+
+  <div class="page">
+    <div class="receipt">${receiptHTML}</div>
+    <div class="receipt">${receiptHTML}</div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.barcode').forEach(el => {
+      JsBarcode(el, "${orderId}", { format: "CODE128", height: 40, displayValue: true });
     });
+  </script>
 
-    printWindow.document.write('</tbody>');
-    printWindow.document.write('</table>');
+  </body>
+  </html>
+  `);
 
-    printWindow.document.write(`<div style="text-align: right; margin-top: 15px; font-size: 1.1rem;"><strong>Grand Total: ₹${order.total.toFixed(2)}</strong></div>`);
-
-    printWindow.document.write('<div class="barcode-container">');
-    printWindow.document.write(`<svg id="barcode"></svg>`);
-    printWindow.document.write('</div>');
-    
-    printWindow.document.write('<div style="text-align: center; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">');
-    printWindow.document.write('<p style="margin: 0; font-weight: bold;">Thank You for Your Purchase!</p>');
-    printWindow.document.write('<p style="margin: 5px 0 0; font-size: 0.9rem;">Please Visit Again</p>');
-    printWindow.document.write('</div>');
-
-    printWindow.document.write('</div>');
-
-    printWindow.document.write('<script>');
-    printWindow.document.write(`JsBarcode("#barcode", "${orderIdForBarcode}", { format: "CODE128", height: 40, displayValue: true, fontSize: 14, margin: 5 });`);
-    printWindow.document.write('</script>');
-
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
+  printWindow.document.close();
     // Add a delay to allow content (like images and barcode) to load before printing
     setTimeout(() => {
       printWindow.print();
