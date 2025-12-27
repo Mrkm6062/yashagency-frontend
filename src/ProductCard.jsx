@@ -44,8 +44,8 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
         <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`} />
       </div>
       <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block" aria-label={`View ${product.name}`}>
-        <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 text-center shadow-inner">
-          <h3 className="py-4 font-semibold text-sm group-hover:text-blue-600 transition-colors">
+        <div className="bg-white pb-2 px-1 text-center shadow-inner">
+          <h3 className="py-1 -pb-2 font-semibold text-sm group-hover:text-blue-600 transition-colors">
              {product.name.length > 20 
               ? product.name.slice(0, 25) + "" 
              : product.name}
