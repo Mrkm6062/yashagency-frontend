@@ -113,7 +113,7 @@ const Header = React.memo(function Header({ user, logout, cartCount, wishlistCou
 
           <nav className="hidden lg:flex items-center space-x-8">
             <NavLink to="/">{t('HOME')}</NavLink>
-            <NavLink to="/products">{t('PRODUCTS')}</NavLink>
+            {/* <NavLink to="/products">{t('PRODUCTS')}</NavLink> */}
             {/* <NavLink to="/blogs">BLOGS</NavLink> */}
             <NavLink to="/cart">
               <span className="flex items-center space-x-1"><span>🛒</span><span>{t('CART')}</span>

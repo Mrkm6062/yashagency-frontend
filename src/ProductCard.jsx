@@ -21,8 +21,8 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
   const slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   return (
-    <div className="rounded-b-[2rem] overflow-hidden shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col">
-      <div className="relative overflow-hidden  aspect-[2/3] bg-[#4b2d1e]">
+    <div className="overflow-hidden shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col">
+      <div className="relative overflow-hidden  aspect-[1/1] bg-[#4b2d1e]">
         <picture>
           <source 
             srcSet={`${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 800 })} 800w`}
@@ -44,13 +44,13 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
         <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`} />
       </div>
       <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block" aria-label={`View ${product.name}`}>
-        <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 rounded-t-3xl relative z-10 text-center shadow-inner">
+        <div className="bg-white -translate-y-8 -mb-8 pt-2 pb-5 px-1 text-center shadow-inner">
           <h3 className="py-4 font-semibold text-sm group-hover:text-blue-600 transition-colors">
              {product.name.length > 20 
               ? product.name.slice(0, 25) + "" 
              : product.name}
           </h3>
-          <div className="px-1 flex items-baseline space-x-2">
+          <div className="px-1 flex text-center justify-center items-baseline space-x-2">
             <span className="text-lg font-bold text-green-800">₹{product.price.toLocaleString()}</span>
             {hasDiscount && (
               <>
@@ -63,7 +63,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
       </Link>
       <button
         onClick={handleAddToCart}
-        className="w-full bg-blue-600 text-white py-3 rounded-b-[2rem] font-semibold hover:bg-blue-700 transition-all mt-auto"
+        className="w-full bg-blue-600 text-white py-3 font-semibold hover:bg-blue-700 transition-all mt-auto"
       >
         Add to Cart
       </button>

@@ -5,12 +5,15 @@ import CartItemCard from '../CartItemCard.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { secureRequest } from '../secureRequest.js';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').replace(/\/$/, '');
 
 function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, setNotification }) {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalQuantity, setModalQuantity] = useState(1);
 
   useEffect(() => {
     fetchSuggestedProducts();
@@ -36,6 +39,24 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       return;
     }
     navigate('/checkout', { state: { items: cart, total, buyNow: false } });
+  };
+
+  const openQuantityModal = (product) => {
+    setModalProduct(product);
+    setModalQuantity(1);
+    setShowQuantityModal(true);
+  };
+
+  const confirmAddToCart = () => {
+    const qty = Number(modalQuantity);
+    if (modalProduct && !isNaN(qty) && qty > 0) {
+      addToCart({ ...modalProduct, quantity: qty }, qty);
+      setShowQuantityModal(false);
+      setModalProduct(null);
+      setModalQuantity(1);
+    } else {
+      alert("Please enter a valid quantity");
+    }
   };
 
   if (cart.length === 0) {
@@ -88,12 +109,46 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
             const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
             return (
               <div key={product._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-                <ProductCard product={product} addToCart={addToCart} />
+                <ProductCard product={product} addToCart={openQuantityModal} />
               </div>
             );
           })}
         </div>
       </div>
+
+      {showQuantityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-80">
+            <h3 className="text-lg font-bold mb-4">Enter Quantity</h3>
+            <p className="text-gray-600 mb-4 text-sm">{modalProduct?.name}</p>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={modalQuantity}
+                onChange={(e) => setModalQuantity(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowQuantityModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAddToCart}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

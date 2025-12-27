@@ -142,9 +142,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   };
 
   const handleBuyNow = () => {
+    const qty = Number(quantity) > 0 ? Number(quantity) : 1;
     const performBuyNow = () => {
-      const buyNowItem = { ...product, quantity, selectedVariant };
-      navigate('/checkout', { state: { items: [buyNowItem], total: product.price * quantity, buyNow: true } });
+      const buyNowItem = { ...product, quantity: qty, selectedVariant };
+      navigate('/checkout', { state: { items: [buyNowItem], total: product.price * qty, buyNow: true } });
     };
 
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
@@ -160,11 +161,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   };
 
   const handleAddToCart = () => {
+    const qty = Number(quantity) > 0 ? Number(quantity) : 1;
     const performAddToCart = () => {
-      const productWithVariant = { ...product, selectedVariant };
-      for (let i = 0; i < quantity; i++) {
-        addToCart(productWithVariant);
-      }
+      const productWithVariant = { ...product, selectedVariant, quantity: qty };
+      addToCart(productWithVariant, qty);
     };
 
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
@@ -470,9 +470,24 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               <div className="flex items-stretch gap-2 sm:gap-4">
                 <div>
                   <div className="flex items-center border border-gray-300 rounded-lg">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
-                    <span className="px-3 sm:px-4 py-3 border-x border-gray-300 min-w-[10px] sm:min-w-[10px] text-center">{quantity}</span>
-                    <button onClick={() => setQuantity(quantity + 1)} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                    <button onClick={() => setQuantity(Math.max(1, (Number(quantity) || 1) - 1))} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setQuantity('');
+                        } else {
+                          const parsed = parseInt(val);
+                          if (!isNaN(parsed) && parsed > 0) setQuantity(parsed);
+                        }
+                      }}
+                      onBlur={() => { if (quantity === '' || quantity < 1) setQuantity(1); }}
+                      className="w-12 sm:w-16 py-3 border-x border-gray-300 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <button onClick={() => setQuantity((Number(quantity) || 0) + 1)} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
                   </div>
                 </div>
                 <button onClick={handleAddToCart} disabled={isVariantOutOfStock} className="flex-1 bg-blue-600 text-white py-1 px-1 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
@@ -516,30 +531,30 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               </div>
             )}
             
-            {canReview && (
-              <div className="text-center lg:text-left">
-                {!showReviewForm ? (
-                  <button onClick={() => setShowReviewForm(true)} className="bg-blue-600 text-white px-16 py-3 rounded-lg hover:bg-blue-700 transition-colors lg:w-full lg:py-4 lg:text-lg lg:font-semibold lg:rounded-xl">Write Rate and Review</button>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-blue-800 mb-2">Rating</label>
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4, 5].map(star => (<button key={star} onClick={() => setRating(star)} className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-blue-800 mb-2">Review</label>
-                      <textarea value={review} onChange={(e) => setReview(e.target.value.replace(/[<>]/g, ''))} className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Share your experience..."/>
-                    </div>
-                    <div className="flex space-x-3">
-                      <button onClick={submitReview} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Submit</button>
-                      <button onClick={() => setShowReviewForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Cancel</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* {canReview && (
+              // <div className="text-center lg:text-left">
+              //   {!showReviewForm ? (
+              //     <button onClick={() => setShowReviewForm(true)} className="bg-blue-600 text-white px-16 py-3 rounded-lg hover:bg-blue-700 transition-colors lg:w-full lg:py-4 lg:text-lg lg:font-semibold lg:rounded-xl">Write Rate and Review</button>
+              //   ) : (
+              //     <div className="space-y-4">
+              //       <div>
+              //         <label className="block text-sm font-medium text-blue-800 mb-2">Rating</label>
+              //         <div className="flex space-x-1">
+              //           {[1, 2, 3, 4, 5].map(star => (<button key={star} onClick={() => setRating(star)} className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>))}
+              //         </div>
+              //       </div>
+              //       <div>
+              //         <label className="block text-sm font-medium text-blue-800 mb-2">Review</label>
+              //         <textarea value={review} onChange={(e) => setReview(e.target.value.replace(/[<>]/g, ''))} className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Share your experience..."/>
+              //       </div>
+              //       <div className="flex space-x-3">
+              //         <button onClick={submitReview} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Submit</button>
+              //         <button onClick={() => setShowReviewForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">Cancel</button>
+              //       </div>
+              //     </div>
+              //   )}
+              // </div>
+            )} */}
             
             {product.ratings && product.ratings.length > 0 && (
               <div className="">

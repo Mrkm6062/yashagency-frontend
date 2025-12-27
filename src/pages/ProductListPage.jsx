@@ -21,6 +21,9 @@ function ProductListPage({ products, loading, addToCart }) {
   const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
   const observer = useRef();
   const loadingRef = useRef(null); // Element to observe for infinite scroll
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalQuantity, setModalQuantity] = useState(1);
   
 
   useEffect(() => {
@@ -137,6 +140,24 @@ function ProductListPage({ products, loading, addToCart }) {
     }));
   }, [categoryName]);
 
+  const openQuantityModal = (product) => {
+    setModalProduct(product);
+    setModalQuantity(1);
+    setShowQuantityModal(true);
+  };
+
+  const confirmAddToCart = () => {
+    const qty = Number(modalQuantity);
+    if (modalProduct && !isNaN(qty) && qty > 0) {
+      addToCart({ ...modalProduct, quantity: qty }, qty);
+      setShowQuantityModal(false);
+      setModalProduct(null);
+      setModalQuantity(1);
+    } else {
+      alert("Please enter a valid quantity");
+    }
+  };
+
 
   const categoryColors = [
     'blue',
@@ -190,7 +211,7 @@ const formattedCategory =
             onClick={() => navigate('/products/allcategory')}
             className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group"
           >
-            <div className={`w-14 h-14 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
+            <div className={`w-10 h-10 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
               !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
             }`}>
               <img 
@@ -218,7 +239,7 @@ const formattedCategory =
               onClick={() => navigate(`/products/${encodeURIComponent(category)}`)}
               className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
             >
-              <div className={`w-14 h-14 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
+              <div className={`w-10 h-10 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
                 filters.category === category ? activeClasses : 'border-gray-300'
               }`}>
                 <img 
@@ -377,9 +398,9 @@ const formattedCategory =
         Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
       </p>
       
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {filteredProducts.slice(0, displayCount).map(product => (
-          <ProductCard key={product._id} product={product} addToCart={addToCart} />
+          <ProductCard key={product._id} product={product} addToCart={openQuantityModal} />
         ))}
       </div>
       {displayCount < filteredProducts.length && (
@@ -391,6 +412,40 @@ const formattedCategory =
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-600 text-lg">No products found matching your criteria.</p>
+        </div>
+      )}
+
+      {showQuantityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-80">
+            <h3 className="text-lg font-bold mb-4">Enter Quantity</h3>
+            <p className="text-gray-600 mb-4 text-sm">{modalProduct?.name}</p>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={modalQuantity}
+                onChange={(e) => setModalQuantity(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowQuantityModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAddToCart}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

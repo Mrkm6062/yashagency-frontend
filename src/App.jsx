@@ -305,8 +305,9 @@ const syncCart = async (cartData) => {
     setLoading(false);
   };
 
-const addToCart = async (product) => {
+const addToCart = async (product, quantity = 1) => {
   let newCart;
+  const qtyToAdd = Number(quantity) > 0 ? Number(quantity) : 1;
 
   // Check if item already exists in cart
   const existingItem = cart.find(item => item._id === product._id);
@@ -314,11 +315,11 @@ const addToCart = async (product) => {
   if (existingItem) {
     newCart = cart.map(item =>
       item._id === product._id
-        ? { ...item, quantity: item.quantity + 1 }
+        ? { ...item, quantity: item.quantity + qtyToAdd }
         : item
     );
   } else {
-    newCart = [...cart, { ...product, quantity: 1 }];
+    newCart = [...cart, { ...product, quantity: qtyToAdd }];
   }
 
   // Update UI immediately (fast UX)

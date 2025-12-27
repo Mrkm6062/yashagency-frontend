@@ -8,6 +8,9 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').repla
 
 function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNotification }) {
   const [loading, setLoading] = useState(false);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalQuantity, setModalQuantity] = useState(1);
 
   useEffect(() => {
     document.title = 'My Wishlist - Yash Agency';
@@ -31,6 +34,24 @@ function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNot
     } catch (error) {
       alert('Failed to remove item from wishlist.');
       console.error('Error removing from wishlist:', error);
+    }
+  };
+
+  const openQuantityModal = (product) => {
+    setModalProduct(product);
+    setModalQuantity(1);
+    setShowQuantityModal(true);
+  };
+
+  const confirmAddToCart = () => {
+    const qty = Number(modalQuantity);
+    if (modalProduct && !isNaN(qty) && qty > 0) {
+      addToCart({ ...modalProduct, quantity: qty }, qty);
+      setShowQuantityModal(false);
+      setModalProduct(null);
+      setModalQuantity(1);
+    } else {
+      alert("Please enter a valid quantity");
     }
   };
 
@@ -65,10 +86,44 @@ function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNot
           <p className="text-gray-600 mb-6">{wishlistProducts.length} item(s) in your wishlist</p>
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {wishlistProducts.map(product => (
-              <WishlistProductCard key={product._id} product={product} addToCart={addToCart} removeFromWishlist={removeFromWishlist} setNotification={setNotification} />
+              <WishlistProductCard key={product._id} product={product} addToCart={openQuantityModal} removeFromWishlist={removeFromWishlist} setNotification={setNotification} />
             ))}
           </div>
         </>
+      )}
+      
+      {showQuantityModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-80">
+            <h3 className="text-lg font-bold mb-4">Enter Quantity</h3>
+            <p className="text-gray-600 mb-4 text-sm">{modalProduct?.name}</p>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+              <input
+                type="number"
+                min="1"
+                value={modalQuantity}
+                onChange={(e) => setModalQuantity(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowQuantityModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmAddToCart}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
