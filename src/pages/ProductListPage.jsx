@@ -204,12 +204,12 @@ const formattedCategory =
           </p>
       {/* Categories Section */}
       <div className="mb-8">
-        <div className="flex flex-wrap justify-center gap-4 md:flex-nowrap md:justify-start md:overflow-x-auto md:pb-4 md:-mx-4 md:px-4 md:scrollbar-thin md:scrollbar-thumb-gray-300 md:scrollbar-track-gray-100">
+        <div className="flex flex-wrap justify-center gap-2 md:flex-nowrap md:justify-start md:overflow-x-auto md:pb-4 md:-mx-4 md:px-4 md:scrollbar-thin md:scrollbar-thumb-gray-300 md:scrollbar-track-gray-100">
           {/* "All" Category */}
           <div
             key="all-categories"
             onClick={() => navigate('/products/allcategory')}
-            className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group"
+            className="flex flex-col items-center flex-shrink-0 w-10 md:w-28 text-center cursor-pointer group"
           >
             <div className={`w-10 h-10 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 group-hover:border-blue-400 ${
               !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
@@ -237,7 +237,7 @@ const formattedCategory =
               <div
               key={category}
               onClick={() => navigate(`/products/${encodeURIComponent(category)}`)}
-              className="flex flex-col items-center flex-shrink-0 w-16 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
+              className="flex flex-col items-center flex-shrink-0 w-10 md:w-28 text-center cursor-pointer group md:flex-shrink-0"
             >
               <div className={`w-10 h-10 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center mb-2 border-2 transition-all duration-200 ${hoverClasses} ${
                 filters.category === category ? activeClasses : 'border-gray-300'
