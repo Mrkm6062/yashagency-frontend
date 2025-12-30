@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
+import { FaFilter } from 'react-icons/fa';
 
 function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
@@ -195,7 +196,7 @@ const formattedCategory =
   return (
     <div>
           <h1 className="text-xl font-bold mb-2">
-            {formattedCategory} – Latest Collection
+            {formattedCategory}
           </h1>
           <p className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
             Discover the latest {formattedCategory} on Yash Agency. We offer
@@ -255,18 +256,8 @@ const formattedCategory =
           )})}
         </div>
       </div>
-
-      <div className="flex justify-between items-center">
-        <button
-          onClick={() => setShowFilters(true)}
-          className="md:hidden bg-white hover:bg-gray-50 text-gray-800 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-        >
-          <span>🔍</span>
-          <span>Filters</span>
-        </button>
-      </div>
       
-      <div className="hidden md:block bg-white p-6 rounded-lg shadow mb-8">
+      <div className="hidden bg-white p-6 rounded-lg shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
         <div className="w-full flex flex-wrap items-end gap-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-grow">
@@ -319,7 +310,7 @@ const formattedCategory =
       </div>
       
       {showFilters && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowFilters(false)}></div>
           <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-lg overflow-y-auto">
             <div className="p-6">
@@ -393,10 +384,18 @@ const formattedCategory =
           </div>
         </div>
       )}
-      
-      <p className="text-gray-600 mb-4">
+      <div className="flex justify-between items-center mb-4">
+      <p className="text-gray-600">
         Showing {Math.min(displayCount, filteredProducts.length)} of {filteredProducts.length} products
       </p>
+       
+        <button
+          onClick={() => setShowFilters(true)}
+          className="hover:bg-gray-50 text-gray-800 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+        >
+          <FaFilter />
+        </button>
+      </div>
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {filteredProducts.slice(0, displayCount).map(product => (

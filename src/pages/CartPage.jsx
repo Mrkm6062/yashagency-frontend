@@ -72,9 +72,9 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+      <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
       
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-2">
         {cart.map(item => {
           const hasDiscount = item.originalPrice && item.discountPercentage && item.discountPercentage > 0;
           return (
@@ -89,9 +89,9 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
         })}
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <span className="text-xl font-bold">Total: ₹{total.toLocaleString()}</span>
+      <div className="bg-white p-2 rounded-lg shadow mb-4">
+        <div className="flex justify-center items-center mb-2 mt-2">
+          <span className="text-lg font-bold">Total: ₹{total.toLocaleString()}</span>
         </div>
         
         <button 
@@ -103,8 +103,8 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       </div>
       
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6">You might also like</h2>
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <h2 className="text-2xl font-bold mb-6">Below More Products</h2>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-2">
           {products.map(product => {
             const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
             return (

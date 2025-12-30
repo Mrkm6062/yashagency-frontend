@@ -2,25 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart }) {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState(false);
   const images = [item.imageUrl, ...(item.images || [])].filter(Boolean);
   
+  const [localQuantity, setLocalQuantity] = useState(item.quantity);
+
   useEffect(() => {
-    if (images.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentImageIndex(prev => (prev + 1) % images.length);
-      }, 2000);
-      return () => clearInterval(interval);
+    setLocalQuantity(item.quantity);
+  }, [item.quantity]);
+
+  const handleQuantityChange = (e) => {
+    setLocalQuantity(e.target.value);
+  };
+
+  const handleBlur = () => {
+    const newQty = parseInt(localQuantity, 10);
+    if (!isNaN(newQty) && newQty > 0) {
+      updateCartQuantity(item._id, newQty);
+    } else {
+      setLocalQuantity(item.quantity);
     }
-  }, [images.length]);
-  
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+    <div className="relative bg-white shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
+      <button onClick={() => removeFromCart(item._id)} className="absolute -top-3 -right-3 z-10 bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 flex items-center justify-center shadow-md text-lg cursor-pointer">X</button>
       <Link to={`/product/${item._id}`}>
-        <div className="relative overflow-hidden rounded-t-lg aspect-[4/3]">
+        <div className="relative overflow-hidden aspect-[1/1]">
           <img 
-            src={images[currentImageIndex]} 
+            src={images[0]} 
             alt={item.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
             loading="lazy"
@@ -28,37 +38,17 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
             style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />
           {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
-          {images.length > 1 && (
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-              {images.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </Link>
       <div className="p-1">
         <Link to={`/product/${item._id}`}>
-          <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer">{item.name}</h5>
+          <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer text-center">{item.name}</h5>
         </Link>
         {item.selectedVariant && (
-          <p className="text-blue-600 text-sm mb-1">{item.selectedVariant.size} - {item.selectedVariant.color}</p>
+          <p className="text-blue-600 text-sm mb-1 text-center">{item.selectedVariant.size} - {item.selectedVariant.color}</p>
         )}
-        <p className="text-gray-600 text-sm mb-2">{item.description?.substring(0, 15)}...</p>
         
-        <div className="flex items-center mb-2">
-          <div className="flex text-yellow-400 text-sm">
-            {'★'.repeat(Math.floor(item.averageRating || 0))}{'☆'.repeat(5 - Math.floor(item.averageRating || 0))}
-          </div>
-          <span className="text-gray-500 text-xs ml-1">({item.totalRatings || 0})</span>
-        </div>
-        
-        <div className="flex items-center space-x-2 mb-3">
+        <div className="flex items-center justify-center space-x-2 mb-3">
           <span className="text-lg font-bold text-green-600">₹{item.price.toLocaleString()}</span>
           {hasDiscount && (
             <>
@@ -70,16 +60,23 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
         
         <div className="flex items-center justify-between">
           <div className="flex items-center border border-gray-300 rounded">
-            <button onClick={() => updateCartQuantity(item._id, item.quantity - 1)} className="px-3 py-1 hover:bg-gray-100">-</button>
-            <span className="px-3 py-1 border-x">{item.quantity}</span>
-            <button onClick={() => updateCartQuantity(item._id, item.quantity + 1)} className="px-3 py-1 hover:bg-gray-100">+</button>
+            <button onClick={() => updateCartQuantity(item._id, item.quantity - 1)} className="px-2 py-1 hover:bg-gray-100">-</button>
+            <input 
+              type="number" 
+              min="1"
+              value={localQuantity}
+              onChange={handleQuantityChange}
+              onBlur={handleBlur}
+              onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+              className="w-10 text-center px-1 py-1 border-x focus:outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <button onClick={() => updateCartQuantity(item._id, item.quantity + 1)} className="px-2 py-1 hover:bg-gray-100">+</button>
           </div>
-          <button onClick={() => removeFromCart(item._id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">X</button>
-        </div>
-        
-        <div className="mt-3 text-right">
+          <div className="text-right">
           <span className="font-bold text-lg">₹{(item.price * item.quantity).toLocaleString()}</span>
         </div>
+        </div>
+        
       </div>
     </div>
   );

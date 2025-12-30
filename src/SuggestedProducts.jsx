@@ -13,7 +13,7 @@ function SuggestedProducts({ allProducts, currentProductId, currentCategory }) {
       let categoryProducts = otherProducts.filter(p => p.category === currentCategory);
 
       // Shuffle and take up to 4
-      let suggestions = categoryProducts.sort(() => 0.5 - Math.random()).slice(0, 4);
+      let suggestions = categoryProducts.sort(() => 0.5 - Math.random()).slice(0, 10);
 
       // If not enough, fill with other random products
       if (suggestions.length < 4) {
@@ -27,7 +27,7 @@ function SuggestedProducts({ allProducts, currentProductId, currentCategory }) {
 
   return (
     <div className="mb-1">
-      <h2 className="text-2xl font-bold mb-6">You might also like</h2>
+      <h2 className="text-2xl font-bold mb-6">Below More Products</h2>
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {suggested.map(product => <ProductCard key={product._id} product={product} />)}
       </div>
