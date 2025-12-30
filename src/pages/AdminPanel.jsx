@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle } from 'react-icons/fa';
+import { FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { secureRequest } from '../secureRequest.js';
 import { getToken } from '../storage.js';
 import SalesChart from '../SalesChart.jsx';
@@ -47,6 +47,11 @@ function AdminPanel({ user, API_BASE }) {
 
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [newUserForm, setNewUserForm] = useState({ name: '', email: '', password: '', phone: '', role: 'user' });
+  const [salesmen, setSalesmen] = useState([]);
+  const [showSalesmanModal, setShowSalesmanModal] = useState(false);
+  const [salesmanForm, setSalesmanForm] = useState({ name: '', email: '', password: '', phone: '', maxDiscountPercent: 0, address: '', pincode: '' });
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [showSalesmanPassword, setShowSalesmanPassword] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -60,7 +65,7 @@ function AdminPanel({ user, API_BASE }) {
 
   const fetchData = async () => {
     try {
-      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes, deliveryAreasRes] = await Promise.all([
+      const [productsRes, ordersRes, couponsRes, usersRes, contactsRes, settingsRes, analyticsRes, bannerRes, deliveryAreasRes, salesmenRes] = await Promise.all([
         secureRequest(`${API_BASE}/api/admin/products`),
         secureRequest(`${API_BASE}/api/admin/orders`),
         secureRequest(`${API_BASE}/api/admin/coupons`),
@@ -69,7 +74,8 @@ function AdminPanel({ user, API_BASE }) {
         secureRequest(`${API_BASE}/api/settings`),
         secureRequest(`${API_BASE}/api/admin/analytics`),
         secureRequest(`${API_BASE}/api/banner`),
-        secureRequest(`${API_BASE}/api/admin/delivery-areas`)
+        secureRequest(`${API_BASE}/api/admin/delivery-areas`),
+        secureRequest(`${API_BASE}/api/admin/salesmen`)
       ]);
 
       // Helper function to safely parse JSON and handle errors
@@ -102,6 +108,7 @@ function AdminPanel({ user, API_BASE }) {
       setUsers(usersData);
       setFilteredUsers(usersData);
       setContacts(contactsData);
+      setSalesmen(await safeJson(salesmenRes));
       setAnalytics(analyticsData);
 
       const settingsData = settingsRes.ok ? (await settingsRes.json() || {}) : {};
@@ -213,12 +220,56 @@ function AdminPanel({ user, API_BASE }) {
     } catch (error) { alert('Failed to update banner'); }
   };
 
+  const handleCreateSalesman = async () => {
+    if (!salesmanForm.name || !salesmanForm.email || !salesmanForm.password) {
+      alert('Name, email, and password are required.');
+      return;
+    }
+    if (salesmanForm.pincode && !/^\d{6}$/.test(salesmanForm.pincode)) {
+      alert('Pincode must be exactly 6 digits.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await secureRequest(`${API_BASE}/api/admin/salesmen`, {
+        method: 'POST',
+        body: JSON.stringify(salesmanForm),
+      });
+      if (response.ok) {
+        alert('Salesman account created!');
+        setShowSalesmanModal(false);
+        setSalesmanForm({ name: '', email: '', password: '', phone: '', maxDiscountPercent: 0, address: '', pincode: '' });
+        fetchData();
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to create salesman');
+      }
+    } catch (error) { alert('Failed to create salesman'); }
+    setLoading(false);
+  };
+
+  const toggleSalesmanStatus = async (id, currentStatus) => {
+    try {
+      await secureRequest(`${API_BASE}/api/admin/salesmen/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: !currentStatus })
+      });
+      fetchData();
+    } catch (error) { alert('Failed to update status'); }
+  };
+
 const handlePrintKOT = (order) => {
   const printWindow = window.open('', '_blank', 'width=1200,height=900');
 
-  const address = order.shippingAddress;
+  // Handle missing shippingAddress (e.g. salesman orders)
+  const address = order.shippingAddress || {};
+  const customerName = address.name || order.userId?.name || 'Customer';
+  const customerPhone = address.mobileNumber || order.userId?.phone || 'N/A';
+
   const orderId = order.orderNumber || order._id.slice(-8);
-  const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}`;
+  const fullAddress = address.street 
+    ? `${address.street}, ${address.city || ''}, ${address.state || ''} - ${address.zipCode || ''}`
+    : 'Counter Sale / Address Not Provided';
 
   const numberToWords = (num) => {
     const a = ['', 'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
@@ -244,9 +295,9 @@ const handlePrintKOT = (order) => {
     </tr>
     <tr>
       <td style="vertical-align: top;">
-        <strong>Customer Name:</strong> ${address.name}<br/>
+        <strong>Customer Name:</strong> ${customerName}<br/>
         ${fullAddress}<br/>
-        Phone: ${address.mobileNumber}
+        Phone: ${customerPhone}
       </td>
       <td class="center" style="vertical-align: top;"> 
           <strong>ESTIMATE ORDER</strong>
@@ -348,9 +399,14 @@ const handlePrintKOT = (order) => {
   };
 
   const getReceiptHTML = (order) => {
-    const address = order.shippingAddress;
+    const address = order.shippingAddress || {};
     const orderId = order.orderNumber || order._id.slice(-8);
-    const fullAddress = `${address.street}, ${address.city}, ${address.state || ''} - ${address.zipCode || ''}, ${address.country || ''}`;
+    const fullAddress = address.street 
+      ? `${address.street}, ${address.city || ''}, ${address.state || ''} - ${address.zipCode || ''}, ${address.country || ''}`
+      : 'Counter Sale / Address Not Provided';
+
+    const customerName = address.name || order.userId?.name || 'N/A';
+    const customerPhone = address.mobileNumber || order.userId?.phone || 'N/A';
 
     let itemsHtml = '';
     order.items.forEach(item => {
@@ -365,8 +421,8 @@ const handlePrintKOT = (order) => {
         <div class="details-grid">
           <p><strong>Order ID:</strong> ${orderId}</p>
           <p><strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}</p>
-          <p><strong>Name:</strong> ${address.name || order.userId?.name || 'N/A'}</p>
-          <p><strong>Phone:</strong> ${address.mobileNumber || order.userId?.phone || 'N/A'}</p>
+          <p><strong>Name:</strong> ${customerName}</p>
+          <p><strong>Phone:</strong> ${customerPhone}</p>
           <p class="full-width"><strong>Address:</strong> ${fullAddress}</p>
         </div>
         <table class="products-table">
@@ -494,6 +550,7 @@ const handlePrintKOT = (order) => {
               { id: 'products', label: 'Products', icon: '📦' },
               { id: 'orders', label: 'Orders', icon: '🛒' },
               { id: 'users', label: 'Users', icon: '👥' },
+              { id: 'salesmen', label: 'Salesmen', icon: '💼' },
               { id: 'messages', label: 'Messages', icon: '💬' },
               { id: 'coupons', label: 'Coupons', icon: '🎫' },
               { id: 'banner', label: 'Banner', icon: '🖼️' },
@@ -531,6 +588,7 @@ const handlePrintKOT = (order) => {
                     { id: 'products', label: 'Products', icon: '📦' },
                     { id: 'orders', label: 'Orders', icon: '🛒' },
                     { id: 'users', label: 'Users', icon: '👥' },
+                    { id: 'salesmen', label: 'Salesmen', icon: '💼' },
                     { id: 'messages', label: 'Messages', icon: '💬' },
                     { id: 'coupons', label: 'Coupons', icon: '🎫' },
                     { id: 'banner', label: 'Banner', icon: '🖼️' },
@@ -838,7 +896,16 @@ const handlePrintKOT = (order) => {
                       <div className="space-y-4">
                         <input type="text" placeholder="Full Name" value={newUserForm.name} onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
                         <input type="email" placeholder="Email Address" value={newUserForm.email} onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                        <input type="password" placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <div className="relative">
+                          <input type={showUserPassword ? "text" : "password"} placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })} className="w-full px-3 py-2 border rounded pr-10" />
+                          <button
+                            type="button"
+                            onClick={() => setShowUserPassword(!showUserPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          >
+                            {showUserPassword ? <FaEyeSlash /> : <FaEye />}
+                          </button>
+                        </div>
                         <input type="tel" placeholder="Phone (Optional)" value={newUserForm.phone} onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded" />
                         <div>
                           <label className="block text-sm font-medium mb-1">Role</label>
@@ -871,6 +938,88 @@ const handlePrintKOT = (order) => {
                   </div>
                 )}
               </div>} />
+
+              <Route path="salesmen" element={
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Salesman Management</h3>
+                    <button onClick={() => setShowSalesmanModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                      + Create Salesman
+                    </button>
+                  </div>
+
+                  <div className="bg-white border rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Contact</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Max Discount</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {salesmen.map(salesman => (
+                          <tr key={salesman._id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">{salesman.name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">
+                              <div>{salesman.email}</div>
+                              <div>{salesman.phone || 'N/A'}</div>
+                              {salesman.salesmanAddress && <div className="text-xs text-gray-500 mt-1">{salesman.salesmanAddress} - {salesman.salesmanPincode}</div>}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{salesman.maxDiscountPercent}%</td>
+                            <td className="px-4 py-3 text-sm">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${salesman.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {salesman.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <button onClick={() => toggleSalesmanStatus(salesman._id, salesman.isActive)} className={`text-sm font-medium ${salesman.isActive ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'}`}>
+                                {salesman.isActive ? 'Disable' : 'Enable'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {salesmen.length === 0 && <tr><td colSpan="5" className="px-4 py-8 text-center text-gray-500">No salesmen accounts found</td></tr>}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {showSalesmanModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4">Create Salesman Account</h3>
+                        <div className="space-y-4">
+                          <input type="text" placeholder="Full Name" value={salesmanForm.name} onChange={(e) => setSalesmanForm({ ...salesmanForm, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                          <input type="email" placeholder="Email Address" value={salesmanForm.email} onChange={(e) => setSalesmanForm({ ...salesmanForm, email: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                          <div className="relative">
+                            <input type={showSalesmanPassword ? "text" : "password"} placeholder="Password" value={salesmanForm.password} onChange={(e) => setSalesmanForm({ ...salesmanForm, password: e.target.value })} className="w-full px-3 py-2 border rounded pr-10" />
+                            <button
+                              type="button"
+                              onClick={() => setShowSalesmanPassword(!showSalesmanPassword)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            >
+                              {showSalesmanPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                          </div>
+                          <input type="tel" placeholder="Phone" value={salesmanForm.phone} onChange={(e) => setSalesmanForm({ ...salesmanForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                          <input type="text" placeholder="Address" value={salesmanForm.address} onChange={(e) => setSalesmanForm({ ...salesmanForm, address: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                          <input type="text" placeholder="Pincode (6 digits)" maxLength="6" value={salesmanForm.pincode} onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            setSalesmanForm({ ...salesmanForm, pincode: val });
+                          }} className="w-full px-3 py-2 border rounded" />
+                          <div><label className="block text-sm font-medium mb-1">Max Discount (%)</label><input type="number" placeholder="0" value={salesmanForm.maxDiscountPercent} onChange={(e) => setSalesmanForm({ ...salesmanForm, maxDiscountPercent: Number(e.target.value) })} className="w-full px-3 py-2 border rounded" /></div>
+                        </div>
+                        <div className="flex space-x-3 mt-6">
+                          <button onClick={() => setShowSalesmanModal(false)} className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancel</button>
+                          <button onClick={handleCreateSalesman} disabled={loading} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{loading ? 'Creating...' : 'Create'}</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              } />
 
               <Route path="orders" element={
                 <div className="space-y-6">

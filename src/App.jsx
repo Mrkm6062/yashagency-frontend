@@ -29,6 +29,8 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
 const BlogPage = lazy(() => import('./pages/BlogPage.jsx'));
 const BlogPostDetailPage = lazy(() => import('./pages/BlogPostDetailPage.jsx'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage.jsx'));
+const SalesmanDashboard = lazy(() => import('./pages/SalesmanDashboard.jsx'));
+const SalesmanCheckoutPage = lazy(() => import('./pages/SalesmanCheckoutPage.jsx'));
 
 // API Base URL
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').replace(/\/$/, '');
@@ -504,7 +506,7 @@ const logout = async () => {
         <main className="container mx-auto px-4 py-4 sm:py-8">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              <Route path="/" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
+              <Route path="/" element={user?.role === 'salesman' ? <Navigate to="/salesman" replace /> : <ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/products/:categoryName" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/products" element={<ProductListPage products={products} loading={loading} addToCart={addToCart} />} />
               <Route path="/product/:slug" element={<ProductDetailPage products={products} addToCart={addToCart} wishlistItems={wishlistItems} fetchWishlist={fetchWishlist} setNotification={setNotification} API_BASE={API_BASE} />} />
@@ -516,6 +518,8 @@ const logout = async () => {
               <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} API_BASE={API_BASE} />} />
               <Route path="/track/:orderId" element={<TrackOrderPage user={user} API_BASE={API_BASE} />} />
               <Route path="/checkout" element={<CheckoutPage user={user} clearCart={clearCart} API_BASE={API_BASE} />} />
+              <Route path="/salesman" element={user?.role === 'salesman' || user?.role === 'admin' ? <SalesmanDashboard user={user} API_BASE={API_BASE} /> : <Navigate to="/" replace />} />
+              <Route path="/salesman/checkout" element={user?.role === 'salesman' || user?.role === 'admin' ? <SalesmanCheckoutPage API_BASE={API_BASE} /> : <Navigate to="/" replace />} />
               <Route path="/admin/*" element={<AdminPanel user={user} API_BASE={API_BASE} />} />
               <Route path="/support/*" element={<CustomerServicePage API_BASE={API_BASE} />} />
               <Route path="/blogs" element={<BlogPage />} />
@@ -601,6 +605,9 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
   // Determine if we are on an admin page
   const isAdminPage = location.pathname.startsWith('/admin');
 
+  // Determine if we are on a salesman page
+  const isSalesmanPage = location.pathname.startsWith('/salesman');
+
   // Hide header on profile, support, and admin pages
   const hideHeader = isAdminPage || (isMobile && (location.pathname === '/profile' || location.pathname.startsWith('/support')));
 
@@ -610,9 +617,21 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
         {!hideHeader && <Header user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} notifications={notifications} setUserNotifications={setUserNotifications} API_BASE={API_BASE} LOGO_URL={LOGO_URL} t={t} makeSecureRequest={secureRequest} />}
       </Suspense>
       <div className="flex-grow">{children}</div>
+
+      {/* Salesman Dashboard Floating Button */}
+      {user?.role === 'salesman' && !location.pathname.startsWith('/salesman') && (
+        <Link 
+          to="/salesman"
+          className="fixed bottom-20 right-4 lg:bottom-8 lg:right-8 z-50 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-blue-700 transition-all transform hover:scale-105"
+        >
+          <span className="text-xl">💼</span>
+          <span className="font-medium">Dashboard</span>
+        </Link>
+      )}
+
       <Suspense fallback={null}>
         <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />
-        {!hideFooter && !isAdminPage && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
+        {!hideFooter && !isAdminPage && !isSalesmanPage && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
       </Suspense>
     </div>
   );

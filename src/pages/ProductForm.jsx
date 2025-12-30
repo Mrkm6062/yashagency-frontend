@@ -5,7 +5,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').repla
 
 function ProductForm({ showProductForm, setShowProductForm, editingProduct, setEditingProduct, fetchData, setAdminNotification }) {
   const [productForm, setProductForm] = useState({
-    name: '', description: '', price: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', soldBy: '', stock: '', variants: [],
+    name: '', description: '', price: '', minSellPrice: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', soldBy: '', stock: '', variants: [],
     highlights: [], specifications: [], warranty: '', images: [],
     showHighlights: false, showSpecifications: false, showWarranty: false
   });
@@ -30,6 +30,7 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
         name: editingProduct.name || '',
         description: editingProduct.description || '',
         price: editingProduct.price?.toString() || '',
+        minSellPrice: editingProduct.minSellPrice?.toString() || '',
         originalPrice: editingProduct.originalPrice?.toString() || '',
         discountPercentage: editingProduct.discountPercentage?.toString() || '',
         imageUrl: editingProduct.imageUrl || '',
@@ -52,7 +53,7 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
 
   const resetForm = () => {
     setProductForm({
-      name: '', description: '', price: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', soldBy: '', stock: '', variants: [],
+      name: '', description: '', price: '', minSellPrice: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', soldBy: '', stock: '', variants: [],
       highlights: [], specifications: [], warranty: '', images: [],
       showHighlights: false, showSpecifications: false, showWarranty: false
     });
@@ -69,6 +70,14 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
 
   const saveProduct = async () => {
     setLoading(true);
+
+    if (parseFloat(productForm.minSellPrice) > parseFloat(productForm.price)) {
+      setAdminNotification({ message: 'Minimum Sell Price cannot be greater than Selling Price', type: 'error' });
+      setTimeout(() => setAdminNotification(null), 3000);
+      setLoading(false);
+      return;
+    }
+
     try {
       const url = editingProduct ? `${API_BASE}/api/admin/products/${editingProduct._id}` : `${API_BASE}/api/admin/products`;
       const method = editingProduct ? 'PUT' : 'POST';
@@ -106,6 +115,12 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
               <input type="number" placeholder="Original Price (₹)" value={productForm.originalPrice} onChange={(e) => { const op = parseFloat(e.target.value) || 0; const d = parseFloat(productForm.discountPercentage) || 0; const sp = Math.round(op - (op * d / 100)); setProductForm({ ...productForm, originalPrice: e.target.value, price: sp > 0 ? sp.toString() : '' }); }} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="number" placeholder="Discount %" value={productForm.discountPercentage} onChange={(e) => { const d = parseFloat(e.target.value) || 0; const op = parseFloat(productForm.originalPrice) || 0; const sp = Math.round(op - (op * d / 100)); setProductForm({ ...productForm, discountPercentage: e.target.value, price: sp > 0 ? sp.toString() : '' }); }} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" max="100" />
               <input type="number" placeholder="Selling Price (₹) - Auto calculated" value={productForm.price} className="px-4 py-2 border rounded-lg bg-gray-50" readOnly />
+              <div className="flex flex-col">
+                <input type="number" placeholder="Min Sell Price (₹)" value={productForm.minSellPrice} onChange={(e) => setProductForm({ ...productForm, minSellPrice: e.target.value })} className={`px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${parseFloat(productForm.minSellPrice) > parseFloat(productForm.price) ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`} />
+                {parseFloat(productForm.minSellPrice) > parseFloat(productForm.price) && (
+                  <span className="text-xs text-red-500 mt-1">Cannot exceed Selling Price</span>
+                )}
+              </div>
               <input
                 type="number"
                 placeholder={productForm.variants?.length > 0 ? "Total Stock (from variants)" : "Stock"}
