@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').replace(/\/$/, '');
 
 export function useProducts() {
   const [products, setProducts] = useState([]);
