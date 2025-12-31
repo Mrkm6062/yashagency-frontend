@@ -1,7 +1,7 @@
 import fs from "fs";
 import fetch from "node-fetch";
 
-const API_URL = "https://samriddhishop.info/api/products";
+const API_URL = "https://yashagency.info/api/products";
 
 async function generateSitemap() {
   try {
@@ -21,7 +21,7 @@ async function generateSitemap() {
     // Home
     urls.push(`
       <url>
-        <loc>https://samriddhishop.in/</loc>
+        <loc>https://yashagency.in/</loc>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
       </url>
@@ -30,7 +30,7 @@ async function generateSitemap() {
     // All products
     urls.push(`
       <url>
-        <loc>https://samriddhishop.in/products/allcategory</loc>
+        <loc>https://yashagency.in/products/allcategory</loc>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
       </url>
@@ -41,7 +41,7 @@ async function generateSitemap() {
       const encoded = encodeURIComponent(cat);
       urls.push(`
         <url>
-          <loc>https://samriddhishop.in/products/${encoded}</loc>
+          <loc>https://yashagency.in/products/${encoded}</loc>
           <changefreq>daily</changefreq>
           <priority>0.8</priority>
         </url>
@@ -52,7 +52,7 @@ async function generateSitemap() {
     data.forEach(product => {
       urls.push(`
         <url>
-          <loc>https://samriddhishop.in/product/${product._id}</loc>
+          <loc>https://yashagency.in/product/${product._id}</loc>
           <changefreq>weekly</changefreq>
           <priority>0.7</priority>
         </url>

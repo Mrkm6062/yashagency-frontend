@@ -1,5 +1,5 @@
 # =========================================================
-# Robots.txt for Samriddhi Shop (SEO Optimized)
+# Robots.txt for Yash Agency (SEO Optimized)
 # =========================================================
 
 User-agent: *
@@ -59,4 +59,4 @@ Disallow: /search?
 # ------------------------------
 # SITEMAP (correct domain)
 # ------------------------------
-Sitemap: https://samriddhishop.in/sitemap.xml
+Sitemap: https://yashagency.in/sitemap.xml
