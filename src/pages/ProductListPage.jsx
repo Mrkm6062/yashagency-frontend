@@ -219,7 +219,7 @@ const formattedCategory =
                 className="w-8 h-8 md:w-14 md:h-14 object-contain"
               />
             </div>
-            <p className={`text-sm font-medium transition-colors ${!filters.category ? 'text-blue-600' : 'text-gray-700 group-hover:text-blue-500'}`}>
+            <p className={`text-[10px] font-medium transition-colors ${!filters.category ? 'text-blue-600' : 'text-gray-700 group-hover:text-blue-500'}`}>
               All
             </p>
           </div>
@@ -249,7 +249,7 @@ const formattedCategory =
                   onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`; }}
                 />
               </div>
-              <p className={`text-xs font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
+              <p className={`text-[10px] font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
             </div>
           )})}
         </div>
