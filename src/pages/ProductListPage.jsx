@@ -174,14 +174,12 @@ function ProductListPage({ products, loading, addToCart }) {
   // Mapping of category names to specific image URLs
   const categoryImageMap = {
     // Example: 'Category Name': 'URL to image'
-    'Cleaning': 'https://storage.googleapis.com/samriddhi-blog-images-123/kitchen%20toolsv2.webp',
-    'new': 'https://storage.googleapis.com/samriddhi-blog-images-123/ladies%20wear.webp',
-    'Kids & Toys': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%26Toys.webp',
-    'Mens Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Mens%20Wear.webp',
-    'Watches': 'https://storage.googleapis.com/samriddhi-blog-images-123/Watchess.webp',
-    'Home Decor': 'https://storage.googleapis.com/samriddhi-blog-images-123/homedecore.webp',
-    'Kids Wear': 'https://storage.googleapis.com/samriddhi-blog-images-123/Kids%20Wear.webp',
-    'Beauty & Care': 'https://storage.googleapis.com/samriddhi-blog-images-123/beauty.webp',
+    'Cleaning': 'https://storage.googleapis.com/samriddhi-blog-images-123/Cleaning.webp',
+    'House Hold': 'https://storage.googleapis.com/samriddhi-blog-images-123/household.webp',
+    'Decoration': 'https://storage.googleapis.com/samriddhi-blog-images-123/decoration.webp',
+    'Utility': 'https://storage.googleapis.com/samriddhi-blog-images-123/utility.webp',
+    'Disposable': 'https://storage.googleapis.com/samriddhi-blog-images-123/disposable.webp',
+    'Packaging': 'https://storage.googleapis.com/samriddhi-blog-images-123/packaging.webp',
   };
 
   if (loading) return <LoadingSpinner />;
