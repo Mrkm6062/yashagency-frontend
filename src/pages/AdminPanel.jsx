@@ -20,7 +20,7 @@ function AdminPanel({ user, API_BASE }) {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [userFilters, setUserFilters] = useState({ search: '', userType: 'all', sortBy: 'name' });
   const [contacts, setContacts] = useState([]);
-  const [settingsForm, setSettingsForm] = useState({ shippingCost: 0, phone: '', email: '', instagram: '', facebook: '' });
+  const [settingsForm, setSettingsForm] = useState({ shippingCost: 0, minOrderAmount: 0, phone: '', email: '', instagram: '', facebook: '' });
   const [loading, setLoading] = useState(false);
   const [shippingZones, setShippingZones] = useState([
     // Example structure
@@ -1637,17 +1637,29 @@ const handlePrintKOT = (order) => {
                 )}
 
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">Default Shipping Cost</h3>
-                  <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-4">
-                    <label className="font-medium">Fallback Cost (₹):</label>
-                    <input
-                      type="number"
-                      value={settingsForm.shippingCost}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, shippingCost: Number(e.target.value) })}
-                      className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-32"
-                    />
+                  <h3 className="text-lg font-semibold mb-4">Order & Shipping Settings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="font-medium block mb-2">Fallback Shipping Cost (₹)</label>
+                      <input
+                        type="number"
+                        value={settingsForm.shippingCost}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, shippingCost: Number(e.target.value) })}
+                        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      />
+                      <p className="text-gray-600 text-sm mt-2">Used if no shipping zone matches. Set to 0 for free.</p>
+                    </div>
+                    <div>
+                      <label className="font-medium block mb-2">Minimum Order Amount (₹)</label>
+                      <input
+                        type="number"
+                        value={settingsForm.minOrderAmount}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, minOrderAmount: Number(e.target.value) })}
+                        className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      />
+                      <p className="text-gray-600 text-sm mt-2">Minimum subtotal required to place an order.</p>
+                    </div>
                   </div>
-                  <p className="text-gray-600 text-sm mt-2">This cost is used if an address doesn't match any shipping zone. Set to 0 for free shipping.</p>
                 </div>
                 
                 <div className="bg-gray-50 p-4 md:p-6 rounded-lg">

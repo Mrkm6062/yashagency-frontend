@@ -21,6 +21,7 @@ function CheckoutPage({ user, clearCart }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isDeliverable, setIsDeliverable] = useState(true);
   const [deliveryMessage, setDeliveryMessage] = useState('');
+  const [minOrderAmount, setMinOrderAmount] = useState(0);
 
   const { items = [], total = 0, buyNow = false } = location.state || {};
   
@@ -39,6 +40,7 @@ function CheckoutPage({ user, clearCart }) {
     }
     document.title = 'Checkout - Yash Agency';
     fetchAddresses();
+    fetchSettings();
 
     return () => { document.title = 'Yash Agency'; }
   }, [user, items, navigate]);
@@ -55,6 +57,16 @@ function CheckoutPage({ user, clearCart }) {
       setShippingCost(0); // Reset if no address is selected
     }
   }, [selectedAddress]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/settings`);
+      const data = await response.json();
+      setMinOrderAmount(data.minOrderAmount || 0);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
 
   const calculateShippingCost = async (pincode, state) => {
     try {
@@ -208,6 +220,14 @@ function CheckoutPage({ user, clearCart }) {
 
   // Determine button text and action
   const getButtonConfig = () => {
+    // Check minimum order amount
+    if (minOrderAmount > 0 && subtotal < minOrderAmount) {
+      return { 
+        text: `Min Order: ₹${minOrderAmount}`, 
+        action: () => alert(`Minimum order amount is ₹${minOrderAmount}. Please add more items.`), 
+        disabled: true 
+      };
+    }
     // For COD
     return { text: '🛒 Place Order', action: placeOrder, disabled: loading || !termsAccepted || !selectedAddress || !isDeliverable };
   };
@@ -303,6 +323,11 @@ function CheckoutPage({ user, clearCart }) {
               <div className="space-y-2">
                 <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>₹{subtotal.toLocaleString()}</span></div>
                 <div className="flex justify-between text-gray-600"><span>Shipping</span><span>{shippingCost > 0 ? `₹${shippingCost}` : 'Free'}</span></div>
+                {minOrderAmount > 0 && subtotal < minOrderAmount && (
+                  <div className="text-red-600 text-sm font-medium text-right">
+                    Add items worth ₹{(minOrderAmount - subtotal).toLocaleString()} more
+                  </div>
+                )}
                 {discount > 0 && (<div className="flex justify-between text-green-600"><span>Discount ({couponCode})</span><span>-₹{discount.toLocaleString()}</span></div>)}
                 <div className="border-t pt-2 flex justify-between text-lg font-bold text-gray-900"><span>Total</span><span>₹{finalTotal.toLocaleString()}</span></div>
               </div>

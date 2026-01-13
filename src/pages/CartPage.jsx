@@ -14,9 +14,11 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
+  const [minOrderAmount, setMinOrderAmount] = useState(0);
 
   useEffect(() => {
     fetchSuggestedProducts();
+    fetchSettings();
     document.title = 'Your Cart - Yash Agency';
     return () => {
       document.title = 'Yash Agency';
@@ -33,9 +35,23 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/settings`);
+      const data = await response.json();
+      setMinOrderAmount(data.minOrderAmount || 0);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
   const handleCheckout = () => {
     if (!user) {
       navigate('/login');
+      return;
+    }
+    if (minOrderAmount > 0 && total < minOrderAmount) {
+      alert(`Minimum order amount is ₹${minOrderAmount}. Please add more items.`);
       return;
     }
     navigate('/checkout', { state: { items: cart, total, buyNow: false } });
@@ -71,7 +87,27 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto pb-32 md:pb-0">
+      {/* Sticky Progress Bar for Mobile */}
+      {minOrderAmount > 0 && (
+        <>
+          <div className="fixed top-17 left-0 right-0 z-30 bg-white px-4 py-3 shadow-md md:hidden border-b">
+            <div className="flex justify-between text-sm mb-1">
+              <span className={`font-medium ${total >= minOrderAmount ? 'text-green-600' : 'text-orange-600'}`}>
+                {total >= minOrderAmount ? 'Minimum order amount reached!' : `Add ₹${(minOrderAmount - total).toLocaleString()} more`}
+              </span>
+              <span className="text-gray-500">{Math.min(Math.round((total / minOrderAmount) * 100), 100)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full transition-all duration-500 ${total >= minOrderAmount ? 'bg-green-500' : 'bg-orange-500'}`} 
+                style={{ width: `${Math.min((total / minOrderAmount) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className="h-20 md:hidden"></div>
+        </>
+      )}
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-2">
@@ -89,20 +125,42 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
         })}
       </div>
 
-      <div className="bg-white p-2 rounded-lg shadow mb-4">
+      <div className="fixed bottom-16 left-0 right-0 z-30 bg-white p-4 border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:static md:bg-white md:p-2 md:rounded-lg md:shadow md:mb-4 md:border-none">
         <div className="flex justify-center items-center mb-2 mt-2">
           <span className="text-lg font-bold">Total: ₹{total.toLocaleString()}</span>
         </div>
         
+        {minOrderAmount > 0 && (
+          <div className="px-4 mb-4 hidden md:block">
+            <div className="flex justify-between text-sm mb-1">
+              <span className={`font-medium ${total >= minOrderAmount ? 'text-green-600' : 'text-orange-600'}`}>
+                {total >= minOrderAmount ? 'Minimum order amount reached!' : `Add ₹${(minOrderAmount - total).toLocaleString()} more`}
+              </span>
+              <span className="text-gray-500">{Math.min(Math.round((total / minOrderAmount) * 100), 100)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className={`h-2.5 rounded-full transition-all duration-500 ${total >= minOrderAmount ? 'bg-green-500' : 'bg-orange-500'}`} 
+                style={{ width: `${Math.min((total / minOrderAmount) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
         <button 
           onClick={handleCheckout}
-          className="w-full bg-green-700 text-white py-4 px-6 rounded-xl text-lg font-semibold hover:bg-green-800 transition-colors shadow-lg"
+          disabled={user && minOrderAmount > 0 && total < minOrderAmount}
+          className={`w-full py-4 px-6 rounded-xl text-lg font-semibold transition-colors shadow-lg ${
+            user && minOrderAmount > 0 && total < minOrderAmount
+              ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              : 'bg-green-700 text-white hover:bg-green-800'
+          }`}
         >
           {user ? '🛒 Proceed to Checkout' : 'Login to Checkout'}
         </button>
       </div>
       
-      <div className="mb-8">
+      {/* <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6">Below More Products</h2>
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-2">
           {products.map(product => {
@@ -114,7 +172,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
             );
           })}
         </div>
-      </div>
+      </div> */}
 
       {showQuantityModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
