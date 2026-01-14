@@ -24,10 +24,12 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
     }
   };
 
+  const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
   return (
     <div className="relative bg-white shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
       <button onClick={() => removeFromCart(item._id)} className="absolute -top-3 -right-3 z-10 bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600 flex items-center justify-center shadow-md text-lg cursor-pointer">X</button>
-      <Link to={`/product/${item._id}`}>
+      <Link to={`/product/${slug}`} state={{ productId: item._id }}>
         <div className="relative overflow-hidden aspect-[1/1]">
           <img 
             src={images[0]} 
@@ -41,7 +43,7 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
         </div>
       </Link>
       <div className="p-1">
-        <Link to={`/product/${item._id}`}>
+        <Link to={`/product/${slug}`} state={{ productId: item._id }}>
           <h5 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors cursor-pointer text-center">{item.name}</h5>
         </Link>
         {item.selectedVariant && (
