@@ -289,8 +289,7 @@ const handlePrintKOT = (order) => {
       <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="60"/></td>
       <td class="right" colspan="2" style="border-left: none;">
         <strong>YASH AGENCY</strong><br/>
-        Store Address Line<br/>
-        GSTIN: XXXXXXXX
+        SAI SIDDHI CHOWK, DHANKAWADI, PUNE - 411001<br/>
       </td>
     </tr>
     <tr>
