@@ -338,7 +338,6 @@ const handlePrintKOT = (order) => {
   printWindow.document.write(`
   <html>
   <head>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
       @media print {
         @page { size: A4 landscape; margin: 0.2in; }
@@ -362,10 +361,15 @@ const handlePrintKOT = (order) => {
   </div>
 
   <script>
-    document.querySelectorAll('.barcode').forEach(el => {
-      JsBarcode(el, "${orderId}", { format: "CODE128", height: 40, displayValue: true });
-    });
+    function initBarcode() {
+      document.querySelectorAll('.barcode').forEach(el => {
+        try {
+          JsBarcode(el, "${orderId}", { format: "CODE128", height: 40, displayValue: true });
+        } catch (e) { console.error(e); }
+      });
+    }
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js" onload="initBarcode()"></script>
 
   </body>
   </html>
