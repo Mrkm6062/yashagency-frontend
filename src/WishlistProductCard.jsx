@@ -26,6 +26,9 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
       </Link>
       
       <div className="bg-white -translate-y-1 -mb-8 pt-1 pb-2 px-2 relative z-10  shadow-inner">        
+        <Link to={`/product/${slug}`} state={{ productId: product._id }}>
+          <h3 className="font-semibold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors truncate">{product.name}</h3>
+        </Link>
         <div className="flex items-baseline space-x-2 mb-4">
           <span className="text-lg font-bold text-green-600">₹{product.price.toLocaleString()}</span>
           {hasDiscount && (
