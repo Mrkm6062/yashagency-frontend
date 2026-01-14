@@ -231,6 +231,8 @@ const formattedCategory =
             const hoverClasses = `group-hover:border-${color}-400`;
             const activeTextClasses = `text-${color}-600`;
             const hoverTextClasses = `group-hover:text-${color}-500`;
+            const productInCategory = products.find(p => p.category === category);
+            const categoryImgSrc = categoryImageMap[category] || productInCategory?.imageUrl || `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`;
 
             return (
               <div
@@ -242,7 +244,7 @@ const formattedCategory =
                 filters.category === category ? activeClasses : 'border-gray-300'
               }`}>
                 <img 
-                  src={categoryImageMap[category] || `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`} 
+                  src={categoryImgSrc} 
                   alt={category} 
                   className="w-full h-full object-cover rounded-lg" 
                   // Add error handling for images that might fail to load

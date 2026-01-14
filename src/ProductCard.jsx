@@ -28,6 +28,10 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
           loading="lazy"
           onLoad={() => setImageLoaded(true)}
+          onError={(e) => {
+            setImageLoaded(true);
+            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+          }}
           style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
         />
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
