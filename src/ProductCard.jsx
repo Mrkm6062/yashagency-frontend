@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getOptimizedImageUrl } from './imageUtils.js';
 
 const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
@@ -22,24 +21,15 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
 
   return (
     <div className="overflow-hidden shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col">
-      <div className="relative overflow-hidden  aspect-[1/1] bg-[#4b2d1e]">
-        <picture>
-          <source 
-            srcSet={`${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 400 })} 400w, ${getOptimizedImageUrl(mainImageUrl, { format: 'webp', width: 800 })} 800w`}
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            type="image/webp"
-          />
-          <img 
-            src={getOptimizedImageUrl(mainImageUrl, { width: 400, quality: 'auto' })} // Optimized default src
-            srcSet={`${getOptimizedImageUrl(mainImageUrl, { width: 320, quality: 'auto' })} 320w, ${getOptimizedImageUrl(mainImageUrl, { width: 400, quality: 'auto' })} 400w, ${getOptimizedImageUrl(mainImageUrl, { width: 600, quality: 'auto' })} 600w, ${getOptimizedImageUrl(mainImageUrl, { width: 800, quality: 'auto' })} 800w`}
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            alt={product.name}
-            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-            loading="lazy"
-            onLoad={() => setImageLoaded(true)}
-            style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
-          />
-        </picture>
+      <div className="relative overflow-hidden aspect-[1/1] bg-gray-100">
+        <img 
+          src={mainImageUrl}
+          alt={product.name}
+          className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
+        />
         {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
         <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`} />
       </div>

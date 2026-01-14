@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { secureRequest } from '../secureRequest.js';
+import { getToken } from '../storage.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
@@ -95,6 +96,44 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
     setLoading(false);
   };
 
+  const handleImageUpload = async (e, index = -1) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setLoading(true);
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_BASE}/api/admin/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (index === -1) {
+          setProductForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
+        } else {
+          const newImages = [...productForm.images];
+          newImages[index] = data.imageUrl;
+          setProductForm(prev => ({ ...prev, images: newImages }));
+        }
+        setAdminNotification({ message: 'Image uploaded successfully', type: 'success' });
+      } else {
+        setAdminNotification({ message: 'Failed to upload image', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setAdminNotification({ message: 'Error uploading image', type: 'error' });
+    }
+    setLoading(false);
+  };
+
   if (!showProductForm) {
     return null;
   }
@@ -134,8 +173,21 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
             <div>
               <h4 className="font-medium mb-2">Product Images</h4>
               <div className="space-y-2">
-                <input type="url" placeholder="Main Image URL" value={productForm.imageUrl} onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                {productForm.images.map((img, index) => (<div key={index} className="flex space-x-2"><input type="url" placeholder={`Additional Image ${index + 1} URL`} value={img} onChange={(e) => { const newImages = [...productForm.images]; newImages[index] = e.target.value; setProductForm({ ...productForm, images: newImages }); }} className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /><button type="button" onClick={() => { const newImages = productForm.images.filter((_, i) => i !== index); setProductForm({ ...productForm, images: newImages }); }} className="text-red-600 hover:text-red-800 px-2">Remove</button></div>))}
+                <div className="flex gap-2">
+                  <input type="url" placeholder="Main Image URL" value={productForm.imageUrl} onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })} className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 border rounded-lg px-3 py-2 flex items-center justify-center min-w-[80px]">
+                    <span className="text-sm font-medium text-gray-600">Upload</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, -1)} />
+                  </label>
+                </div>
+                {productForm.images.map((img, index) => (<div key={index} className="flex space-x-2">
+                  <input type="url" placeholder={`Additional Image ${index + 1} URL`} value={img} onChange={(e) => { const newImages = [...productForm.images]; newImages[index] = e.target.value; setProductForm({ ...productForm, images: newImages }); }} className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 border rounded-lg px-3 py-2 flex items-center justify-center min-w-[80px]">
+                    <span className="text-sm font-medium text-gray-600">Upload</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, index)} />
+                  </label>
+                  <button type="button" onClick={() => { const newImages = productForm.images.filter((_, i) => i !== index); setProductForm({ ...productForm, images: newImages }); }} className="text-red-600 hover:text-red-800 px-2">Remove</button>
+                </div>))}
                 <button type="button" onClick={() => setProductForm({ ...productForm, images: [...productForm.images, ''] })} className="text-blue-600 hover:text-blue-800 text-sm">+ Add Another Image</button>
               </div>
             </div>

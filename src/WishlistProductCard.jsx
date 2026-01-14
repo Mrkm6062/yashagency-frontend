@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from './i18n.js';
 
 function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotification }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
   
@@ -10,12 +11,16 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
     <div className="relative bg-white shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group">
       <button onClick={() => removeFromWishlist(product._id)} className="absolute -top-3 -right-3 z-10 bg-red-100 text-red-600 w-8 h-8 rounded-full hover:bg-red-200 flex items-center justify-center transition-colors shadow-sm">X</button>
       <Link to={`/product/${product._id}`}>
-        <div className="relative overflow-hidden aspect-[1/1]">
+        <div className="relative overflow-hidden aspect-[1/1] bg-gray-100">
           <img 
             src={images[0]} 
             alt={product.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />
+          {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
         </div>
       </Link>
       
