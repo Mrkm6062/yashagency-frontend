@@ -668,7 +668,12 @@ const handlePrintKOT = (order) => {
                       {products.map(product => (
                         <div key={product._id} className="bg-white py-0.5 rounded-lg ">
                           <div className="flex items-start gap-4">
-                            <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded-md flex-shrink-0" />
+                            <img 
+                              src={product.imageUrl || (product.images && product.images[0]) || 'https://via.placeholder.com/150?text=No+Image'} 
+                              alt={product.name} 
+                              className="w-12 h-12 object-cover rounded-md flex-shrink-0" 
+                              onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Error'}
+                            />
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-gray-800 truncate">{product.name}</p>
                               <p className="font-semibold text-blue-500 truncate">Sold BY:- {product.soldBy}</p>
@@ -711,7 +716,12 @@ const handlePrintKOT = (order) => {
                             <tr key={product._id} className="hover:bg-gray-50">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-3">
-                                  <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded" />
+                                  <img 
+                                    src={product.imageUrl || (product.images && product.images[0]) || 'https://via.placeholder.com/150?text=No+Image'} 
+                                    alt={product.name} 
+                                    className="w-12 h-12 object-cover rounded" 
+                                    onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Error'}
+                                  />
                                   <span className="font-medium text-gray-900">{product.name}</span>
                                 </div>
                               </td>
