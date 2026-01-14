@@ -672,7 +672,7 @@ const handlePrintKOT = (order) => {
                               src={product.imageUrl || (product.images && product.images[0]) || 'https://via.placeholder.com/150?text=No+Image'} 
                               alt={product.name} 
                               className="w-12 h-12 object-cover rounded-md flex-shrink-0" 
-                              onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Error'}
+                              onError={(e) => e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20fill%3D%22%23f3f4f6%22%20width%3D%22150%22%20height%3D%22150%22%2F%3E%3Ctext%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20dy%3D%225%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'}
                             />
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-gray-800 truncate">{product.name}</p>
@@ -720,7 +720,7 @@ const handlePrintKOT = (order) => {
                                     src={product.imageUrl || (product.images && product.images[0]) || 'https://via.placeholder.com/150?text=No+Image'} 
                                     alt={product.name} 
                                     className="w-12 h-12 object-cover rounded" 
-                                    onError={(e) => e.target.src = 'https://via.placeholder.com/150?text=Error'}
+                                    onError={(e) => e.target.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22150%22%20height%3D%22150%22%20viewBox%3D%220%200%20150%20150%22%3E%3Crect%20fill%3D%22%23f3f4f6%22%20width%3D%22150%22%20height%3D%22150%22%2F%3E%3Ctext%20fill%3D%22%239ca3af%22%20font-family%3D%22sans-serif%22%20font-size%3D%2214%22%20dy%3D%225%22%20font-weight%3D%22bold%22%20x%3D%2250%25%22%20y%3D%2250%25%22%20text-anchor%3D%22middle%22%3ENo%20Image%3C%2Ftext%3E%3C%2Fsvg%3E'}
                                   />
                                   <span className="font-medium text-gray-900">{product.name}</span>
                                 </div>
