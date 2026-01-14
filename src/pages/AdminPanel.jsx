@@ -290,6 +290,7 @@ const handlePrintKOT = (order) => {
       <td class="right" colspan="2" style="border-left: none;">
         <strong>YASH AGENCY</strong><br/>
         SAI SIDDHI CHOWK, DHANKAWADI, PUNE - 411001<br/>
+        Mob.No:- 7249635724/8329272380
       </td>
     </tr>
     <tr>
