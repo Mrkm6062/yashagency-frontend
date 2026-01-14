@@ -432,10 +432,20 @@ const login = async (email, password) => {
       ]);
 
       subscribeUser();
+
+      if (data.user.role === 'salesman') {
+        window.location.href = '/salesman';
+        return true;
+      }
+
       return true;
 
     } catch (syncError) {
       console.error("Error during post-login sync:", syncError);
+      if (data.user.role === 'salesman') {
+        window.location.href = '/salesman';
+        return true;
+      }
       return true;
     }
 
