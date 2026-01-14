@@ -96,15 +96,54 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
     setLoading(false);
   };
 
+  const convertToWebP = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                type: "image/webp",
+                lastModified: Date.now(),
+              });
+              resolve(newFile);
+            } else {
+              reject(new Error("Conversion failed"));
+            }
+          }, 'image/webp', 0.8);
+        };
+        img.onerror = (error) => reject(error);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleImageUpload = async (e, index = -1) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
+    const originalFile = e.target.files[0];
+    if (!originalFile) return;
+    
     setLoading(true);
     try {
+      const file = await convertToWebP(originalFile);
+
+      if (file.size > 1024 * 1024) {
+        setAdminNotification({ message: 'Image too large (even after compression). Please upload images below 1000kb.', type: 'error' });
+        setLoading(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+
       const token = getToken();
       const response = await fetch(`${API_BASE}/api/admin/upload`, {
         method: 'POST',
@@ -125,7 +164,11 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
         }
         setAdminNotification({ message: 'Image uploaded successfully', type: 'success' });
       } else {
-        setAdminNotification({ message: 'Failed to upload image', type: 'error' });
+        if (response.status === 413) {
+          setAdminNotification({ message: 'Image too large. Please upload images below 1000kb.', type: 'error' });
+        } else {
+          setAdminNotification({ message: 'Failed to upload image', type: 'error' });
+        }
       }
     } catch (error) {
       console.error('Upload error:', error);
