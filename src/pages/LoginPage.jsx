@@ -167,15 +167,15 @@ function LoginPage({ login, user, setNotification }) {
                 <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Full Name</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your full name" required={!isLogin} />
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#465866]" placeholder="Enter your full name" required={!isLogin} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#465866] focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📱 Phone Number</label>
-                  <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all duration-200 bg-gray-50 focus-within:bg-white">
+                  <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#465866] focus-within:border-transparent transition-all duration-200 bg-gray-50 focus-within:bg-white">
                     <span className="px-4 py-3 text-gray-500 bg-gray-50 border-r border-gray-300">+91</span>
                     <input type="tel" value={phone.replace(/^\+91/, '')} onChange={(e) => { const digits = e.target.value.replace(/\D/g, ''); if (digits.length <= 10) { setPhone(`+91${digits}`); } }} className="w-full px-4 py-3 border-none focus:ring-0 bg-transparent" placeholder="Enter your 10-digit number" required={!isLogin} maxLength="10" />
                   </div>
@@ -186,7 +186,7 @@ function LoginPage({ login, user, setNotification }) {
               {isLogin && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">📧 Email Address</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#465866] focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder="Enter your email address" required />
                 </div>
               )}
               
@@ -194,7 +194,7 @@ function LoginPage({ login, user, setNotification }) {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">🔒 Password</label>
                   <div className="relative">
-                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={isLogin ? "current-password" : "new-password"} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder={isLogin ? 'Enter your password' : 'Create a strong password'} required />
+                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={isLogin ? "current-password" : "new-password"} className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#465866] focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white" placeholder={isLogin ? 'Enter your password' : 'Create a strong password'} required />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
@@ -205,16 +205,16 @@ function LoginPage({ login, user, setNotification }) {
               {!isLogin && registrationStep === 'otp' && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">✉️ Verification Code</label>
-                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter OTP from your email" required maxLength="6" />
+                  <input type="text" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#465866]" placeholder="Enter OTP from your email" required maxLength="6" />
                   <div className="flex justify-between items-center mt-2">
-                    <button type="button" onClick={() => setRegistrationStep('details')} className="text-sm text-blue-600 hover:underline">
+                    <button type="button" onClick={() => setRegistrationStep('details')} className="text-sm text-[#465866] hover:underline">
                       &larr; Back to details
                     </button>
                     <button
                       type="button"
                       onClick={handleResendOtp}
                       disabled={resendTimer > 0}
-                      className="text-sm text-blue-600 hover:underline disabled:text-gray-500 disabled:cursor-not-allowed"
+                      className="text-sm text-[#465866] hover:underline disabled:text-gray-500 disabled:cursor-not-allowed"
                     >
                       {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
                     </button>
@@ -225,12 +225,12 @@ function LoginPage({ login, user, setNotification }) {
               {!isLogin && registrationStep === 'details' && (
                 <div>
                   <label className="flex items-center space-x-2">
-                    <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="rounded text-blue-500 focus:ring-blue-500" />
+                    <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} className="rounded text-[#465866] focus:ring-[#465866]" />
                     <span className="text-sm text-gray-600">
                       I accept the{' '}
-                      <Link to="/support/terms" target="_blank" className="text-blue-600 hover:underline">Terms of Service</Link>
+                      <Link to="/support/terms" target="_blank" className="text-[#465866] hover:underline">Terms of Service</Link>
                       {' '}and{' '}
-                      <Link to="/support/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+                      <Link to="/support/privacy" target="_blank" className="text-[#465866] hover:underline">Privacy Policy</Link>.
                     </span>
                   </label>
                 </div>
@@ -238,11 +238,11 @@ function LoginPage({ login, user, setNotification }) {
 
               {isLogin && (
                 <div className="text-right">
-                  <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-800">Forgot Password?</Link>
+                  <Link to="/forgot-password" className="text-sm font-medium text-[#465866] hover:text-[#35424d]">Forgot Password?</Link>
                 </div>
               )}
               
-              <button type="submit" disabled={loading || (!isLogin && registrationStep === 'details' && !termsAccepted)} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+              <button type="submit" disabled={loading || (!isLogin && registrationStep === 'details' && !termsAccepted)} className="w-full bg-[#465866] text-white py-4 rounded-xl font-semibold hover:bg-[#35424d] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 {loading ? (
                   <span className="flex items-center justify-center space-x-2">
                     <span className="animate-spin">⏳</span>
@@ -264,7 +264,7 @@ function LoginPage({ login, user, setNotification }) {
               </div>
               
               <p className="mt-4 text-gray-600">{isLogin ? "Don't have an account?" : "Already have an account?"}</p>
-              <button onClick={() => { setIsLogin(!isLogin); setPassword(''); setRegistrationStep('details'); }} className="mt-2 text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200 hover:underline">
+              <button onClick={() => { setIsLogin(!isLogin); setPassword(''); setRegistrationStep('details'); }} className="mt-2 text-[#465866] hover:text-[#35424d] font-semibold transition-colors duration-200 hover:underline">
                 {isLogin ? '🎯 Create New Account' : '🔑 Sign In Instead'}
               </button>
             </div>
