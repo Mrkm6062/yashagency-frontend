@@ -321,7 +321,7 @@ function SalesmanDashboard({ user, API_BASE }) {
                         <img 
                           src={product.imageUrl || 'https://via.placeholder.com/400x400?text=No+Image'}
                           alt={product.name}
-                          className="w-full h-full object-cover"
+                          className="w-12 h-12 object-cover"
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
                           }}
