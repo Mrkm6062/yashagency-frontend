@@ -271,8 +271,8 @@ function LoginPage({ login, user, setNotification }) {
         </div>
 
         <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl"><div className="text-2xl mb-2">🛡️</div><p className="text-sm text-gray-600 font-medium">Secure & Safe</p></div>
-          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl"><div className="text-2xl mb-2">🚚</div><p className="text-sm text-gray-600 font-medium">Fast Delivery</p></div>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl"><div className="text-2xl mb-2">🛡️</div><p className="text-sm text-gray-600 font-medium">Secure, Trusted & Safe</p></div>
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl"><div className="text-2xl mb-2">🚚</div><p className="text-sm text-gray-600 font-medium">Delivery in 2 Days</p></div>
           <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl"><div className="text-2xl mb-2">💎</div><p className="text-sm text-gray-600 font-medium">Quality Products</p></div>
         </div>
       </div>

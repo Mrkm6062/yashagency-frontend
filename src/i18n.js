@@ -1,7 +1,7 @@
 // Simple i18n implementation
 const translations = {
   en: {
-    'Welcome to SamriddhiShop': 'Welcome to SamriddhiShop',
+    'Welcome to YashAgency': 'Welcome to YashAgency',
     'Home': 'Home',
     'Products': 'Products',
     'Cart': 'Cart',
@@ -13,7 +13,7 @@ const translations = {
     'Continue Shopping': 'Continue Shopping'
   },
   es: {
-    'Welcome to SamriddhiShop': 'Bienvenido a SamriddhiShop',
+    'Welcome to YashAgency': 'Bienvenido a YashAgency',
     'Home': 'Inicio',
     'Products': 'Productos',
     'Cart': 'Carrito',

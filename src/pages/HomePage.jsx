@@ -25,18 +25,18 @@ function HomePage({ products, loading, addToCart }) {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Yash Agency",
-    "url": "https://Yash Agency.in",
-    "logo": "https://Yash Agency.in/logo.png"
+    "url": "https://yashagency.in",
+    "logo": "https://yashagency.in/YashAgency.png"
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Yash Agency",
-    "url": "https://Yash Agency.in",
+    "url": "https://yashagency.in",
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://Yash Agency.in/search?q={search_term_string}",
+      "target": "https://yashagency.in/search?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -49,7 +49,7 @@ function HomePage({ products, loading, addToCart }) {
         "@type": "ListItem",
         "position": 1,
         "name": "Home",
-        "item": "https://Yash Agency.in"
+        "item": "https://yashagency.in"
       }
     ]
   };

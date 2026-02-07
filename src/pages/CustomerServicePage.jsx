@@ -141,8 +141,8 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="returns" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Return Policy</h2>
-                  <p>Last updated: November 1, 2025</p><br></br>
-                  <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). We aim to ensure a smooth and transparent shopping experience for every customer. This Return & Refund Policy applies to all purchases made on samriddhishop.in.</p>
+                  <p>Last updated: March 1, 2026</p><br></br>
+                  <p>Thank you for shopping with YashAgency (“we”, “our”, “us”). We aim to ensure a smooth and transparent shopping experience for every customer. This Return & Refund Policy applies to all purchases made on yashagency.in</p>
 
                   <h3 className="font-bold">1. Eligibility for Refunds</h3>
                   <p>We accept refund requests under the following conditions:</p>
@@ -181,21 +181,21 @@ function CustomerServicePage({ API_BASE }) {
 
                   <h3 className="font-bold">6. Contact for Refund Queries</h3>
                   <p>If you have any questions regarding refunds, please contact us:</p>
-                  <p>📧 support@samriddhishop.in</p>
-                  <p>📞 +91 9580889615</p>
+                  <p>📧 yashagency25@gmail.com</p>
+                  <p>📞 +91 7249122916</p>
                 </div>
               } />
               <Route path="shipping" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">🚚 Shipping & Delivery Policy</h2>
-                  <p>Last updated: November 1, 2025</p><br></br>
-                  <p>Thank you for shopping with SamriddhiShop (“we”, “our”, “us”). This Shipping & Delivery Policy explains how we process and deliver orders placed on samriddhishop.in.</p>
+                  <p>Last updated: March 1, 2026</p><br></br>
+                  <p>Thank you for shopping with YashAgency (“we”, “our”, “us”). This Shipping & Delivery Policy explains how we process and deliver orders placed on yashagency.in.</p>
 
                   <h3 className="font-bold">1. Delivery Coverage</h3>
-                  <p>We currently deliver orders only within the state of Uttar Pradesh, India, covering all districts. If your delivery address is outside Uttar Pradesh, you will not be able to place an order on our website.</p>
+                  <p>We currently deliver orders only within the districts of state of Pune, Maharashtra, India. If your delivery address is outside Pune district, you will not be able to place an order on our website & app.</p>
 
                   <h3 className="font-bold">2. Delivery Time</h3>
-                  <p>Orders are usually delivered within 7 to 10 business days from the date of order confirmation. Delivery time may vary based on product availability, delivery location, and other factors like weather or courier delays. We will notify you by email when your order has been shipped.</p>
+                  <p>Orders are usually delivered within 1 to 2 business days from the date of order confirmation. Delivery time may vary based on product availability, delivery location, and other factors like weather. We will notify you by email when your order has been shipped.</p>
 
                   <h3 className="font-bold">3. Shipping Charges</h3>
                   <p>Free delivery may be offered on selected products or during promotional periods. Any applicable shipping or handling fees will be displayed at checkout before you confirm your order.</p>
@@ -212,8 +212,8 @@ function CustomerServicePage({ API_BASE }) {
                   <h3 className="font-bold">7. Contact for Delivery Issues</h3>
                   <p>If your order has not arrived within the expected time, please contact us with your Order ID and registered mobile number for faster assistance:</p>
                   <ul>
-                    <li>📧 support@samriddhishop.in</li>
-                    <li>📞 +91 9580889615</li>
+                    <li>📧 yashagency25@gmail.com</li>
+                    <li>📞 +91 7249122916</li>
                   </ul>
 
                   <h3 className="font-bold">8. Policy Updates</h3>
@@ -223,18 +223,19 @@ function CustomerServicePage({ API_BASE }) {
               <Route path="terms" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Terms of Service</h2>
-                  <p>Last updated: November 1, 2025</p><br></br>
-                  <p>Welcome to SamriddhiShop (“we”, “our”, “us”). These Terms & Conditions (“Terms”) govern your use of our website samriddhishop.in (“Website”) and the purchase of products or services offered on it. By accessing or using our Website, you agree to these Terms. If you do not agree, please do not use our Website.</p>
+                  <p>Last updated: March 1, 2026</p><br></br>
+                  <p>Welcome to YashAgency (“we”, “our”, “us”). These Terms & Conditions (“Terms”) govern your use of our website yashagency.in (“Website”) and the purchase of products or services offered on it. By accessing or using our Website, you agree to these Terms. If you do not agree, please do not use our Website.</p>
 
                   <h3 className="font-bold">1. General</h3>
-                  <p>By placing an order, you confirm that you are at least 18 years old or accessing the site under the supervision of a parent or legal guardian. We reserve the right to modify or update these Terms at any time without prior notice. The updated version will be posted on this page.</p>
+                  <p>By placing an order, you confirm that you are at least 18 years old & you have shop("dukaan")  or accessing the site under the supervision of a parent or legal guardian. We reserve the right to modify or update these Terms at any time without prior notice. The updated version will be posted on this page.</p>
 
                   <h3 className="font-bold">2. Account and Registration</h3>
                   <ul>
-                    <li>You may be required to create an account to make purchases.</li>
+                    <li>You may be required to create an account to make purchases or you can contact us our salesman & we create your account for you.</li>
                     <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
                     <li>You agree to provide accurate, current, and complete information.</li>
                     <li>We reserve the right to suspend or terminate your account if we suspect any fraudulent activity or violation of these Terms.</li>
+                    <li>We do not store your personal & address details on our servers it is by third party("MongoDB").</li>
                   </ul>
 
                   <h3 className="font-bold">3. Products and Pricing</h3>
@@ -262,25 +263,25 @@ function CustomerServicePage({ API_BASE }) {
                   <p>We follow a transparent <Link to="/support/returns" className="text-blue-600 hover:underline">Return and Refund Policy</Link>. Refunds will be processed to the original payment method. Cancellations are accepted only before the order is shipped.</p>
 
                   <h3 className="font-bold">7. Intellectual Property</h3>
-                  <p>All content on this Website (including text, images, logos, and designs) is the property of SamriddhiShop or its licensors. You may not copy, reproduce, or use our content without written permission.</p>
+                  <p>All content on this Website (including text, images, logos, and designs) is the property of yashagency.in or its licensors. You may not copy, reproduce, or use our content without written permission.</p>
 
                   <h3 className="font-bold">8. Limitation of Liability</h3>
                   <p>Our total liability for any claim shall not exceed the amount paid by you for the specific product in question.</p>
 
                   <h3 className="font-bold">9. Governing Law and Jurisdiction</h3>
-                  <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Lucknow, Uttar Pradesh, India.</p>
+                  <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Pune, Maharashtra, India.</p>
 
                   <h3 className="font-bold">10. Contact Us</h3>
-                  <p>If you have any questions about these Terms, please contact us at: 📧 support@samriddhishop.in</p>
+                  <p>If you have any questions about these Terms, please contact us at: 📧 yashagency25@gmail.com</p>
                 </div>
               } />
               <Route path="privacy" element={
                 <div className="prose max-w-none">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Privacy Policy</h2>
-                  <p>Last updated: November 1, 2025</p>
+                  <p>Last updated: March 1, 2026</p>
                   <br></br>
                   <h3 className="font-bold">1. Introduction</h3>
-                  <p>Welcome to SamriddhiShop (“we”, “our”, “us”). We operate the eCommerce website samriddhishop.in, where we sell products and services online.</p>
+                  <p>Welcome to YashAgency (“we”, “our”, “us”). We operate the eCommerce website yashagency.in, where we sell products and services online.</p>
                   <p>Your privacy is important to us. This Privacy Policy explains how we collect, use, store, and protect your personal data in accordance with the Digital Personal Data Protection Act, 2023 (DPDP Act) and other applicable laws in India.</p>
 
                   <h3 className="font-bold">2. Information We Collect</h3>
@@ -330,7 +331,7 @@ function CustomerServicePage({ API_BASE }) {
                   <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with the updated date.</p>
 
                   <h2 className="font-bold">10. Contact Us</h2>
-                  <p>If you have questions or concerns about this Privacy Policy, please contact us at: 📧 support@samriddhishop.in</p>
+                  <p>If you have questions or concerns about this Privacy Policy, please contact us at: 📧 yashagency25@gmail.com</p>
                 </div>
               } />
               <Route index element={<Navigate to="contact" replace />} />

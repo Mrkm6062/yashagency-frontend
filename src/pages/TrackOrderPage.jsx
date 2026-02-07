@@ -127,7 +127,7 @@ function TrackOrderPage({ user, API_BASE }) {
         timeline.push({ status: orderData.status, title: `Order ${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}`, description: `This order has been ${orderData.status}.`, date: new Date(statusHistory.length > 0 ? statusHistory[statusHistory.length - 1].updatedAt : orderData.createdAt), completed: true });
       }
     } else {
-      const expectedDelivery = orderData.courierDetails?.estimatedDelivery ? new Date(orderData.courierDetails.estimatedDelivery) : new Date(new Date(orderData.createdAt).getTime() + 5 * 24 * 60 * 60 * 1000);
+      const expectedDelivery = orderData.courierDetails?.estimatedDelivery ? new Date(orderData.courierDetails.estimatedDelivery) : new Date(new Date(orderData.createdAt).getTime() + 1 * 24 * 60 * 60 * 1000);
       timeline.push({ status: 'delivered', title: 'Expected Delivery', description: 'Your order will be delivered to your address.', date: expectedDelivery, completed: false, estimated: true });    
     }
     setTrackingHistory(timeline);

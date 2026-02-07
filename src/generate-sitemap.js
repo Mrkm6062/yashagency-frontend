@@ -3,8 +3,8 @@ import path from 'path';
 
 // --- Configuration ---
 // Replace with your actual production domain
-const YOUR_DOMAIN = 'https://www.samriddhishopproduction.netlify.app';
-const API_BASE = 'http://localhost:3001'; // Your backend API URL
+const YOUR_DOMAIN = 'https://www.yashagency.in';
+const API_BASE = 'http://localhost:3002'; // Your backend API URL
 
 async function generateSitemap() {
   console.log('Generating sitemap...');

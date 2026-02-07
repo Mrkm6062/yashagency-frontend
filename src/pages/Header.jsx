@@ -31,9 +31,9 @@ function Header({
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
               {LOGO_URL ? (
-                <img src={LOGO_URL} alt="SamriddhiShop Logo" className="h-10 w-auto" />
+                <img src={LOGO_URL} alt="YashAgency Logo" className="h-10 w-auto" />
               ) : (
-                <span className="text-2xl font-bold text-gray-800">SamriddhiShop</span>
+                <span className="text-2xl font-bold text-gray-800">YashAgency</span>
               )}
             </Link>
           </div>

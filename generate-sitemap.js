@@ -1,7 +1,7 @@
 import fs from "fs";
 import fetch from "node-fetch";
 
-const API_URL = "https://yashagency.info/api/products";
+const API_URL = "https://yashagency.in/api/products";
 
 async function generateSitemap() {
   try {
