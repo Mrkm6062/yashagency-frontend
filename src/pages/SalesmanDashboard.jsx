@@ -315,7 +315,7 @@ function SalesmanDashboard({ user, API_BASE }) {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <div 
-                        className="relative overflow-hidden aspect-[1/1] bg-gray-100 mb-2 rounded-lg cursor-pointer"
+                        className="relative overflow-hidden aspect-[1/1] w-12 h-12 bg-gray-100 mb-2 rounded-lg cursor-pointer"
                         onClick={() => setFullScreenImage(product.imageUrl)}
                       >
                         <img 
