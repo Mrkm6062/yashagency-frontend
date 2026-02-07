@@ -372,7 +372,7 @@ function SalesmanDashboard({ user, API_BASE }) {
                       <tr key={product._id} className="hover:bg-gray-50">
                         <td className="p-4">
                       <div 
-                        className="relative overflow-hidden aspect-[1/1] bg-gray-100 mb-2 rounded-lg cursor-pointer"
+                        className="relative overflow-hidden aspect-[1/1] w-12 h-12bg-gray-100 mb-2 rounded-lg cursor-pointer"
                         onClick={() => setFullScreenImage(product.imageUrl)}
                       >
                         <img 
