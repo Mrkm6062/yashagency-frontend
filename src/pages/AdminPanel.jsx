@@ -15,6 +15,7 @@ function AdminPanel({ user, API_BASE }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -30,7 +31,7 @@ function AdminPanel({ user, API_BASE }) {
   ]);
   const [editingZone, setEditingZone] = useState(null);
   const [analytics, setAnalytics] = useState({});
-  const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '' });
+  const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all' });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [deliveryAreas, setDeliveryAreas] = useState({ states: [], districts: [], pincodes: [] });
   const [courierForm, setCourierForm] = useState({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
@@ -104,6 +105,7 @@ function AdminPanel({ user, API_BASE }) {
 
       setProducts(productsData);
       setOrders(ordersData);
+      setAllOrders(ordersData);
       setCoupons(couponsData);
       setUsers(usersData);
       setFilteredUsers(usersData);
@@ -133,12 +135,60 @@ function AdminPanel({ user, API_BASE }) {
       const response = await secureRequest(`${API_BASE}/api/admin/orders/date-range?${params}`);
       const data = await response.json();
       setOrders(data);
+      setAllOrders(data);
     } catch (error) {
       console.error('Error fetching filtered orders:', error);
     }
   };
 
   const toggleProduct = async (productId, enabled) => {
+    try {
+      await secureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', body: JSON.stringify({ enabled: !enabled }) });
+      fetchData();
+      localStorage.removeItem('products_cache');
+    } catch (error) { alert('Failed to toggle product'); }
+  };
+
+  useEffect(() => {
+    let result = [...allOrders];
+
+    if (orderFilters.searchTerm) {
+      const term = orderFilters.searchTerm.toLowerCase();
+      result = result.filter(order => 
+        (order.orderNumber || order._id || '').toLowerCase().includes(term) ||
+        (order.userId?.name || '').toLowerCase().includes(term) ||
+        (order.userId?.email || '').toLowerCase().includes(term) ||
+        (order.userId?.phone || '').toLowerCase().includes(term)
+      );
+    }
+
+    if (orderFilters.status !== 'all') {
+      result = result.filter(order => order.status === orderFilters.status);
+    }
+
+    if (orderFilters.orderSource !== 'all') {
+      result = result.filter(order => {
+        if (orderFilters.orderSource === 'salesman') return order.orderSource === 'salesman';
+        return order.orderSource !== 'salesman';
+      });
+    }
+
+    if (orderFilters.startDate) {
+      const start = new Date(orderFilters.startDate);
+      start.setHours(0, 0, 0, 0);
+      result = result.filter(order => new Date(order.createdAt) >= start);
+    }
+
+    if (orderFilters.endDate) {
+      const end = new Date(orderFilters.endDate);
+      end.setHours(23, 59, 59, 999);
+      result = result.filter(order => new Date(order.createdAt) <= end);
+    }
+
+    setOrders(result);
+  }, [orderFilters, allOrders]);
+
+  const toggleProductOld = async (productId, enabled) => {
     try {
       await secureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', body: JSON.stringify({ enabled: !enabled }) });
       fetchData();
@@ -1069,6 +1119,18 @@ const handlePrintKOT = (order) => {
                       />
                     </div>
                     <div>
+                      <label className="block text-sm font-medium mb-1">Order Source</label>
+                      <select
+                        value={orderFilters.orderSource}
+                        onChange={(e) => setOrderFilters({...orderFilters, orderSource: e.target.value})}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">All Sources</option>
+                        <option value="website">Website</option>
+                        <option value="salesman">Salesman</option>
+                      </select>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium mb-1">Status</label>
                       <select
                         value={orderFilters.status}
@@ -1084,12 +1146,12 @@ const handlePrintKOT = (order) => {
                         <option value="refunded">Refunded</option>
                       </select>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 items-end">
                     <button
-                      onClick={fetchOrdersByDate}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
+                      onClick={() => setOrderFilters({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all' })}
+                      className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 w-full sm:w-auto"
                     >
-                      Apply Filters
+                      Clear Filters
                     </button>
                     <button
                       onClick={handlePrintFilteredOrders}
@@ -1104,7 +1166,18 @@ const handlePrintKOT = (order) => {
                 {/* Orders List */}
                 <div className="space-y-4">
                   {orders.map(order => (
-                    <div key={order._id} className="border rounded-lg p-4">
+                    <div key={order._id} className="border rounded-lg p-4 relative pt-9">
+                      <div className="absolute top-0 left-0">
+                        {order.orderSource === 'salesman' ? (
+                          <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-tl-lg rounded-br-lg shadow-sm">
+                            By Salesman {order.salesmanName && `(${order.salesmanName})`}
+                          </span>
+                        ) : (
+                          <span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-tl-lg rounded-br-lg shadow-sm">
+                            Website
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col md:flex-row md:justify-between md:items-start space-y-3 md:space-y-0 mb-3">
                         <div className="flex-1">
                           <h4 className="font-medium">Order #{order.orderNumber || order._id.slice(-8)}</h4>
@@ -1137,12 +1210,6 @@ const handlePrintKOT = (order) => {
                             })()}
                           </p>
                           <p className="text-sm text-gray-500 break-words">Customer: {order.userId?.name} ({order.userId?.email})</p>
-                          <p className="text-sm text-gray-500">
-                            Source: <span className="font-medium capitalize">{order.orderSource || 'Website'}</span>
-                            {order.orderSource === 'salesman' && order.salesmanName && (
-                              <span> (by {order.salesmanName})</span>
-                            )}
-                          </p>
                           {order.courierDetails?.trackingNumber && (
                             <p className="text-sm text-blue-600 break-words">Tracking: {order.courierDetails.trackingNumber} | {order.courierDetails.courierName}</p>
                           )}
