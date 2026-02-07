@@ -60,16 +60,6 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
               </ul>
             </div>
           </div>
-          
-          <div>
-            <h4 className="font-semibold mb-3">Connect</h4>
-            <div className="flex space-x-4">
-              {settings.instagram && <a href={settings.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl" aria-label="Follow us on Instagram"><FaInstagram /></a>}
-              {settings.facebook && <a href={settings.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white text-2xl" aria-label="Follow us on Facebook"><FaFacebook /></a>}
-              {settings.email && <a href={`mailto:${settings.email}`} className="text-gray-300 hover:text-white text-2xl" aria-label="Email us"><FaEnvelope /></a>}
-              {settings.phone && <a href={`tel:${settings.phone}`} className="text-gray-300 hover:text-white text-2xl" aria-label="Call us"><FaPhone /></a>}
-            </div>
-          </div>
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
