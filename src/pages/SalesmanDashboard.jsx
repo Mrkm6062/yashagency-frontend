@@ -15,6 +15,7 @@ function SalesmanDashboard({ user, API_BASE }) {
   const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '', address: '', pincode: '' });
   const [showCheckout, setShowCheckout] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -313,6 +314,19 @@ function SalesmanDashboard({ user, API_BASE }) {
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow border">
                   <div className="flex justify-between items-start mb-2">
                     <div>
+                      <div 
+                        className="relative overflow-hidden aspect-[1/1] bg-gray-100 mb-2 rounded-lg cursor-pointer"
+                        onClick={() => setFullScreenImage(product.imageUrl)}
+                      >
+                        <img 
+                          src={product.imageUrl || 'https://via.placeholder.com/400x400?text=No+Image'}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                          }}
+                        />
+                      </div>
                       <div className="font-medium text-gray-900">{product.name}</div>
                       <div className="text-sm text-gray-500">{product.category}</div>
                     </div>
@@ -592,6 +606,20 @@ function SalesmanDashboard({ user, API_BASE }) {
           </div>
         )}
       </div>
+
+      {fullScreenImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4" onClick={() => setFullScreenImage(null)}>
+          <div className="relative max-w-full max-h-full">
+            <button 
+              className="absolute -top-10 right-0 text-white text-2xl font-bold"
+              onClick={() => setFullScreenImage(null)}
+            >
+              &times;
+            </button>
+            <img src={fullScreenImage} alt="Full Screen" className="max-w-full max-h-[90vh] object-contain rounded" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
