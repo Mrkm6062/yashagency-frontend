@@ -1137,6 +1137,12 @@ const handlePrintKOT = (order) => {
                             })()}
                           </p>
                           <p className="text-sm text-gray-500 break-words">Customer: {order.userId?.name} ({order.userId?.email})</p>
+                          <p className="text-sm text-gray-500">
+                            Source: <span className="font-medium capitalize">{order.orderSource || 'Website'}</span>
+                            {order.orderSource === 'salesman' && order.salesmanName && (
+                              <span> (by {order.salesmanName})</span>
+                            )}
+                          </p>
                           {order.courierDetails?.trackingNumber && (
                             <p className="text-sm text-blue-600 break-words">Tracking: {order.courierDetails.trackingNumber} | {order.courierDetails.courierName}</p>
                           )}
