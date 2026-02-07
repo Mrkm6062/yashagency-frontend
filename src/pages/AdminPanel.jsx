@@ -53,6 +53,8 @@ function AdminPanel({ user, API_BASE }) {
   const [salesmanForm, setSalesmanForm] = useState({ name: '', email: '', password: '', phone: '', maxDiscountPercent: 0, address: '', pincode: '' });
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [showSalesmanPassword, setShowSalesmanPassword] = useState(false);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [deliveryOrder, setDeliveryOrder] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -196,9 +198,10 @@ function AdminPanel({ user, API_BASE }) {
     } catch (error) { alert('Failed to toggle product'); }
   };
 
-  const updateOrderStatus = async (orderId, status, withCourier = false) => {
+  const updateOrderStatus = async (orderId, status, withCourier = false, paymentStatus = null) => {
     try {
       const payload = { status };
+      if (paymentStatus) payload.paymentStatus = paymentStatus;
       if (withCourier && status === 'shipped') {        
         const finalCourierName = courierForm.courierName === 'Other' ? courierForm.manualCourierName : courierForm.courierName;
         const courierDetails = { ...courierForm, courierName: finalCourierName };
@@ -208,6 +211,8 @@ function AdminPanel({ user, API_BASE }) {
       await secureRequest(`${API_BASE}/api/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify(payload) });
       fetchData();
       setSelectedOrder(null);
+      setDeliveryOrder(null);
+      setShowDeliveryModal(false);
       setCourierForm({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
       alert('Order status updated!');
     } catch (error) { alert('Failed to update order status'); }
@@ -215,7 +220,24 @@ function AdminPanel({ user, API_BASE }) {
 
   const handleStatusChange = (orderId, newStatus) => {
     if (newStatus === 'shipped') setSelectedOrder(orderId);
+    else if (newStatus === 'delivered') {
+      setDeliveryOrder(orderId);
+      setShowDeliveryModal(true);
+    }
     else updateOrderStatus(orderId, newStatus);
+  };
+
+  const handleResendInvoice = async (orderId) => {
+    if (!window.confirm('Resend invoice email to customer?')) return;
+    try {
+      const response = await secureRequest(`${API_BASE}/api/admin/orders/${orderId}/resend-invoice`, { method: 'POST' });
+      const data = await response.json();
+      if (response.ok) {
+        alert('Invoice email sent successfully!');
+      } else {
+        alert(data.error || 'Failed to send invoice email');
+      }
+    } catch (error) { alert('Failed to send invoice email'); }
   };
 
   const saveCoupon = async () => {
@@ -1263,6 +1285,12 @@ const handlePrintKOT = (order) => {
                             title="Print Receipt">
                             🖨️ Print
                           </button>
+                          <button
+                            onClick={() => handleResendInvoice(order._id)}
+                            className="cursor-pointer text-purple-600 hover:text-purple-800 text-sm font-medium ml-2"
+                            title="Resend Invoice Email">
+                            📧 Invoice
+                          </button>
                         </div>
                       </div>
                       <div className="text-sm text-gray-600 break-words">
@@ -1368,6 +1396,33 @@ const handlePrintKOT = (order) => {
                           Ship Order
                         </button>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Delivery Confirmation Modal */}
+                {showDeliveryModal && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-sm w-full mx-4 text-center">
+                      <h3 className="text-lg font-semibold mb-4">Payment Received?</h3>
+                      <p className="mb-6 text-gray-600">Is the payment received for this order?</p>
+                      <div className="flex gap-4 justify-center">
+                        <button 
+                          onClick={() => updateOrderStatus(deliveryOrder, 'delivered', false, 'received')}
+                          className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+                        >
+                          Yes
+                        </button>
+                        <button 
+                          onClick={() => updateOrderStatus(deliveryOrder, 'delivered', false, 'pending')}
+                          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
+                        >
+                          No
+                        </button>
+                      </div>
+                      <button onClick={() => { setShowDeliveryModal(false); setDeliveryOrder(null); }} className="mt-4 text-gray-500 hover:text-gray-700 text-sm">
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 )}
