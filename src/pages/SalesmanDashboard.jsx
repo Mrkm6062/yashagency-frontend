@@ -319,11 +319,11 @@ function SalesmanDashboard({ user, API_BASE }) {
                         onClick={() => setFullScreenImage(product.imageUrl)}
                       >
                         <img 
-                          src={product.imageUrl || 'https://via.placeholder.com/400x400?text=No+Image'}
+                          src={product.imageUrl || 'https://via.placeholder.com/12x12?text=No+Image'}
                           alt={product.name}
                           className="w-12 h-12 object-cover"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+                            e.target.src = 'https://via.placeholder.com/12x12?text=No+Image';
                           }}
                         />
                       </div>
@@ -371,6 +371,19 @@ function SalesmanDashboard({ user, API_BASE }) {
                     {filteredProducts.map(product => (
                       <tr key={product._id} className="hover:bg-gray-50">
                         <td className="p-4">
+                      <div 
+                        className="relative overflow-hidden aspect-[1/1] bg-gray-100 mb-2 rounded-lg cursor-pointer"
+                        onClick={() => setFullScreenImage(product.imageUrl)}
+                      >
+                        <img 
+                          src={product.imageUrl || 'https://via.placeholder.com/12x12?text=No+Image'}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/12x12?text=No+Image';
+                          }}
+                        />
+                      </div>
                           <div className="font-medium text-gray-900">{product.name}</div>
                           <div className="text-sm text-gray-500">{product.category}</div>
                         </td>
