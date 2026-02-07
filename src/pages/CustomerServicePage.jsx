@@ -22,9 +22,9 @@ function CustomerServicePage({ API_BASE }) {
     const currentTab = location.pathname.split('/').pop();
     const activeTabInfo = tabs.find(t => t.id === currentTab);
     if (activeTabInfo) {
-      document.title = `${activeTabInfo.label} - SamriddhiShop`;
+      document.title = `${activeTabInfo.label} - YashAgency`;
     }
-    return () => { document.title = 'SamriddhiShop'; };
+    return () => { document.title = 'YashAgency'; };
   }, [location]);
 
   const faqs = [
@@ -125,9 +125,9 @@ function CustomerServicePage({ API_BASE }) {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Get in Touch</h2>
                     <div className="space-y-4">
-                      <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl"><div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span className="text-xl">📧</span></div><div><p className="font-semibold text-green-800">Email Support</p><p className="text-green-600">support@samriddhishop.in</p></div></div>
-                      <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl"><div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><span className="text-xl">📱</span></div><div><p className="font-semibold text-blue-800">Phone Support</p><p className="text-blue-600">+91 9580889615</p></div></div>
-                      <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl"><div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"><span className="text-xl">🕒</span></div><div><p className="font-semibold text-purple-800">Business Hours</p><p className="text-purple-600">Mon-Sat: 9AM-6PM</p></div></div>
+                      <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl"><div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span className="text-xl">📧</span></div><div><p className="font-semibold text-green-800">Email Support</p><p className="text-green-600">yashagency25@gmail.com</p></div></div>
+                      <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl"><div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><span className="text-xl">📱</span></div><div><p className="font-semibold text-blue-800">Phone Support</p><p className="text-blue-600">+91 7249122916</p></div></div>
+                      <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl"><div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"><span className="text-xl">🕒</span></div><div><p className="font-semibold text-purple-800">Business Hours</p><p className="text-purple-600">Mon-Sat: 10:00 AM - 8:00 PM</p></div></div>
                     </div>
                   </div>
                 </div>
