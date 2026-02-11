@@ -14,6 +14,7 @@ function SalesmanDashboard({ user, API_BASE }) {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -50,6 +51,14 @@ function SalesmanDashboard({ user, API_BASE }) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (selectedCustomer && selectedCustomer.addresses && selectedCustomer.addresses.length > 0) {
+      setSelectedAddress(selectedCustomer.addresses[selectedCustomer.addresses.length - 1]);
+    } else {
+      setSelectedAddress(null);
+    }
+  }, [selectedCustomer]);
 
   const searchCustomers = async (query) => {
     setCustomerSearch(query);
@@ -113,7 +122,8 @@ function SalesmanDashboard({ user, API_BASE }) {
           productId: item.productId,
           quantity: Number(item.quantity),
           finalPrice: Number(item.finalPrice)
-        }))
+        })),
+        shippingAddress: selectedAddress
       };
 
       const response = await secureRequest(`${API_BASE}/api/salesman/orders`, {
@@ -217,6 +227,14 @@ function SalesmanDashboard({ user, API_BASE }) {
                     <div><span className="text-gray-500">Name:</span> <span className="font-medium">{selectedCustomer.name}</span></div>
                     <div><span className="text-gray-500">Phone:</span> <span className="font-medium">{selectedCustomer.phone}</span></div>
                     <div><span className="text-gray-500">Email:</span> <span className="font-medium">{selectedCustomer.email}</span></div>
+                    {selectedAddress && (
+                      <div className="col-span-2 mt-2 pt-2 border-t">
+                        <span className="text-gray-500 block mb-1">Shipping Address:</span>
+                        <div className="font-medium text-sm bg-gray-50 p-2 rounded border">
+                          {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.zipCode}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>

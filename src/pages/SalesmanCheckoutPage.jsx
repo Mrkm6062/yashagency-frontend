@@ -22,7 +22,7 @@ function SalesmanCheckoutPage({ API_BASE }) {
     setCustomerPhone(location.state.customerPhone || (cust ? cust.phone : ''));
 
     if (cust && cust.addresses && cust.addresses.length > 0) {
-      // Automatically select the most recent address
+      // Automatically select the most recent addresss
       setSelectedAddress(cust.addresses[cust.addresses.length - 1]);
     }
   }, [location, navigate]);
@@ -47,6 +47,7 @@ function SalesmanCheckoutPage({ API_BASE }) {
       const payload = {
         customerPhone: customer ? customer.phone : customerPhone,
         items: cart.map(item => ({
+
           productId: item.productId,
           quantity: Number(item.quantity),
           finalPrice: Number(item.finalPrice)
@@ -79,6 +80,7 @@ function SalesmanCheckoutPage({ API_BASE }) {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-6">
           <button onClick={() => navigate('/salesman')} className="mr-4 text-gray-600 hover:text-gray-900">← Back</button>
@@ -95,6 +97,7 @@ function SalesmanCheckoutPage({ API_BASE }) {
               {selectedAddress && (
                 <div className="col-span-2 mt-2 pt-2 border-t">
                   <span className="text-gray-500 block mb-1">Shipping Address:</span>
+
                   <div className="font-medium text-sm bg-gray-50 p-2 rounded border">
                     {selectedAddress.street}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.zipCode}
                   </div>
