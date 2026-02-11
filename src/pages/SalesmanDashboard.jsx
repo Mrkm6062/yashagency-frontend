@@ -123,7 +123,11 @@ function SalesmanDashboard({ user, API_BASE }) {
           quantity: Number(item.quantity),
           finalPrice: Number(item.finalPrice)
         })),
-        shippingAddress: selectedAddress
+        shippingAddress: selectedAddress ? {
+          ...selectedAddress,
+          name: selectedCustomer.name, // Force customer name
+          mobileNumber: selectedCustomer.phone // Force customer phone
+        } : null
       };
 
       const response = await secureRequest(`${API_BASE}/api/salesman/orders`, {
