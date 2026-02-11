@@ -11,8 +11,6 @@ function SalesmanDashboard({ user, API_BASE }) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('new');
   const [orderHistory, setOrderHistory] = useState([]);
-  const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '', address: '', pincode: '' });
   const [showCheckout, setShowCheckout] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
   const [fullScreenImage, setFullScreenImage] = useState(null);
@@ -66,32 +64,6 @@ function SalesmanDashboard({ user, API_BASE }) {
         setSearchResults(data);
       }
     } catch (error) { console.error(error); }
-  };
-
-  const handleCreateCustomer = async () => {
-    if (!newCustomer.name || !newCustomer.email || !newCustomer.phone) {
-      alert('All fields are required');
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await secureRequest(`${API_BASE}/api/salesman/customers`, {
-        method: 'POST',
-        body: JSON.stringify(newCustomer)
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Customer created successfully');
-        setSelectedCustomer(data.customer);
-        setCustomerSearch(data.customer.name);
-        setSearchResults([]);
-        setShowCreateCustomerModal(false);
-        setNewCustomer({ name: '', email: '', phone: '', address: '', pincode: '' });
-      } else {
-        alert(data.error || 'Failed to create customer');
-      }
-    } catch (error) { alert('Failed to create customer'); }
-    setLoading(false);
   };
 
   const addToCart = (product) => {
@@ -422,13 +394,7 @@ function SalesmanDashboard({ user, API_BASE }) {
               <h2 className="text-lg font-bold mb-4">New Order</h2>
               
               <div className="mb-6">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-medium text-gray-700">Select Customer</label>
-                  <button 
-                    onClick={() => setShowCreateCustomerModal(true)}
-                    className="text-xs text-blue-600 hover:underline font-medium"
-                  >+ New Customer</button>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Customer</label>
                 <input
                   type="text"
                   placeholder="Search Name, Email or Phone"
@@ -583,40 +549,6 @@ function SalesmanDashboard({ user, API_BASE }) {
             </div>
           </div>
           </>
-        )}
-
-        {showCreateCustomerModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-              <h3 className="text-lg font-bold mb-4">Create New Customer</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Name</label>
-                  <input type="text" value={newCustomer.name} onChange={e => setNewCustomer({...newCustomer, name: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="Full Name" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
-                  <input type="email" value={newCustomer.email} onChange={e => setNewCustomer({...newCustomer, email: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="email@example.com" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone</label>
-                  <input type="tel" value={newCustomer.phone} onChange={e => setNewCustomer({...newCustomer, phone: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="10-digit mobile number" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Address</label>
-                  <input type="text" value={newCustomer.address} onChange={e => setNewCustomer({...newCustomer, address: e.target.value})} className="w-full px-3 py-2 border rounded" placeholder="Street Address" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Pincode</label>
-                  <input type="text" maxLength="6" value={newCustomer.pincode} onChange={e => setNewCustomer({...newCustomer, pincode: e.target.value.replace(/\D/g, '')})} className="w-full px-3 py-2 border rounded" placeholder="6-digit Pincode" />
-                </div>
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <button onClick={() => setShowCreateCustomerModal(false)} className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancel</button>
-                <button onClick={handleCreateCustomer} disabled={loading} className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50">{loading ? 'Creating...' : 'Create'}</button>
-              </div>
-            </div>
-          </div>
         )}
       </div>
 
