@@ -335,7 +335,7 @@ const handlePrintKOT = (order) => {
 
   // Handle missing shippingAddress (e.g. salesman orders)
   const address = order.shippingAddress || {};
-  const customerName = address.name || order.userId?.name || 'Customer';
+  const customerName = order.userId?.name || 'Customer';
   const customerPhone = address.mobileNumber || order.userId?.phone || 'N/A';
 
   const orderId = order.orderNumber || order._id.slice(-8);
