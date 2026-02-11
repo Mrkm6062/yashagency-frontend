@@ -340,7 +340,7 @@ const handlePrintKOT = (order) => {
 
   const orderId = order.orderNumber || order._id.slice(-8);
   const fullAddress = address.street 
-      ? `${address.name}, ${address.street}, ${address.city || ''}, ${address.state || ''} - ${address.zipCode || ''}, Mob: ${customerPhone}`
+      ? `${customerName || address.name}, ${address.street}, ${address.city || ''}, ${address.state || ''} - ${address.zipCode || ''}, Mob: ${customerPhone}`
     : 'Counter Sale / Address Not Provided';
 
   const numberToWords = (num) => {
