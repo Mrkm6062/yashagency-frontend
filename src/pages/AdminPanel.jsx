@@ -31,7 +31,7 @@ function AdminPanel({ user, API_BASE }) {
   ]);
   const [editingZone, setEditingZone] = useState(null);
   const [analytics, setAnalytics] = useState({});
-  const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all' });
+  const [orderFilters, setOrderFilters] = useState({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all', paymentStatus: 'all' });
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [deliveryAreas, setDeliveryAreas] = useState({ states: [], districts: [], pincodes: [] });
   const [courierForm, setCourierForm] = useState({ courierName: '', manualCourierName: '', trackingNumber: '', estimatedDelivery: '', notes: '' });
@@ -55,6 +55,8 @@ function AdminPanel({ user, API_BASE }) {
   const [showSalesmanPassword, setShowSalesmanPassword] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [deliveryOrder, setDeliveryOrder] = useState(null);
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [bulkStatus, setBulkStatus] = useState('');
   const location = useLocation();
 
   useEffect(() => {
@@ -175,6 +177,14 @@ function AdminPanel({ user, API_BASE }) {
       });
     }
 
+    if (orderFilters.paymentStatus !== 'all') {
+      if (orderFilters.paymentStatus === 'cod_pending') {
+        result = result.filter(order => order.paymentMethod === 'cod' && order.paymentStatus === 'pending');
+      } else if (orderFilters.paymentStatus === 'cod_received') {
+        result = result.filter(order => order.paymentMethod === 'cod' && order.paymentStatus === 'received');
+      }
+    }
+
     if (orderFilters.startDate) {
       const start = new Date(orderFilters.startDate);
       start.setHours(0, 0, 0, 0);
@@ -238,6 +248,73 @@ function AdminPanel({ user, API_BASE }) {
         alert(data.error || 'Failed to send invoice email');
       }
     } catch (error) { alert('Failed to send invoice email'); }
+  };
+
+  const toggleOrderSelection = (orderId) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.length === orders.length) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(orders.map(o => o._id));
+    }
+  };
+
+  const handleBulkPaymentUpdate = async () => {
+    if (selectedOrders.length === 0) return;
+    if (!window.confirm(`Mark ${selectedOrders.length} orders as "Payment Received"?`)) return;
+    
+    try {
+      const response = await secureRequest(`${API_BASE}/api/admin/orders/bulk-payment-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ orderIds: selectedOrders, paymentStatus: 'received' })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        setSelectedOrders([]);
+        fetchData();
+      } else {
+        alert('Failed to update orders');
+      }
+    } catch (error) {
+      alert('Failed to update orders');
+    }
+  };
+
+  const handleBulkStatusUpdate = async () => {
+    if (selectedOrders.length === 0) return;
+    if (!bulkStatus) {
+      alert('Please select a status');
+      return;
+    }
+    if (!window.confirm(`Mark ${selectedOrders.length} orders as "${bulkStatus}"?`)) return;
+    
+    try {
+      const response = await secureRequest(`${API_BASE}/api/admin/orders/bulk-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ orderIds: selectedOrders, status: bulkStatus })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(data.message);
+        setSelectedOrders([]);
+        setBulkStatus('');
+        fetchData();
+      } else {
+        alert('Failed to update orders');
+      }
+    } catch (error) {
+      alert('Failed to update orders');
+    }
   };
 
   const saveCoupon = async () => {
@@ -1167,9 +1244,21 @@ const handlePrintKOT = (order) => {
                         <option value="refunded">Refunded</option>
                       </select>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Payment Status</label>
+                      <select
+                        value={orderFilters.paymentStatus}
+                        onChange={(e) => setOrderFilters({...orderFilters, paymentStatus: e.target.value})}
+                        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">All</option>
+                        <option value="cod_pending">COD: Pending</option>
+                        <option value="cod_received">COD: Received</option>
+                      </select>
+                    </div>
                     <div className="flex flex-col sm:flex-row gap-2 items-end">
                     <button
-                      onClick={() => setOrderFilters({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all' })}
+                      onClick={() => setOrderFilters({ startDate: '', endDate: '', status: 'all', searchTerm: '', orderSource: 'all', paymentStatus: 'all' })}
                       className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 w-full sm:w-auto"
                     >
                       Clear Filters
@@ -1183,11 +1272,65 @@ const handlePrintKOT = (order) => {
                   </div>
                   </div>
                 </div>
+
+                {/* Bulk Actions */}
+                {orders.length > 0 && (
+                  <div className="bg-white p-3 rounded-lg border flex justify-between items-center shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrders.length === orders.length && orders.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        {selectedOrders.length > 0 ? `${selectedOrders.length} Selected` : 'Select All'}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {selectedOrders.length > 0 && (
+                        <>
+                          <select
+                            value={bulkStatus}
+                            onChange={(e) => setBulkStatus(e.target.value)}
+                            className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Change Status To...</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                          <button
+                            onClick={handleBulkStatusUpdate}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={handleBulkPaymentUpdate}
+                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition-colors ml-2"
+                          >
+                            Mark Payment Received
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
                 
                 {/* Orders List */}
                 <div className="space-y-4">
                   {orders.map(order => (
-                    <div key={order._id} className="border rounded-lg p-4 relative pt-9">
+                    <div key={order._id} className={`border rounded-lg p-4 relative pt-9 transition-colors ${selectedOrders.includes(order._id) ? 'bg-blue-50 border-blue-200' : ''}`}>
+                      <div className="absolute top-3 right-3 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(order._id)}
+                          onChange={() => toggleOrderSelection(order._id)}
+                          className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </div>
                       <div className="absolute top-0 left-0">
                         {order.orderSource === 'salesman' ? (
                           <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-tl-lg rounded-br-lg shadow-sm">
