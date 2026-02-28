@@ -4,6 +4,8 @@ import { getToken } from '../storage.js';
 
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
+const PREDEFINED_CATEGORIES = ["Cleaning", "House Hold", "Decoration", "Utility", "Disposable"];
+
 function ProductForm({ showProductForm, setShowProductForm, editingProduct, setEditingProduct, fetchData, setAdminNotification }) {
   const [productForm, setProductForm] = useState({
     name: '', description: '', price: '', minSellPrice: '', originalPrice: '', discountPercentage: '', imageUrl: '', category: '', soldBy: '', stock: '', variants: [],
@@ -192,7 +194,10 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input type="text" placeholder="Product Name" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="text" placeholder="Category" value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" list="category-options" placeholder="Category" value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value })} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <datalist id="category-options">
+                {PREDEFINED_CATEGORIES.map((cat) => <option key={cat} value={cat} />)}
+              </datalist>
               <input type="text" placeholder="Sold By (Wholesaler Name)" value={productForm.soldBy} onChange={(e) => setProductForm({ ...productForm, soldBy: e.target.value })} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="number" placeholder="Original Price (₹)" value={productForm.originalPrice} onChange={(e) => { const op = parseFloat(e.target.value) || 0; const d = parseFloat(productForm.discountPercentage) || 0; const sp = Math.round(op - (op * d / 100)); setProductForm({ ...productForm, originalPrice: e.target.value, price: sp > 0 ? sp.toString() : '' }); }} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="number" placeholder="Discount %" value={productForm.discountPercentage} onChange={(e) => { const d = parseFloat(e.target.value) || 0; const op = parseFloat(productForm.originalPrice) || 0; const sp = Math.round(op - (op * d / 100)); setProductForm({ ...productForm, discountPercentage: e.target.value, price: sp > 0 ? sp.toString() : '' }); }} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" min="0" max="100" />
