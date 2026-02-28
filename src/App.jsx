@@ -11,9 +11,9 @@ import LoadingSpinner from './LoadingSpinner.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
 import Header from './Header.jsx';
 import BottomNavBar from './BottomNavBar.jsx';
+import Footer from './Footer.jsx';
 
 // Lazy load all page components AND heavier layout components
-const Footer = lazy(() => import('./Footer.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));
 const CartPage = lazy(() => import('./pages/CartPage.jsx'));
@@ -642,9 +642,7 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
       <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />
       
       {!hideFooter && !isAdminPage && !isSalesmanPage && (
-        <Suspense fallback={<div className="bg-gray-800 h-64 mt-12 w-full"></div>}>
-          <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />
-        </Suspense>
+        <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />
       )}
     </div>
   );

@@ -26,7 +26,8 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           src={mainImageUrl}
           alt={product.name}
           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-          loading="lazy"
+          loading="eager"
+          fetchPriority="high"
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
             setImageLoaded(true);

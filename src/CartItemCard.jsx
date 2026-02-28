@@ -35,7 +35,8 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
             src={images[0]} 
             alt={item.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-            loading="lazy"
+            loading="eager"
+            fetchPriority="high"
             onLoad={() => setImageLoaded(true)}
             style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />
