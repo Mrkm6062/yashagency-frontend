@@ -111,7 +111,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-2">
-        {cart.map(item => {
+        {cart.map((item, index) => {
           const hasDiscount = item.originalPrice && item.discountPercentage && item.discountPercentage > 0;
           return (
             <CartItemCard 
@@ -120,6 +120,7 @@ function CartPage({ cart, removeFromCart, updateCartQuantity, addToCart, user, s
               hasDiscount={hasDiscount}
               updateCartQuantity={updateCartQuantity}
               removeFromCart={removeFromCart}
+              priority={index < 6}
             />
           );
         })}

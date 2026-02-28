@@ -398,8 +398,8 @@ const formattedCategory =
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        {filteredProducts.slice(0, displayCount).map(product => (
-          <ProductCard key={product._id} product={product} addToCart={openQuantityModal} />
+        {filteredProducts.slice(0, displayCount).map((product, index) => (
+          <ProductCard key={product._id} product={product} addToCart={openQuantityModal} priority={index < 6} />
         ))}
       </div>
       {displayCount < filteredProducts.length && (

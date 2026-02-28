@@ -184,8 +184,8 @@ function HomePage({ products, loading, addToCart }) {
                 </Link>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {categoryProducts.slice(0, 4).map((product) => (
-                  <ProductCard key={product._id} product={product} addToCart={addToCart} />
+                {categoryProducts.slice(0, 4).map((product, index) => (
+                  <ProductCard key={product._id} product={product} addToCart={addToCart} priority={index < 4} />
                 ))}
               </div>
             </section>

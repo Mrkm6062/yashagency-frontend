@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart }) {
+function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart, priority = false }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const images = [item.imageUrl, ...(item.images || [])].filter(Boolean);
   
@@ -35,8 +35,8 @@ function CartItemCard({ item, hasDiscount, updateCartQuantity, removeFromCart })
             src={images[0]} 
             alt={item.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-            loading="eager"
-            fetchPriority="high"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             onLoad={() => setImageLoaded(true)}
             style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
+const ProductCard = React.memo(function ProductCard({ product, addToCart, priority = false }) {
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
   const [imageLoaded, setImageLoaded] = useState(false);
   const mainImageUrl = product.imageUrl;
@@ -26,8 +26,8 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart }) {
           src={mainImageUrl}
           alt={product.name}
           className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-          loading="eager"
-          fetchPriority="high"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           onLoad={() => setImageLoaded(true)}
           onError={(e) => {
             setImageLoaded(true);

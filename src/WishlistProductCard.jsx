@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from './i18n.js';
 
-function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotification }) {
+function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotification, priority = false }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
   const hasDiscount = product.originalPrice && product.discountPercentage && product.discountPercentage > 0;
@@ -17,8 +17,8 @@ function WishlistProductCard({ product, addToCart, removeFromWishlist, setNotifi
             src={images[0]} 
             alt={product.name}
             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
-            loading="eager"
-            fetchPriority="high"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             onLoad={() => setImageLoaded(true)}
             style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
           />

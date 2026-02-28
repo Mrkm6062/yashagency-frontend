@@ -85,8 +85,8 @@ function WishlistPage({ user, wishlistProducts, fetchWishlist, addToCart, setNot
         <>
           <p className="text-gray-600 mb-6">{wishlistProducts.length} item(s) in your wishlist</p>
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {wishlistProducts.map(product => (
-              <WishlistProductCard key={product._id} product={product} addToCart={openQuantityModal} removeFromWishlist={removeFromWishlist} setNotification={setNotification} />
+            {wishlistProducts.map((product, index) => (
+              <WishlistProductCard key={product._id} product={product} addToCart={openQuantityModal} removeFromWishlist={removeFromWishlist} setNotification={setNotification} priority={index < 4} />
             ))}
           </div>
         </>
