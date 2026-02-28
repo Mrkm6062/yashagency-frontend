@@ -9,7 +9,7 @@ import ProductForm from './ProductForm.jsx';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png";
+const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/YashAgency.webp";
 
 function AdminPanel({ user, API_BASE }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);

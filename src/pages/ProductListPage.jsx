@@ -216,7 +216,7 @@ const formattedCategory =
               <img 
                 src="https://storage.googleapis.com/samriddhi-blog-images-123/YashAgency.webp" 
                 alt="All Categories" 
-                className="w-8 h-8 md:w-14 md:h-14 object-contain"
+                className="w-10 h-10 md:w-14 md:h-14 object-contain"
               />
             </div>
             <p className={`text-[10px] font-medium transition-colors ${!filters.category ? 'text-blue-600' : 'text-gray-700 group-hover:text-blue-500'}`}>
