@@ -9,10 +9,10 @@ import { secureRequest } from "./secureRequest.js";
 // Import only the most critical, lightweight components directly
 import LoadingSpinner from './LoadingSpinner.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
+import Footer from './Footer.jsx';
 
 // Lazy load all page components AND heavier layout components
 const Header = lazy(() => import('./Header.jsx'));
-const Footer = lazy(() => import('./Footer.jsx'));
 const BottomNavBar = lazy(() => import('./BottomNavBar.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));

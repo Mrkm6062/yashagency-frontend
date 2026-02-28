@@ -1,30 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaInstagram, FaFacebook, FaEnvelope, FaPhone } from 'react-icons/fa';
 // import { getOptimizedImageUrl } from './imageUtils.js';
 
 const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
-  const [settings, setSettings] = useState({
-    phone: '',
-    email: '',
-    instagram: '',
-    facebook: ''
-  });
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/settings`);
-        if (response.ok) {
-          setSettings(await response.json());
-        }
-      } catch (error) {
-        console.error("Failed to fetch settings for footer:", error);
-      }
-    };
-    fetchSettings();
-  }, []);
-
   return (
     <footer className="bg-gray-800 text-white py-8 mt-12 lg:pb-8 pb-24">
       <div className="w-full mx-0 px-1 px-4">
