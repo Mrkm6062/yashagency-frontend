@@ -214,7 +214,7 @@ const formattedCategory =
               !filters.category ? 'border-blue-600 ring-2 ring-blue-200' : 'border-gray-300'
             }`}>
               <img 
-                src="https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png" 
+                src="https://storage.googleapis.com/samriddhi-blog-images-123/YashAgency.webp" 
                 alt="All Categories" 
                 className="w-8 h-8 md:w-14 md:h-14 object-contain"
               />
