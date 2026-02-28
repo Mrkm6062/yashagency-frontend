@@ -9,11 +9,11 @@ import { secureRequest } from "./secureRequest.js";
 // Import only the most critical, lightweight components directly
 import LoadingSpinner from './LoadingSpinner.jsx';
 import ScrollToTop from './ScrollToTop.jsx';
-import Footer from './Footer.jsx';
 import Header from './Header.jsx';
 import BottomNavBar from './BottomNavBar.jsx';
 
 // Lazy load all page components AND heavier layout components
+const Footer = lazy(() => import('./Footer.jsx'));
 const ProductListPage = lazy(() => import('./pages/ProductListPage.jsx'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage.jsx'));
 const CartPage = lazy(() => import('./pages/CartPage.jsx'));
@@ -37,7 +37,7 @@ const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3002').repla
 
 
 // --- Logo Configuration ---
-const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/file_00000000ede871fa9a35a7999da01375.png"; // <-- CHANGE YOUR LOGO URL HERE
+const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/YashAgency.webp"; // <-- CHANGE YOUR LOGO URL HERE
 
 // Main App Component
 function App() {
@@ -639,10 +639,13 @@ const ConditionalLayout = ({ children, user, logout, cartCount, wishlistCount, n
         </Link>
       )}
 
-      <Suspense fallback={null}>
-        <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />
-        {!hideFooter && !isAdminPage && !isSalesmanPage && <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />}
-      </Suspense>
+      <BottomNavBar user={user} logout={logout} cartCount={cartCount} wishlistCount={wishlistCount} location={location} />
+      
+      {!hideFooter && !isAdminPage && !isSalesmanPage && (
+        <Suspense fallback={<div className="bg-gray-800 h-64 mt-12 w-full"></div>}>
+          <Footer API_BASE={API_BASE} LOGO_URL={LOGO_URL} />
+        </Suspense>
+      )}
     </div>
   );
 };
