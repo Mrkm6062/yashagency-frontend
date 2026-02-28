@@ -5,8 +5,6 @@ import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { FaFilter } from 'react-icons/fa';
 
-const PREDEFINED_CATEGORIES = ["Cleaning", "House Hold", "Decoration", "Utility", "Disposable"];
-
 function ProductListPage({ products, loading, addToCart }) {
   const navigate = useNavigate();
   const { categoryName } = useParams(); // Get category from URL
@@ -132,12 +130,7 @@ function ProductListPage({ products, loading, addToCart }) {
       if (observer.current) observer.current.disconnect();
     };
   }, [loading, filteredProducts, displayCount]); // Re-run when products or displayCount changes
-
-  const categories = [...new Set([...PREDEFINED_CATEGORIES, ...products.map(p => p.category)])].filter(Boolean);
-  const categoryCounts = products.reduce((acc, p) => {
-    acc[p.category] = (acc[p.category] || 0) + 1;
-    return acc;
-  }, {});
+  const categories = [...new Set(products.map(p => p.category))];
 
   // Effect to sync the category from the URL to the filter state for UI consistency
   useEffect(() => {
@@ -258,31 +251,16 @@ const formattedCategory =
                   onError={(e) => { e.currentTarget.src = `https://via.placeholder.com/80x80.png/E2E8F0/4A5568?text=${encodeURIComponent(category.substring(0,1))}`; }}
                 />
               </div>
-              <p className={`text-[10px] font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>
-                {category} ({categoryCounts[category] || 0})
-              </p>
+              <p className={`text-[10px] font-medium transition-colors ${filters.category === category ? activeTextClasses : `text-gray-700 ${hoverTextClasses}`}`}>{category}</p>
             </div>
           )})}
         </div>
       </div>
       
-      <div className="hidden md:block bg-white p-6 rounded-lg shadow mb-8">
+      <div className="hidden bg-white p-6 rounded-lg shadow mb-8">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
         <div className="w-full flex flex-wrap items-end gap-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-grow">
-            <select
-              value={filters.category}
-              onChange={(e) => {
-                const newCategory = e.target.value;
-                navigate(newCategory ? `/products/${encodeURIComponent(newCategory)}` : '/products/allcategory');
-              }}
-              className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Categories ({products.length})</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category} ({categoryCounts[category] || 0})</option>
-              ))}
-            </select>
             <select
             value={filters.sortBy}
             onChange={(e) => setFilters({...filters, sortBy: e.target.value})}
@@ -349,9 +327,9 @@ const formattedCategory =
                   }}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">All Categories ({products.length})</option>
+                  <option value="">All Categories</option>
                   {categories.map(category => (
-                    <option key={category} value={category}>{category} ({categoryCounts[category] || 0})</option>
+                    <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
                 <input
