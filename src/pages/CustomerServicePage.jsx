@@ -125,7 +125,7 @@ function CustomerServicePage({ API_BASE }) {
                   <div className="space-y-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Get in Touch</h2>
                     <div className="space-y-4">
-                      <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl"><div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span className="text-xl">📧</span></div><div><p className="font-semibold text-green-800">Email Support</p><p className="text-green-600">yashagency25@gmail.com</p></div></div>
+                      <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl"><div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span className="text-xl">📧</span></div><div><p className="font-semibold text-green-800">Email Support</p><p className="text-green-600">admin@yashagency.in</p></div></div>
                       <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl"><div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><span className="text-xl">📱</span></div><div><p className="font-semibold text-blue-800">Phone Support</p><p className="text-blue-600">+91 7249122916</p></div></div>
                       <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl"><div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center"><span className="text-xl">🕒</span></div><div><p className="font-semibold text-purple-800">Business Hours</p><p className="text-purple-600">Mon-Sat: 10:00 AM - 8:00 PM</p></div></div>
                     </div>
@@ -181,7 +181,7 @@ function CustomerServicePage({ API_BASE }) {
 
                   <h3 className="font-bold">6. Contact for Refund Queries</h3>
                   <p>If you have any questions regarding refunds, please contact us:</p>
-                  <p>📧 yashagency25@gmail.com</p>
+                  <p>📧 admin@yashagency.in</p>
                   <p>📞 +91 7249122916</p>
                 </div>
               } />
@@ -212,7 +212,7 @@ function CustomerServicePage({ API_BASE }) {
                   <h3 className="font-bold">7. Contact for Delivery Issues</h3>
                   <p>If your order has not arrived within the expected time, please contact us with your Order ID and registered mobile number for faster assistance:</p>
                   <ul>
-                    <li>📧 yashagency25@gmail.com</li>
+                    <li>📧 admin@yashagency.in</li>
                     <li>📞 +91 7249122916</li>
                   </ul>
 
@@ -272,7 +272,7 @@ function CustomerServicePage({ API_BASE }) {
                   <p>These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Pune, Maharashtra, India.</p>
 
                   <h3 className="font-bold">10. Contact Us</h3>
-                  <p>If you have any questions about these Terms, please contact us at: 📧 yashagency25@gmail.com</p>
+                  <p>If you have any questions about these Terms, please contact us at: 📧 admin@yashagency.in</p>
                 </div>
               } />
               <Route path="privacy" element={
@@ -331,7 +331,7 @@ function CustomerServicePage({ API_BASE }) {
                   <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with the updated date.</p>
 
                   <h2 className="font-bold">10. Contact Us</h2>
-                  <p>If you have questions or concerns about this Privacy Policy, please contact us at: 📧 yashagency25@gmail.com</p>
+                  <p>If you have questions or concerns about this Privacy Policy, please contact us at: 📧 admin@yashagency.in</p>
                 </div>
               } />
               <Route index element={<Navigate to="contact" replace />} />
