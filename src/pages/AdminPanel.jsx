@@ -436,7 +436,7 @@ const handlePrintKOT = (order) => {
   <table>
     <tr>
       <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="35"/></td>
-      <td class="right" colspan="2" style="border-left: none; font-size: 11px;">
+      <td class="right" colspan="2" style="border-left: none; font-size: 12px;">
         <strong>YASH AGENCY</strong><br/>
         SAI SIDDHI CHOWK DHANKADWADI PUNE 411046 Mob.No:- 7249635724/8329272380
       </td>
@@ -446,17 +446,17 @@ const handlePrintKOT = (order) => {
         <strong>Customer Name:</strong> ${customerName}<br/>
         <strong>Delivery Address:</strong> ${fullAddress}
       </td>
-      <td class="center" style="vertical-align: top; font-size: 11px;"> 
+      <td class="center" style="vertical-align: top; font-size: 12px;"> 
           <strong>ESTIMATE ORDER</strong>
       </td>
-      <td class="right" style="vertical-align: top; font-size: 11px;">
+      <td class="right" style="vertical-align: top; font-size: 12px;">
         <strong>Order No:</strong> ${orderId}<br/>
         <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}
       </td>
     </tr>
     <tr>
-      <td colspan="3" style="height: 4.5in; vertical-align: top; font-size: 11px;">
-        <table width="100%" style="font-size: 11px;">
+      <td colspan="3" style="height: 4.5in; vertical-align: top; font-size: 12px;">
+        <table width="100%" style="font-size: 12px;">
           <tr><th>No</th><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>
           ${order.items.map((item, i) => `
             <tr>
@@ -474,10 +474,10 @@ const handlePrintKOT = (order) => {
       <td colspan="2" class="center">
         <svg class="barcode"></svg>
       </td>
-      <td class="right" style="font-size: 11px;"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
+      <td class="right" style="font-size: 12px;"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
     </tr>
     <tr>
-      <td colspan="3" style="font-size: 11px;"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
+      <td colspan="3" style="font-size: 12px;"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
     </tr>
   </table>
   `;
