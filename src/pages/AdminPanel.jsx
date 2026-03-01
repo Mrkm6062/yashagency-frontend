@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { FaHourglassHalf, FaCog, FaTruck, FaCheckCircle, FaQuestionCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { secureRequest } from '../secureRequest.js';
 import { getToken } from '../storage.js';
@@ -11,7 +11,7 @@ import html2canvas from 'html2canvas';
 
 const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/YashAgency.webp";
 
-function AdminPanel({ user, API_BASE }) {
+function AdminPanel({ user, API_BASE, logout }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -58,6 +58,7 @@ function AdminPanel({ user, API_BASE }) {
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [bulkStatus, setBulkStatus] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
   const prevOrdersRef = useRef([]);
 
   useEffect(() => {
@@ -757,6 +758,28 @@ const handlePrintKOT = (order) => {
                 {sidebarOpen && <span className="ml-3">{tab.label}</span>}
               </Link>
             ))}
+            <div className="my-2 border-t"></div>
+            <Link to="/" className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-4 py-3 rounded-lg mb-2 font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900`} title={!sidebarOpen ? 'Home' : ''}>
+              <div className="relative group">
+                <span className="text-lg">🏠</span>
+                {!sidebarOpen && (<div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">Home</div>)}
+              </div>
+              {sidebarOpen && <span className="ml-3">Home</span>}
+            </Link>
+            <button onClick={() => window.location.reload()} className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-4 py-3 rounded-lg mb-2 font-medium transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900`} title={!sidebarOpen ? 'Refresh' : ''}>
+              <div className="relative group">
+                <span className="text-lg">🔄</span>
+                {!sidebarOpen && (<div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">Refresh</div>)}
+              </div>
+              {sidebarOpen && <span className="ml-3">Refresh</span>}
+            </button>
+            <button onClick={async () => { await logout(); navigate('/'); }} className={`w-full flex items-center ${sidebarOpen ? 'space-x-3' : 'justify-center'} px-4 py-3 rounded-lg mb-2 font-medium transition-all duration-200 text-red-600 hover:bg-red-50`} title={!sidebarOpen ? 'Logout' : ''}>
+              <div className="relative group">
+                <span className="text-lg">🚪</span>
+                {!sidebarOpen && (<div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">Logout</div>)}
+              </div>
+              {sidebarOpen && <span className="ml-3">Logout</span>}
+            </button>
           </nav>
         </div>
         
@@ -792,6 +815,19 @@ const handlePrintKOT = (order) => {
                       <span>{tab.label}</span>
                     </Link>
                   ))}
+                  <div className="my-2 border-t"></div>
+                  <Link to="/" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                    <span className="text-lg">🏠</span>
+                    <span>Home</span>
+                  </Link>
+                  <button onClick={() => window.location.reload()} className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg mb-1 font-medium text-gray-600 hover:bg-gray-100 transition-colors text-left">
+                    <span className="text-lg">🔄</span>
+                    <span>Refresh</span>
+                  </button>
+                  <button onClick={async () => { await logout(); navigate('/'); }} className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg mb-1 font-medium text-red-600 hover:bg-red-50 transition-colors text-left">
+                    <span className="text-lg">🚪</span>
+                    <span>Logout</span>
+                  </button>
                 </nav>
               </div>
             )}

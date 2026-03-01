@@ -530,7 +530,7 @@ const logout = async () => {
               <Route path="/checkout" element={<CheckoutPage user={user} clearCart={clearCart} API_BASE={API_BASE} />} />
               <Route path="/salesman" element={user?.role === 'salesman' || user?.role === 'admin' ? <SalesmanDashboard user={user} API_BASE={API_BASE} /> : <Navigate to="/" replace />} />
               <Route path="/salesman/checkout" element={user?.role === 'salesman' || user?.role === 'admin' ? <SalesmanCheckoutPage API_BASE={API_BASE} /> : <Navigate to="/" replace />} />
-              <Route path="/admin/*" element={<AdminPanel user={user} API_BASE={API_BASE} />} />
+              <Route path="/admin/*" element={<AdminPanel user={user} API_BASE={API_BASE} logout={logout} />} />
               <Route path="/support/*" element={<CustomerServicePage API_BASE={API_BASE} />} />
               <Route path="/blogs" element={<BlogPage />} />
               <Route path="/blogs/:slug" element={<BlogPostDetailPage />} />
