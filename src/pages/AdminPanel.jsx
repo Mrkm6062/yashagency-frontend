@@ -72,18 +72,14 @@ function AdminPanel({ user, API_BASE, logout }) {
   }, [allOrders]);
 
   useEffect(() => {
-    if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
-      return;
-    }
+    if (!user) return;
     document.title = 'Admin Panel - Yash Agency';
     fetchData();
     return () => { document.title = 'Yash Agency'; };
   }, [user]);
 
   useEffect(() => {
-    if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
-      return;
-    }
+    if (!user) return;
     const interval = setInterval(async () => {
       try {
         const [ordersRes, analyticsRes] = await Promise.all([
@@ -709,8 +705,8 @@ const handlePrintKOT = (order) => {
   const applyUserFilters = (filters) => {
     let filtered = [...users];
     if (filters.search) filtered = filtered.filter(user => user.name.toLowerCase().includes(filters.search.toLowerCase()) || user.email.toLowerCase().includes(filters.search.toLowerCase()));
-    if (filters.userType === 'admin') filtered = filtered.filter(user => user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com');
-    else if (filters.userType === 'user') filtered = filtered.filter(user => user.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com');
+    if (filters.userType === 'admin') filtered = filtered.filter(user => user.role === 'admin');
+    else if (filters.userType === 'user') filtered = filtered.filter(user => user.role !== 'admin');
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'email': return a.email.localeCompare(b.email);
@@ -724,8 +720,8 @@ const handlePrintKOT = (order) => {
     setFilteredUsers(filtered);
   };
 
-  if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
-    return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Admin access required</p></div>;
+  if (!user) {
+    return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Please login to access admin panel</p></div>;
   }
 
   return (
