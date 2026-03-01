@@ -72,7 +72,7 @@ function AdminPanel({ user, API_BASE, logout }) {
   }, [allOrders]);
 
   useEffect(() => {
-    if (user?.email !== 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') {
+    if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
       return;
     }
     document.title = 'Admin Panel - Yash Agency';
@@ -81,7 +81,7 @@ function AdminPanel({ user, API_BASE, logout }) {
   }, [user]);
 
   useEffect(() => {
-    if (user?.email !== 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') {
+    if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
       return;
     }
     const interval = setInterval(async () => {
@@ -709,8 +709,8 @@ const handlePrintKOT = (order) => {
   const applyUserFilters = (filters) => {
     let filtered = [...users];
     if (filters.search) filtered = filtered.filter(user => user.name.toLowerCase().includes(filters.search.toLowerCase()) || user.email.toLowerCase().includes(filters.search.toLowerCase()));
-    if (filters.userType === 'admin') filtered = filtered.filter(user => user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com');
-    else if (filters.userType === 'user') filtered = filtered.filter(user => user.email !== 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com');
+    if (filters.userType === 'admin') filtered = filtered.filter(user => user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com');
+    else if (filters.userType === 'user') filtered = filtered.filter(user => user.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com');
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'email': return a.email.localeCompare(b.email);
@@ -724,7 +724,7 @@ const handlePrintKOT = (order) => {
     setFilteredUsers(filtered);
   };
 
-  if (user?.email !== 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') {
+  if (user?.email !== 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') {
     return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Admin access required</p></div>;
   }
 
@@ -981,7 +981,7 @@ const handlePrintKOT = (order) => {
                         const csvContent = "data:text/csv;charset=utf-8," + 
                           "Name,Email,Phone,User Type,Join Date,Orders,Total Amount\n" +
                           filteredUsers.map(user => 
-                            `"${user.name}","${user.email}","${user.phone || 'N/A'}","${(user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
+                            `"${user.name}","${user.email}","${user.phone || 'N/A'}","${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
                           ).join("\n");
                         const encodedUri = encodeURI(csvContent);
                         const link = document.createElement("a");
@@ -1077,8 +1077,8 @@ const handlePrintKOT = (order) => {
                           <p className="text-sm text-gray-600 break-all">{user.email}</p>
                           <p className="text-sm text-gray-600">{user.phone || 'No phone'}</p>
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${(user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
-                          {(user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                          {(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}
                         </span>
                       </div>
                       <div className="mt-3 pt-3 border-t grid grid-cols-5 text-center gap-2">
@@ -1108,7 +1108,7 @@ const handlePrintKOT = (order) => {
                     <tbody className="divide-y divide-gray-200">
                       {filteredUsers.map(user => (
                         <tr key={user._id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${(user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{(user.email === 'yashagency25@gmail.com' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}</span></td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}</span></td>
                           <td className="px-4 py-3 text-sm text-gray-600 break-words"><div>{user.email}</div><div>{user.phone || 'Not provided'}</div></td>
                           <td className="px-4 py-3 text-sm text-gray-600"><div>Orders: <strong>{user.orderCount || 0}</strong></div><div>Spent: <strong>₹{(user.totalAmount || 0).toLocaleString()}</strong></div></td>
                           <td className="px-4 py-3 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString('en-IN')}</td>                          
