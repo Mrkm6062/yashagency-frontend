@@ -438,7 +438,7 @@ const handlePrintKOT = (order) => {
       <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="35"/></td>
       <td class="center" colspan="2" style="border-left: none; font-size: 8px;">
         <strong>YASH AGENCY</strong><br/>
-        Mob.No:- 7249635724/8329272380
+        SAI SIDDHI CHOWK DHANKADWADI PUNE 411046 Mob.No:- 7249635724/8329272380
       </td>
     </tr>
     <tr>
