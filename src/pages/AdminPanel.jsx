@@ -435,28 +435,27 @@ const handlePrintKOT = (order) => {
   const receiptHTML = `
   <table>
     <tr>
-      <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="60"/></td>
-      <td class="right" colspan="2" style="border-left: none;">
+      <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="35"/></td>
+      <td class="center" colspan="2" style="border-left: none; font-size: 8px;">
         <strong>YASH AGENCY</strong><br/>
-        SAI SIDDHI CHOWK, DHANKAWADI, PUNE - 411001<br/>
         Mob.No:- 7249635724/8329272380
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top;">
+      <td style="vertical-align: top; font-size: 8px;">
         <strong>Customer Name:</strong> ${customerName}<br/>
         <strong>Delivery Address:</strong> ${fullAddress}
       </td>
-      <td class="center" style="vertical-align: top;"> 
+      <td class="center" style="vertical-align: top; font-size: 8px;"> 
           <strong>ESTIMATE ORDER</strong>
       </td>
-      <td class="right" style="vertical-align: top;">
+      <td class="right" style="vertical-align: top; font-size: 8px;">
         <strong>Order No:</strong> ${orderId}<br/>
         <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN')}
       </td>
     </tr>
     <tr>
-      <td colspan="3" style="height: 4.5in; vertical-align: top;">
+      <td colspan="3" style="height: 4.5in; vertical-align: top; font-size: 8px;">
         <table width="100%">
           <tr><th>No</th><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>
           ${order.items.map((item, i) => `
@@ -475,7 +474,7 @@ const handlePrintKOT = (order) => {
       <td colspan="2" class="center">
         <svg class="barcode"></svg>
       </td>
-      <td class="right"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
+      <td class="right" style="font-size: 8px;"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
     </tr>
     <tr>
       <td colspan="3"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
@@ -491,7 +490,7 @@ const handlePrintKOT = (order) => {
         @page { size: A4 landscape; margin: 0.2in; }
         .receipt { page-break-inside: avoid; }
       }
-      body { font-family: Arial; font-size: 10px; }
+      body { font-family: Arial; font-size: 9px; }
       .page { display: flex; gap: 10px; }
       .receipt { width: 50%; }
       table { width: 100%; border-collapse: collapse; }
@@ -512,7 +511,7 @@ const handlePrintKOT = (order) => {
     function initBarcode() {
       document.querySelectorAll('.barcode').forEach(el => {
         try {
-          JsBarcode(el, "${orderId}", { format: "CODE128", height: 40, displayValue: true });
+          JsBarcode(el, "${orderId}", { format: "CODE128", height: 25, displayValue: false });
         } catch (e) { console.error(e); }
       });
     }
