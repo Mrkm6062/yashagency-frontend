@@ -456,7 +456,7 @@ const handlePrintKOT = (order) => {
     </tr>
     <tr>
       <td colspan="3" style="height: 4.5in; vertical-align: top; font-size: 8px;">
-        <table width="100%">
+        <table width="100%" style="font-size: 8px;">
           <tr><th>No</th><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>
           ${order.items.map((item, i) => `
             <tr>
@@ -477,7 +477,7 @@ const handlePrintKOT = (order) => {
       <td class="right" style="font-size: 8px;"><strong>Net Total:</strong> ₹${order.total.toFixed(2)}</td>
     </tr>
     <tr>
-      <td colspan="3"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
+      <td colspan="3" style="font-size: 8px;"><strong>Amount in Words:</strong> Rs. ${numberToWords(Math.floor(order.total))} Only</td>
     </tr>
   </table>
   `;
@@ -494,7 +494,7 @@ const handlePrintKOT = (order) => {
       .page { display: flex; gap: 10px; }
       .receipt { width: 50%; }
       table { width: 100%; border-collapse: collapse; }
-      td, th { border: 1px solid #000; padding: 6px; }
+      td, th { border: 1px solid #000; padding: 2px; }
       .no-border { border: none; }
       .right { text-align: right; }
       .center { text-align: center; }
