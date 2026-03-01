@@ -436,7 +436,7 @@ const handlePrintKOT = (order) => {
   <table>
     <tr>
       <td class="" style="border-right: none;"><img src="${LOGO_URL}" height="35"/></td>
-      <td class="center" colspan="2" style="border-left: none; font-size: 8px;">
+      <td class="right" colspan="2" style="border-left: none; font-size: 8px;">
         <strong>YASH AGENCY</strong><br/>
         SAI SIDDHI CHOWK DHANKADWADI PUNE 411046 Mob.No:- 7249635724/8329272380
       </td>
