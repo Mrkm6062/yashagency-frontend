@@ -237,6 +237,15 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
   const images = [product.imageUrl, ...(product.images || [])].filter(Boolean);
   const sizes = product.variants ? [...new Set(product.variants.map(v => v.size))] : [];
+  
+  // For preloading, we only care about the very first image that will be displayed.
+  const mainImageToPreload = images.length > 0 ? images[0] : null;
+  const preloadImageSrcSet = mainImageToPreload ? `
+    ${getOptimizedImageUrl(mainImageToPreload, { width: 400 })} 400w,
+    ${getOptimizedImageUrl(mainImageToPreload, { width: 800 })} 800w,
+    ${getOptimizedImageUrl(mainImageToPreload, { width: 1200 })} 1200w
+  ` : null;
+
   const colorsForSelectedSize = selectedSize
     ? product.variants
         .filter(v => v.size === selectedSize)
@@ -248,35 +257,31 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <Helmet>
-  {/* SEO Title */}
-  <title>{`${product.name} – Buy Online at Best Price | Yash Agency`}</title>
-
-</Helmet>
-<div className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
-  <h1>{product.name} – Buy Online at Best Price in India</h1>
-
-  <p>
-    {product.name} is one of the top-selling products in the {product.category} category on 
-    Yash Agency. This product features: {product.description}. Buy original and 
-    high-quality {product.name} online at the lowest price.
-  </p>
-
-  <p>
-    Best features of {product.name}: 
-    {product.highlights?.join(", ") || ""}.
-  </p>
-
-  <p>
-    Related Keywords: Buy {product.name} online, Best {product.category} products, 
-    Affordable {product.category} items, Latest {product.name} India, {product.name} price, 
-    {product.category} online shopping, Trending {product.category} items.
-  </p>
-
-  <p>
-    This product is available for delivery across India. Fast delivery, quality assurance, 
-    easy returns, and secure checkout available.
-  </p>
-</div>
+        <title>{`${product.name} – Buy Online at Best Price | Yash Agency`}</title>
+        {/* Preload the main product image with responsive sizes */}
+        {mainImageToPreload && (
+          <link rel="preload" as="image" 
+            href={getOptimizedImageUrl(mainImageToPreload, { width: 800 })} // Preload a common size
+            imageSrcSet={preloadImageSrcSet}
+            sizes="(max-width: 1023px) 90vw, 45vw"
+          />
+        )}
+      </Helmet>
+      <div className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
+        <h1>{product.name} – Buy Online at Best Price in India</h1>
+        <p>
+          {product.name} is one of the top-selling products in the {product.category} category on Yash Agency. This product features: {product.description}. Buy original and high-quality {product.name} online at the lowest price.
+        </p>
+        <p>
+          Best features of {product.name}: {product.highlights?.join(", ") || ""}.
+        </p>
+        <p>
+          Related Keywords: Buy {product.name} online, Best {product.category} products, Affordable {product.category} items, Latest {product.name} India, {product.name} price, {product.category} online shopping, Trending {product.category} items.
+        </p>
+        <p>
+          This product is available for delivery across India. Fast delivery, quality assurance, easy returns, and secure checkout available.
+        </p>
+      </div>
       <div className="max-w-7xl mx-auto px-4">
         <nav className="mb-8 hidden sm:block">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -296,7 +301,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               onMouseLeave={() => setIsZooming(false)}
               onMouseMove={handleMouseMove}
             >
-              {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full z-10" />}
+              {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
               <picture>
                 <source
                   srcSet={`
@@ -320,11 +325,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   loading="eager"
                   fetchPriority="high"
                   onLoad={() => setImageLoaded(true)}
-                  className="w-full h-full object-cover transition-transform duration-300"
+                  className="w-full h-full object-cover transition-transform duration-300 relative z-10"
                   style={{
                     transform: isZooming ? "scale(2)" : "scale(1)",
                     transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
-                    opacity: imageLoaded ? 1 : 0,
+                    opacity: 1,
                   }}
                 />
               </picture> 

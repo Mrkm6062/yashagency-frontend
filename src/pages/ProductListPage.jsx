@@ -26,16 +26,53 @@ function ProductListPage({ products, loading, addToCart }) {
   const [modalProduct, setModalProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
   
+  // Ref to track displayCount for cleanup function
+  const displayCountRef = useRef(displayCount);
+  // Ref to track if we are currently restoring state to prevent reset
+  const isRestoring = useRef(false);
+
+  useEffect(() => {
+    displayCountRef.current = displayCount;
+  }, [displayCount]);
+
+  // Save and Restore Scroll Position & Display Count
+  useEffect(() => {
+    const storageKey = `productListState_${location.pathname}${location.search}`;
+    
+    // Restore state on mount
+    const savedState = sessionStorage.getItem(storageKey);
+    if (savedState) {
+      const { count, scroll } = JSON.parse(savedState);
+      if (count) {
+        isRestoring.current = true;
+        setDisplayCount(count);
+      }
+      if (scroll) {
+        // Small timeout to ensure DOM is rendered before scrolling
+        setTimeout(() => window.scrollTo(0, scroll), 100);
+      }
+    }
+
+    // Save state on unmount
+    return () => {
+      const state = {
+        count: displayCountRef.current,
+        scroll: window.scrollY
+      };
+      sessionStorage.setItem(storageKey, JSON.stringify(state));
+    };
+  }, [location.pathname, location.search]);
+  
 
   useEffect(() => {
     applyFilters();
-    document.title = isHomePage ? 'Home - Yash Agency' : 'All Products - Yash Agency';
-    return () => {
-      document.title = 'Yash Agency';
-    };
   }, [products, filters, location.search, categoryName, isHomePage]); // Re-run applyFilters when these change
 
   useEffect(() => {
+    if (isRestoring.current) {
+      isRestoring.current = false;
+      return;
+    }
     // Reset displayCount whenever filters or search terms change
     setDisplayCount(12); 
   }, [filters, location.search, categoryName]);
@@ -193,6 +230,14 @@ const formattedCategory =
 
   return (
     <div>
+      <Helmet>
+        <title>{isHomePage ? 'Home - Yash Agency' : `${formattedCategory} - Yash Agency`}</title>
+        <meta name="description" content={`Discover the latest ${formattedCategory} on Yash Agency. We offer trending and high-quality products updated daily. Enjoy the best prices and fast delivery across India.`} />
+        {/* Preload the first few product images for faster LCP */}
+        {filteredProducts.slice(0, 6).map(product => (
+          product.imageUrl && <link key={product._id} rel="preload" as="image" href={product.imageUrl} />
+        ))}
+      </Helmet>
           <h1 className="text-xl font-bold mb-2">
             {formattedCategory}
           </h1>
