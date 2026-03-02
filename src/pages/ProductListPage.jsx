@@ -33,12 +33,11 @@ function ProductListPage({ products, loading, addToCart }) {
     displayCountRef.current = displayCount;
   }, [displayCount]);
 
-  // Restore Scroll Position & Display Count
+  // Save and Restore Scroll Position & Display Count
   useEffect(() => {
-    if (loading) return;
-
     const storageKey = `productListState_${location.pathname}${location.search}`;
     
+    // Restore state on mount
     const savedState = sessionStorage.getItem(storageKey);
     if (savedState) {
       const { count, scroll } = JSON.parse(savedState);
@@ -47,15 +46,12 @@ function ProductListPage({ products, loading, addToCart }) {
         setDisplayCount(count);
       }
       if (scroll) {
-        // Ensure DOM is rendered before scrolling
-        setTimeout(() => window.scrollTo(0, scroll), 300);
+        // Small timeout to ensure DOM is rendered before scrolling
+        setTimeout(() => window.scrollTo(0, scroll), 100);
       }
     }
-  }, [loading, location.pathname, location.search]);
 
-  // Save state on unmount
-  useEffect(() => {
-    const storageKey = `productListState_${location.pathname}${location.search}`;
+    // Save state on unmount
     return () => {
       const state = {
         count: displayCountRef.current,
