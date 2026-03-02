@@ -405,6 +405,7 @@ const formattedCategory =
         <button
           onClick={() => setShowFilters(true)}
           className="hover:bg-gray-50 text-gray-800 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 flex items-center space-x-2 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+          aria-label="Filter products"
         >
           <FaFilter />
         </button>
