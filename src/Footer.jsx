@@ -8,10 +8,10 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
       <div className="w-full mx-0 px-1 px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="pr-4">
-            {/* <picture>
+            <picture>
               <source srcSet={getOptimizedImageUrl(LOGO_URL, { format: 'webp', width: 400 })} type="image/webp" />
               <img src={LOGO_URL} alt="YashAgency" width="227" height="67" className="w-auto mb-4" />
-            </picture> */}
+            </picture>
             <p className="text-gray-300 text-sm">Your trusted online shopping destination for quality products at great prices.</p>
           </div>
           
@@ -20,7 +20,6 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
               <h4 className="font-semibold mb-3">Quick Links</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to="/" className="text-gray-300 hover:text-white">Home</Link></li>
-                {/* <li><Link to="/products" className="text-gray-300 hover:text-white">Products</Link></li> */}
                 <li><Link to="/orders" className="text-gray-300 hover:text-white">My Orders</Link></li>
                 <li><Link to="/wishlist" className="text-gray-300 hover:text-white">Wishlist</Link></li>
                 <li><Link to="/profile" className="text-gray-300 hover:text-white">Profile</Link></li>
@@ -41,7 +40,7 @@ const Footer = React.memo(function Footer({ API_BASE, LOGO_URL }) {
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
-          <p>&copy; 2026 Yash Agency. All rights reserved. | Built by Samriddhi Digital Solutions</p>
+          <p>&copy; 2026 Yash Agency. All rights reserved. | Built by www.galibrand.cloud</p>
         </div>
       </div>
     </footer>
