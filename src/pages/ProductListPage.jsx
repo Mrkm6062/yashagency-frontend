@@ -19,9 +19,7 @@ function ProductListPage({ products, loading, addToCart }) {
     sortBy: 'name'
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
-  const observer = useRef();
-  const loadingRef = useRef(null); // Element to observe for infinite scroll
+  const [displayCount, setDisplayCount] = useState(24); // Initial number of products to display
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
@@ -74,7 +72,7 @@ function ProductListPage({ products, loading, addToCart }) {
       return;
     }
     // Reset displayCount whenever filters or search terms change
-    setDisplayCount(12); 
+    setDisplayCount(24); 
   }, [filters, location.search, categoryName]);
 
   const applyFilters = () => {
@@ -137,36 +135,6 @@ function ProductListPage({ products, loading, addToCart }) {
     setFilteredProducts(filtered);
   };
 
-  // Effect for Intersection Observer (Infinite Scrolling)
-  useEffect(() => {
-    if (loading) return; // Don't observe if initial products are still loading
-
-    // Disconnect previous observer if it exists
-    if (observer.current) {
-      observer.current.disconnect();
-    }
-
-    // Create new observer
-    observer.current = new IntersectionObserver((entries) => {
-      // If the loading sentinel is visible AND there are more products to load
-      if (entries[0].isIntersecting && displayCount < filteredProducts.length) {
-        // Add a small delay to prevent rapid loading
-        const timer = setTimeout(() => {
-          setDisplayCount(prevCount => prevCount + 12); // Load 12 more products
-        }, 300); // Debounce loading
-      }
-    }, { threshold: 0.5 }); // Trigger when 50% of the element is visible
-
-    // Start observing the loadingRef element
-    if (loadingRef.current) {
-      observer.current.observe(loadingRef.current);
-    }
-
-    // Cleanup function
-    return () => {
-      if (observer.current) observer.current.disconnect();
-    };
-  }, [loading, filteredProducts, displayCount]); // Re-run when products or displayCount changes
   const categories = [...new Set(products.map(p => p.category))];
 
   // Effect to sync the category from the URL to the filter state for UI consistency
@@ -448,8 +416,13 @@ const formattedCategory =
         ))}
       </div>
       {displayCount < filteredProducts.length && (
-        <div ref={loadingRef} className="text-center mt-8">
-          <LoadingSpinner />
+        <div className="text-center mt-8 mb-12">
+          <button 
+            onClick={() => setDisplayCount(prev => prev + 24)}
+            className="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            Show More
+          </button>
         </div>
       )}
       
