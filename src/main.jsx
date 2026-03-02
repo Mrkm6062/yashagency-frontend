@@ -3,7 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App.jsx'; // This should now correctly find App.jsx in the same folder
-import './index.css';
+// Defer CSS loading to prevent render blocking
+import('./index.css');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

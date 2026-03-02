@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from "react-helmet-async";
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaArrowRight, FaShareAlt, FaArrowDown, FaCheckCircle } from 'react-icons/fa';
@@ -33,7 +33,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const [isZooming, setIsZooming] = useState(false);
   const [showSizeSelector, setShowSizeSelector] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
-  const [zoomPosition, setZoomPosition] = useState({ x: '50%', y: '50%' });
+  const imageRef = useRef(null);
   
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(5);
   useEffect(() => {
@@ -205,9 +205,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.pageX - left) / width) * 100;
-    const y = ((e.pageY - top) / height) * 100;
-    setZoomPosition({ x: `${x}%`, y: `${y}%` });
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    if (imageRef.current) {
+      imageRef.current.style.transformOrigin = `${x}% ${y}%`;
+    }
   };
 
   const checkPincode = async (pincodeToCheck) => {
@@ -325,10 +327,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   loading="eager"
                   fetchPriority="high"
                   onLoad={() => setImageLoaded(true)}
+                  ref={imageRef}
                   className="w-full h-full object-cover transition-transform duration-300 relative z-10"
                   style={{
                     transform: isZooming ? "scale(2)" : "scale(1)",
-                    transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
                     opacity: 1,
                   }}
                 />

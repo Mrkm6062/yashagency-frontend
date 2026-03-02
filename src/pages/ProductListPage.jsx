@@ -19,7 +19,7 @@ function ProductListPage({ products, loading, addToCart }) {
     sortBy: 'name'
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [displayCount, setDisplayCount] = useState(24); // Initial number of products to display
+  const [displayCount, setDisplayCount] = useState(12); // Initial number of products to display
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [modalProduct, setModalProduct] = useState(null);
   const [modalQuantity, setModalQuantity] = useState(1);
@@ -72,7 +72,7 @@ function ProductListPage({ products, loading, addToCart }) {
       return;
     }
     // Reset displayCount whenever filters or search terms change
-    setDisplayCount(24); 
+    setDisplayCount(12); 
   }, [filters, location.search, categoryName]);
 
   const applyFilters = () => {
@@ -418,7 +418,7 @@ const formattedCategory =
       {displayCount < filteredProducts.length && (
         <div className="text-center mt-8 mb-12">
           <button 
-            onClick={() => setDisplayCount(prev => prev + 24)}
+            onClick={() => setDisplayCount(prev => prev + 12)}
             className="bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-50 transition-colors shadow-sm"
           >
             Show More
