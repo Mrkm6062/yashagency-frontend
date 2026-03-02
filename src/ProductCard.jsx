@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = React.memo(function ProductCard({ product, addToCart, priority = false }) {
@@ -6,6 +6,10 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart, priori
   const [imageLoaded, setImageLoaded] = useState(false);
   const mainImageUrl = product.imageUrl;
   
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [mainImageUrl]);
+
   const handleAddToCart = (e) => {
     e.preventDefault(); // Prevent the Link from navigating
     e.stopPropagation(); // Stop event bubbling
@@ -35,7 +39,7 @@ const ProductCard = React.memo(function ProductCard({ product, addToCart, priori
           }}
           style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
         />
-        {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full" />}
+        {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full z-10" />}
         <Link to={`/product/${slug}`} state={{ productId: product._id }} className="absolute inset-0" aria-label={`View ${product.name}`} />
       </div>
       <Link to={`/product/${slug}`} state={{ productId: product._id }} className="block" aria-label={`View ${product.name}`}>

@@ -15,6 +15,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -42,6 +43,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
     return () => {
       document.title = 'Yash Agency';
     };
+  }, [product]);
+
+  useEffect(() => {
+    setSelectedImage(0);
+    setImageLoaded(false);
   }, [product]);
 
   useEffect(() => {
@@ -290,6 +296,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
               onMouseLeave={() => setIsZooming(false)}
               onMouseMove={handleMouseMove}
             >
+              {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse w-full h-full z-10" />}
               <picture>
                 <source
                   srcSet={`
@@ -310,11 +317,14 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   `}
                   sizes="(max-width: 1023px) 90vw, 45vw"
                   alt={product.name}
-                  loading="lazy"
+                  loading="eager"
+                  fetchPriority="high"
+                  onLoad={() => setImageLoaded(true)}
                   className="w-full h-full object-cover transition-transform duration-300"
                   style={{
                     transform: isZooming ? "scale(2)" : "scale(1)",
                     transformOrigin: `${zoomPosition.x} ${zoomPosition.y}`,
+                    opacity: imageLoaded ? 1 : 0,
                   }}
                 />
               </picture> 
@@ -353,7 +363,7 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
             </div>
             <div className="flex space-x-3">
               {images.map((img, index) => (
-                <button key={index} onClick={() => setSelectedImage(index)} className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-blue-500' : 'border-gray-200'}`}>
+                <button key={index} onClick={() => { setSelectedImage(index); setImageLoaded(false); }} className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${selectedImage === index ? 'border-blue-500' : 'border-gray-200'}`}>
                   <img src={img} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
