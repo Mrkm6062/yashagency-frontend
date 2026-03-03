@@ -1132,21 +1132,31 @@ const handlePrintKOT = (order) => {
                 {showCreateUserModal && (
                   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                      <h3 className="text-lg font-semibold mb-4">Create New User</h3>
-                      <div className="space-y-4">
-                        <input type="text" placeholder="Full Name" value={newUserForm.name} onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                        <input type="email" placeholder="Email Address" value={newUserForm.email} onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                      <h3 className="text-lg font-semibold mb-6">Create New User</h3>
+                      <div className="space-y-6">
                         <div className="relative">
-                          <input type={showUserPassword ? "text" : "password"} placeholder="Password" value={newUserForm.password} onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })} className="w-full px-3 py-2 border rounded pr-10" />
+                          <input type="text" id="newUserName" value={newUserForm.name} onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                          <label htmlFor="newUserName" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Full Name *</label>
+                        </div>
+                        <div className="relative">
+                          <input type="email" id="newUserEmail" value={newUserForm.email} onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                          <label htmlFor="newUserEmail" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Email Address (Optional)</label>
+                        </div>
+                        <div className="relative">
+                          <input type={showUserPassword ? "text" : "password"} id="newUserPassword" value={newUserForm.password} onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                          <label htmlFor="newUserPassword" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Password *</label>
                           <button
                             type="button"
                             onClick={() => setShowUserPassword(!showUserPassword)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            className="absolute right-3 top-4 text-gray-500 hover:text-gray-700"
                           >
                             {showUserPassword ? <FaEyeSlash /> : <FaEye />}
                           </button>
                         </div>
-                        <input type="tel" placeholder="Phone (Optional)" value={newUserForm.phone} onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <div className="relative">
+                          <input type="tel" id="newUserPhone" value={newUserForm.phone} onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                          <label htmlFor="newUserPhone" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Phone *</label>
+                        </div>
                         <div>
                           <label className="block text-sm font-medium mb-1">Role</label>
                           <select
@@ -1229,27 +1239,46 @@ const handlePrintKOT = (order) => {
                   {showSalesmanModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                       <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">Create Salesman Account</h3>
-                        <div className="space-y-4">
-                          <input type="text" placeholder="Full Name" value={salesmanForm.name} onChange={(e) => setSalesmanForm({ ...salesmanForm, name: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                          <input type="email" placeholder="Email Address" value={salesmanForm.email} onChange={(e) => setSalesmanForm({ ...salesmanForm, email: e.target.value })} className="w-full px-3 py-2 border rounded" />
+                        <h3 className="text-lg font-semibold mb-6">Create Salesman Account</h3>
+                        <div className="space-y-6">
                           <div className="relative">
-                            <input type={showSalesmanPassword ? "text" : "password"} placeholder="Password" value={salesmanForm.password} onChange={(e) => setSalesmanForm({ ...salesmanForm, password: e.target.value })} className="w-full px-3 py-2 border rounded pr-10" />
+                            <input type="text" id="salesmanName" value={salesmanForm.name} onChange={(e) => setSalesmanForm({ ...salesmanForm, name: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanName" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Full Name</label>
+                          </div>
+                          <div className="relative">
+                            <input type="email" id="salesmanEmail" value={salesmanForm.email} onChange={(e) => setSalesmanForm({ ...salesmanForm, email: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanEmail" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Email Address</label>
+                          </div>
+                          <div className="relative">
+                            <input type={showSalesmanPassword ? "text" : "password"} id="salesmanPassword" value={salesmanForm.password} onChange={(e) => setSalesmanForm({ ...salesmanForm, password: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanPassword" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Password</label>
                             <button
                               type="button"
                               onClick={() => setShowSalesmanPassword(!showSalesmanPassword)}
-                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                              className="absolute right-3 top-4 text-gray-500 hover:text-gray-700"
                             >
                               {showSalesmanPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                           </div>
-                          <input type="tel" placeholder="Phone" value={salesmanForm.phone} onChange={(e) => setSalesmanForm({ ...salesmanForm, phone: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                          <input type="text" placeholder="Address" value={salesmanForm.address} onChange={(e) => setSalesmanForm({ ...salesmanForm, address: e.target.value })} className="w-full px-3 py-2 border rounded" />
-                          <input type="text" placeholder="Pincode (6 digits)" maxLength="6" value={salesmanForm.pincode} onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '');
-                            setSalesmanForm({ ...salesmanForm, pincode: val });
-                          }} className="w-full px-3 py-2 border rounded" />
-                          <div><label className="block text-sm font-medium mb-1">Max Discount (%)</label><input type="number" placeholder="0" value={salesmanForm.maxDiscountPercent} onChange={(e) => setSalesmanForm({ ...salesmanForm, maxDiscountPercent: Number(e.target.value) })} className="w-full px-3 py-2 border rounded" /></div>
+                          <div className="relative">
+                            <input type="tel" id="salesmanPhone" value={salesmanForm.phone} onChange={(e) => setSalesmanForm({ ...salesmanForm, phone: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanPhone" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Phone</label>
+                          </div>
+                          <div className="relative">
+                            <input type="text" id="salesmanAddress" value={salesmanForm.address} onChange={(e) => setSalesmanForm({ ...salesmanForm, address: e.target.value })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanAddress" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Address</label>
+                          </div>
+                          <div className="relative">
+                            <input type="text" id="salesmanPincode" maxLength="6" value={salesmanForm.pincode} onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setSalesmanForm({ ...salesmanForm, pincode: val });
+                            }} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                            <label htmlFor="salesmanPincode" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Pincode (6 digits)</label>
+                          </div>
+                          <div className="relative">
+                            <input type="number" id="salesmanDiscount" placeholder=" " value={salesmanForm.maxDiscountPercent} onChange={(e) => setSalesmanForm({ ...salesmanForm, maxDiscountPercent: Number(e.target.value) })} className="block px-3 pt-4 pb-2 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer" />
+                            <label htmlFor="salesmanDiscount" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4 bg-white px-1">Max Discount (%)</label>
+                          </div>
                         </div>
                         <div className="flex space-x-3 mt-6">
                           <button onClick={() => setShowSalesmanModal(false)} className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600">Cancel</button>
