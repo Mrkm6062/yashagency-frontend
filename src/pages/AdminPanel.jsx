@@ -568,8 +568,8 @@ const handlePrintKOT = (order) => {
   };
 
   const handleCreateUser = async () => {
-    if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
-      alert('Name, email, and password are required.');
+    if (!newUserForm.name || !newUserForm.phone || !newUserForm.password) {
+      alert('Name, phone, and password are required.');
       return;
     }
     setLoading(true);
@@ -704,7 +704,11 @@ const handlePrintKOT = (order) => {
 
   const applyUserFilters = (filters) => {
     let filtered = [...users];
-    if (filters.search) filtered = filtered.filter(user => user.name.toLowerCase().includes(filters.search.toLowerCase()) || user.email.toLowerCase().includes(filters.search.toLowerCase()));
+    if (filters.search) filtered = filtered.filter(user => 
+      user.name.toLowerCase().includes(filters.search.toLowerCase()) || 
+      (user.email && user.email.toLowerCase().includes(filters.search.toLowerCase())) ||
+      (user.phone && user.phone.includes(filters.search))
+    );
     if (filters.userType === 'admin') filtered = filtered.filter(user => user.role === 'admin');
     else if (filters.userType === 'user') filtered = filtered.filter(user => user.role !== 'admin');
     filtered.sort((a, b) => {
@@ -977,7 +981,7 @@ const handlePrintKOT = (order) => {
                         const csvContent = "data:text/csv;charset=utf-8," + 
                           "Name,Email,Phone,User Type,Join Date,Orders,Total Amount\n" +
                           filteredUsers.map(user => 
-                            `"${user.name}","${user.email}","${user.phone || 'N/A'}","${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
+                            `"${user.name}","${user.email || 'No Email'}","${user.phone || 'N/A'}","${(user.email === 'admin@yashagency.in' || user?.email === 'yashagency25@gmail.com') ? 'Admin' : 'User'}","${new Date(user.createdAt).toLocaleDateString('en-IN')}","${user.orderCount || 0}","₹${user.totalAmount || 0}"`
                           ).join("\n");
                         const encodedUri = encodeURI(csvContent);
                         const link = document.createElement("a");
@@ -1004,7 +1008,7 @@ const handlePrintKOT = (order) => {
                       <label className="block text-sm font-medium mb-1">Search</label>
                       <input
                         type="text"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by name, email or phone..."
                         value={userFilters.search}
                         onChange={(e) => {
                           const newFilters = {...userFilters, search: e.target.value};
@@ -1070,7 +1074,7 @@ const handlePrintKOT = (order) => {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-bold text-gray-900">{user.name}</p>
-                          <p className="text-sm text-gray-600 break-all">{user.email}</p>
+                          <p className="text-sm text-gray-600 break-all">{user.email || 'No Email'}</p>
                           <p className="text-sm text-gray-600">{user.phone || 'No phone'}</p>
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
@@ -1094,7 +1098,8 @@ const handlePrintKOT = (order) => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Contact</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Stats</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Joined</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Cart</th>
@@ -1105,7 +1110,8 @@ const handlePrintKOT = (order) => {
                       {filteredUsers.map(user => (
                         <tr key={user._id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.name} <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{(user.email === 'admin@yashagency.in' || user?.email === 'galibrand99@gmail.com') ? 'Admin' : 'User'}</span></td>
-                          <td className="px-4 py-3 text-sm text-gray-600 break-words"><div>{user.email}</div><div>{user.phone || 'Not provided'}</div></td>
+                          <td className="px-4 py-3 text-sm text-gray-600 break-words">{user.email || 'No Email'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{user.phone || 'Not provided'}</td>
                           <td className="px-4 py-3 text-sm text-gray-600"><div>Orders: <strong>{user.orderCount || 0}</strong></div><div>Spent: <strong>₹{(user.totalAmount || 0).toLocaleString()}</strong></div></td>
                           <td className="px-4 py-3 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString('en-IN')}</td>                          
                           <td className="px-4 py-3 text-sm text-gray-600">{user.cart?.length || 0}</td>
