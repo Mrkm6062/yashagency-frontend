@@ -1055,6 +1055,7 @@ const handlePrintKOT = (order) => {
                         + Add Product
                       </button>
                     </div>
+                    </div>
                   </div>
                   <ProductForm
                     showProductForm={showProductForm}
