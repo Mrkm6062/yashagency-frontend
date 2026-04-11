@@ -44,6 +44,7 @@ function AdminPanel({ user, API_BASE, logout }) {
   });
   const [couponReport, setCouponReport] = useState([]);
   const [showReport, setShowReport] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
   const [bannerForm, setBannerForm] = useState({ desktop: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' }, mobile: { title: '', subtitle: '', backgroundImage: '', backgroundVideo: '' } });
   const [adminNotification, setAdminNotification] = useState(null);
 
@@ -725,6 +726,129 @@ const handlePrintKOT = (order) => {
     setFilteredUsers(filtered);
   };
 
+  const handleCsvUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target.result;
+        const rows = text.split(/\r?\n/);
+        
+        if (rows.length < 2) {
+          alert("Invalid CSV format.");
+          setLoading(false);
+          return;
+        }
+
+        const parseRow = (rowStr) => {
+          const result = [];
+          let inQuotes = false;
+          let currentStr = '';
+          for (let i = 0; i < rowStr.length; i++) {
+            const char = rowStr[i];
+            if (char === '"' && rowStr[i+1] === '"') {
+              currentStr += '"'; i++;
+            } else if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(currentStr); currentStr = '';
+            } else {
+              currentStr += char;
+            }
+          }
+          result.push(currentStr);
+          return result;
+        };
+
+        const headers = parseRow(rows[0]).map(h => h?.trim()?.toLowerCase());
+        const idIndex = headers.findIndex(h => h === 'product id');
+        const stockIndex = headers.findIndex(h => h === 'stock');
+        const sizeIndex = headers.findIndex(h => h === 'size');
+        const colorIndex = headers.findIndex(h => h === 'color');
+
+        if (idIndex === -1 || stockIndex === -1) {
+          alert("CSV must contain 'Product ID' and 'Stock' columns.");
+          setLoading(false);
+          return;
+        }
+
+        let updatedCount = 0;
+        const productUpdates = new Map();
+        
+        for (let i = 1; i < rows.length; i++) {
+          const rowStr = rows[i];
+          if (rowStr.trim()) {
+            const row = parseRow(rowStr);
+            const productId = row[idIndex]?.trim();
+            const stockToAddStr = row[stockIndex]?.trim();
+            const stockToAdd = parseInt(stockToAddStr, 10);
+            const size = sizeIndex !== -1 ? row[sizeIndex]?.trim() : '';
+            const color = colorIndex !== -1 ? row[colorIndex]?.trim() : '';
+
+            if (productId && !isNaN(stockToAdd) && stockToAdd !== 0) {
+              let productToUpdate = productUpdates.get(productId);
+              if (!productToUpdate) {
+                const originalProduct = products.find(p => p._id === productId);
+                if (originalProduct) {
+                  productToUpdate = JSON.parse(JSON.stringify(originalProduct));
+                  productUpdates.set(productId, productToUpdate);
+                }
+              }
+
+              if (productToUpdate) {
+                if (size && color && productToUpdate.variants && productToUpdate.variants.length > 0) {
+                  const variantIndex = productToUpdate.variants.findIndex(v => v.size === size && v.color === color);
+                  if (variantIndex !== -1) {
+                    const currentVariantStock = parseInt(productToUpdate.variants[variantIndex].stock) || 0;
+                    productToUpdate.variants[variantIndex].stock = Math.max(0, currentVariantStock + stockToAdd).toString();
+                  }
+                } else {
+                  const currentStock = parseInt(productToUpdate.stock) || 0;
+                  productToUpdate.stock = Math.max(0, currentStock + stockToAdd).toString();
+                }
+              }
+            }
+          }
+        }
+        
+        const productsToUpdateArr = Array.from(productUpdates.entries());
+        const totalTasks = productsToUpdateArr.length;
+        setImportProgress({ current: 0, total: totalTasks });
+
+        for (let i = 0; i < totalTasks; i++) {
+          const [productId, updatedProduct] = productsToUpdateArr[i];
+          
+          if (updatedProduct.variants && updatedProduct.variants.length > 0) {
+            updatedProduct.stock = updatedProduct.variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0).toString();
+          }
+
+          const response = await secureRequest(`${API_BASE}/api/admin/products/${productId}`, {
+            method: 'PUT',
+            body: JSON.stringify(updatedProduct)
+          });
+
+          if (response.ok) {
+            updatedCount++;
+          }
+          setImportProgress({ current: i + 1, total: totalTasks });
+        }
+
+        alert(`Successfully updated stock for ${updatedCount} products.`);
+        fetchData();
+      } catch (err) {
+        console.error('Error parsing CSV:', err);
+        alert('Error processing CSV file.');
+      }
+      setImportProgress({ current: 0, total: 0 });
+      setLoading(false);
+      e.target.value = null; // Reset input for future uploads
+    };
+    reader.readAsText(file);
+  };
+
   const filteredAdminProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(productFilters.search.toLowerCase()) || 
                           (p.soldBy && p.soldBy.toLowerCase().includes(productFilters.search.toLowerCase()));
@@ -897,9 +1021,10 @@ const handlePrintKOT = (order) => {
 
               <Route path="products" element={
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold">Products Management</h3>
-                    <div className="flex gap-2">
+                  <div className="flex justify-between items-start mb-6">
+                    <h3 className="text-lg font-semibold mt-1">Products Management</h3>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex gap-2">
                       <button
                         onClick={() => {
                           const headers = ["Product ID", "Name", "Category", "Sold By", "Price", "Stock", "Status", "Variants"].join(",");
@@ -922,6 +1047,10 @@ const handlePrintKOT = (order) => {
                       >
                         📊 Export CSV
                       </button>
+                      <label htmlFor="csv-upload" className="text-xs font-semibold bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 cursor-pointer flex items-center justify-center">
+                        {loading ? '⏳ Importing...' : '📥 Import Stock'}
+                      </label>
+                      <input type="file" id="csv-upload" accept=".csv" className="hidden" onChange={handleCsvUpload} disabled={loading} />
                       <button onClick={() => setShowProductForm(true)} className="text-xs font-semibold bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700">
                         + Add Product
                       </button>
