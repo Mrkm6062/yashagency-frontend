@@ -14,7 +14,7 @@ const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/YashA
 function AdminPanel({ user, API_BASE, logout }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [products, setProducts] = useState([]);
-  const [productFilters, setProductFilters] = useState({ search: '', category: 'all' });
+  const [productFilters, setProductFilters] = useState({ search: '', category: 'all', stockOperator: '', stockValue: '' });
   const [orders, setOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
@@ -729,7 +729,21 @@ const handlePrintKOT = (order) => {
     const matchesSearch = p.name.toLowerCase().includes(productFilters.search.toLowerCase()) || 
                           (p.soldBy && p.soldBy.toLowerCase().includes(productFilters.search.toLowerCase()));
     const matchesCategory = productFilters.category === 'all' || p.category === productFilters.category;
-    return matchesSearch && matchesCategory;
+    
+    let matchesStock = true;
+    if (productFilters.stockOperator && productFilters.stockValue !== '') {
+      const stockVal = Number(productFilters.stockValue);
+      const pStock = Number(p.stock) || 0;
+      if (productFilters.stockOperator === 'below') {
+        matchesStock = pStock < stockVal;
+      } else if (productFilters.stockOperator === 'greater') {
+        matchesStock = pStock > stockVal;
+      } else if (productFilters.stockOperator === 'equal') {
+        matchesStock = pStock === stockVal;
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesStock;
   });
 
   if (!user) {
@@ -897,7 +911,7 @@ const handlePrintKOT = (order) => {
                     API_BASE={API_BASE}
                   />
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Search Products</label>
                         <input
@@ -921,9 +935,34 @@ const handlePrintKOT = (order) => {
                           ))}
                         </select>
                       </div>
+                      <div className="flex gap-2">
+                        <div className="w-1/2">
+                          <label className="block text-sm font-medium mb-1">Stock Filter</label>
+                          <select
+                            value={productFilters.stockOperator}
+                            onChange={(e) => setProductFilters({...productFilters, stockOperator: e.target.value})}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Any</option>
+                            <option value="below">Below (&lt;)</option>
+                            <option value="greater">Greater (&gt;)</option>
+                            <option value="equal">Equal (=)</option>
+                          </select>
+                        </div>
+                        <div className="w-1/2">
+                          <label className="block text-sm font-medium mb-1">Quantity</label>
+                          <input
+                            type="number"
+                            placeholder="Qty"
+                            value={productFilters.stockValue}
+                            onChange={(e) => setProductFilters({...productFilters, stockValue: e.target.value})}
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
                       <div className="flex items-end">
                         <button
-                          onClick={() => setProductFilters({ search: '', category: 'all' })}
+                          onClick={() => setProductFilters({ search: '', category: 'all', stockOperator: '', stockValue: '' })}
                           className="w-full md:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
                         >
                           Clear Filters
