@@ -253,7 +253,9 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
         .filter(v => v.size === selectedSize)
         .map(v => ({ color: v.color, stock: v.stock }))
     : [];
-  const isVariantOutOfStock = selectedVariant && selectedVariant.stock <= 0;
+  const isOutOfStock = product.variants && product.variants.length > 0
+    ? (selectedVariant ? Number(selectedVariant.stock) <= 0 : false)
+    : Number(product.stock) <= 0;
 
 
   return (
@@ -507,11 +509,11 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                     <button onClick={() => setQuantity((Number(quantity) || 0) + 1)} className="px-3 sm:px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
                   </div>
                 </div>
-                <button onClick={handleAddToCart} disabled={isVariantOutOfStock} className="flex-1 bg-blue-600 text-white py-1 px-1 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
-                  Add to Cart
+                <button onClick={handleAddToCart} disabled={isOutOfStock} className="flex-1 bg-blue-600 text-white py-1 px-1 rounded-xl text-base font-bold hover:bg-blue-700 transition-colors border-2 border-blue-600 disabled:bg-gray-400 disabled:border-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
+                  {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </button>
-                <button onClick={handleBuyNow} disabled={isVariantOutOfStock} className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-xl text-base font-bold hover:bg-green-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
-                  Buy Now
+                <button onClick={handleBuyNow} disabled={isOutOfStock} className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-xl text-base font-bold hover:bg-green-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center">
+                  {isOutOfStock ? 'Out of Stock' : 'Buy Now'}
                 </button>
               </div>
             </div>
@@ -661,10 +663,10 @@ function ProductDetailPage({ products, addToCart, wishlistItems, fetchWishlist, 
                   if (pendingAction) pendingAction();
                   setShowSizeSelector(false);
                 }}
-                disabled={!selectedVariant}
+                disabled={!selectedVariant || Number(selectedVariant.stock) <= 0}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Confirm
+                {selectedVariant && Number(selectedVariant.stock) <= 0 ? 'Out of Stock' : 'Confirm'}
               </button>
             </div>
           </div>

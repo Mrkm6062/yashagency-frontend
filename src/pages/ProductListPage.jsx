@@ -147,6 +147,10 @@ function ProductListPage({ products, loading, addToCart }) {
   }, [categoryName]);
 
   const openQuantityModal = (product) => {
+    if (Number(product.stock) <= 0) {
+      alert("This product is currently out of stock.");
+      return;
+    }
     setModalProduct(product);
     setModalQuantity(1);
     setShowQuantityModal(true);
@@ -413,7 +417,14 @@ const formattedCategory =
       
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {filteredProducts.slice(0, displayCount).map((product, index) => (
-          <ProductCard key={product._id} product={product} addToCart={openQuantityModal} priority={index < 6} />
+          <div key={product._id} className="relative flex flex-col h-full">
+            <ProductCard product={product} addToCart={openQuantityModal} priority={index < 6} />
+            {Number(product.stock) <= 0 && (
+              <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded z-10 pointer-events-none shadow-sm">
+                Out of Stock
+              </div>
+            )}
+          </div>
         ))}
       </div>
       {displayCount < filteredProducts.length && (
