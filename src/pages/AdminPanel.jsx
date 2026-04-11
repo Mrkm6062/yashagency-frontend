@@ -899,7 +899,33 @@ const handlePrintKOT = (order) => {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold">Products Management</h3>
-                    <button onClick={() => setShowProductForm(true)} className="text-xs font-semibold bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700"> Add Product</button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          const headers = ["Product ID", "Name", "Category", "Sold By", "Price", "Stock", "Status", "Variants"].join(",");
+                          const rows = filteredAdminProducts.map(p => {
+                            const variantsStr = p.variants && p.variants.length > 0
+                              ? p.variants.map(v => `${v.size || 'N/A'}/${v.color || 'N/A'} (${v.stock || 0})`).join(" | ")
+                              : "None";
+                            return `"${p._id}","${(p.name || '').replace(/"/g, '""')}","${p.category || ''}","${p.soldBy || ''}","${p.price || 0}","${p.stock || 0}","${p.enabled !== false ? 'Enabled' : 'Disabled'}","${variantsStr}"`;
+                          }).join("\n");
+                          const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
+                          const encodedUri = encodeURI(csvContent);
+                          const link = document.createElement("a");
+                          link.setAttribute("href", encodedUri);
+                          link.setAttribute("download", `products_${new Date().toISOString().split('T')[0]}.csv`);
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="text-xs font-semibold bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700"
+                      >
+                        📊 Export CSV
+                      </button>
+                      <button onClick={() => setShowProductForm(true)} className="text-xs font-semibold bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700">
+                        + Add Product
+                      </button>
+                    </div>
                   </div>
                   <ProductForm
                     showProductForm={showProductForm}
