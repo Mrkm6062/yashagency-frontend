@@ -90,6 +90,7 @@ function ProductForm({ showProductForm, setShowProductForm, editingProduct, setE
         handleClose();
         fetchData();
         localStorage.removeItem('products_cache');
+        localStorage.removeItem('products_cache_time');
       }
     } catch (error) {
       setAdminNotification({ message: 'Failed to save product', type: 'error' });

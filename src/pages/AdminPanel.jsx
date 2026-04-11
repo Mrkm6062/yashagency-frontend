@@ -190,6 +190,7 @@ function AdminPanel({ user, API_BASE, logout }) {
       await secureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', body: JSON.stringify({ enabled: !enabled }) });
       fetchData();
       localStorage.removeItem('products_cache');
+      localStorage.removeItem('products_cache_time');
     } catch (error) { alert('Failed to toggle product'); }
   };
 
@@ -245,6 +246,7 @@ function AdminPanel({ user, API_BASE, logout }) {
       await secureRequest(`${API_BASE}/api/admin/products/${productId}/toggle`, { method: 'PATCH', body: JSON.stringify({ enabled: !enabled }) });
       fetchData();
       localStorage.removeItem('products_cache');
+      localStorage.removeItem('products_cache_time');
     } catch (error) { alert('Failed to toggle product'); }
   };
 
@@ -838,6 +840,8 @@ const handlePrintKOT = (order) => {
 
         alert(`Successfully updated stock for ${updatedCount} products.`);
         fetchData();
+        localStorage.removeItem('products_cache');
+        localStorage.removeItem('products_cache_time');
       } catch (err) {
         console.error('Error parsing CSV:', err);
         alert('Error processing CSV file.');

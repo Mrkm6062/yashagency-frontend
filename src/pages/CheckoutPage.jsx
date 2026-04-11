@@ -207,6 +207,8 @@ function CheckoutPage({ user, clearCart }) {
         const data = await response.json();
         alert('Order placed successfully!');
         if (!buyNow) clearCart();
+        localStorage.removeItem('products_cache');
+        localStorage.removeItem('products_cache_time');
         navigate(`/track/${data.orderId}`);
       } else {
         const error = await response.json();

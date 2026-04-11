@@ -5,7 +5,7 @@ import LoadingSpinner from '../LoadingSpinner.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { FaFilter } from 'react-icons/fa';
 
-function ProductListPage({ products, loading, addToCart }) {
+function ProductListPage({ products, loading, addToCart, fetchProducts }) {
   const navigate = useNavigate();
   const { categoryName } = useParams(); // Get category from URL
   const location = useLocation();
@@ -60,6 +60,13 @@ function ProductListPage({ products, loading, addToCart }) {
       sessionStorage.setItem(storageKey, JSON.stringify(state));
     };
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (fetchProducts) {
+      fetchProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
 
   useEffect(() => {
