@@ -14,6 +14,7 @@ const LOGO_URL = "https://storage.googleapis.com/samriddhi-blog-images-123/YashA
 function AdminPanel({ user, API_BASE, logout }) {
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
   const [products, setProducts] = useState([]);
+  const [productFilters, setProductFilters] = useState({ search: '', category: 'all' });
   const [orders, setOrders] = useState([]);
   const [allOrders, setAllOrders] = useState([]);
   const [coupons, setCoupons] = useState([]);
@@ -724,6 +725,13 @@ const handlePrintKOT = (order) => {
     setFilteredUsers(filtered);
   };
 
+  const filteredAdminProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(productFilters.search.toLowerCase()) || 
+                          (p.soldBy && p.soldBy.toLowerCase().includes(productFilters.search.toLowerCase()));
+    const matchesCategory = productFilters.category === 'all' || p.category === productFilters.category;
+    return matchesSearch && matchesCategory;
+  });
+
   if (!user) {
     return <div className="text-center py-12"><h2 className="text-2xl font-bold text-red-600">Access Denied</h2><p className="text-gray-600 mt-2">Please login to access admin panel</p></div>;
   }
@@ -888,12 +896,50 @@ const handlePrintKOT = (order) => {
                     setAdminNotification={setAdminNotification}
                     API_BASE={API_BASE}
                   />
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Search Products</label>
+                        <input
+                          type="text"
+                          placeholder="Search by name or sold by..."
+                          value={productFilters.search}
+                          onChange={(e) => setProductFilters({...productFilters, search: e.target.value})}
+                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Filter by Category</label>
+                        <select
+                          value={productFilters.category}
+                          onChange={(e) => setProductFilters({...productFilters, category: e.target.value})}
+                          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="all">All Categories</option>
+                          {[...new Set(products.map(p => p.category).filter(Boolean))].map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => setProductFilters({ search: '', category: 'all' })}
+                          className="w-full md:w-auto bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">Products List</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">Products List</h3>
+                      <span className="text-sm font-medium text-gray-600">Showing {filteredAdminProducts.length} products</span>
+                    </div>
                     
                     {/* Mobile Card View */}
                     <div className="space-y-4 grid grid-cols-1 md:grid-cols md:hidden">
-                      {products.map(product => (
+                      {filteredAdminProducts.map(product => (
                         <div key={product._id} className="bg-white py-0.5 rounded-lg ">
                           <div className="flex items-start gap-4">
                             <img 
@@ -940,7 +986,7 @@ const handlePrintKOT = (order) => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {products.map(product => (
+                          {filteredAdminProducts.map(product => (
                             <tr key={product._id} className="hover:bg-gray-50">
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-3">
